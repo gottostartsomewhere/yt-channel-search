@@ -1,0 +1,223 @@
+/* YouTube Channel Search+  —  in-page grid takeover (scoped with .ytcs-) */
+
+/* floating launcher pill */
+.ytcs-launcher {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 6000;
+  padding: 10px 18px;
+  border: 1px solid #3a3a3a;
+  border-radius: 999px;
+  background: #0f0f0f;
+  color: #fff;
+  font: 600 13px/1 "Roboto", system-ui, sans-serif;
+  letter-spacing: 0.3px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+}
+.ytcs-launcher:hover {
+  background: #1c1c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(255, 0, 60, 0.28);
+}
+
+/* wrapper that replaces the native grid in the content column */
+.ytcs-wrap {
+  width: 100%;
+  color: var(--yt-spec-text-primary, #f1f1f1);
+  font-family: "Roboto", system-ui, sans-serif;
+}
+
+/* sticky filter bar */
+.ytcs-bar {
+  position: sticky;
+  top: 56px; /* below the YouTube masthead */
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
+  background: var(--yt-spec-base-background, #0f0f0f);
+  border: 1px solid var(--yt-spec-10-percent-layer, #303030);
+  border-radius: 14px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
+}
+.ytcs-brand {
+  font-weight: 800;
+  font-size: 15px;
+  padding-right: 6px;
+  background: linear-gradient(92deg, #ff4e45, #ff2d55 55%, #ff5fa2);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.ytcs-field { display: flex; flex-direction: column; gap: 4px; }
+.ytcs-flabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--yt-spec-text-secondary, #aaa);
+  padding-left: 2px;
+}
+.ytcs-in {
+  background: var(--yt-spec-badge-chip-background, #1f1f1f);
+  border: 1px solid var(--yt-spec-10-percent-layer, #3a3a3a);
+  border-radius: 999px;
+  color: var(--yt-spec-text-primary, #f1f1f1);
+  padding: 8px 12px;
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+select.ytcs-in { padding-right: 8px; }
+.ytcs-in:hover { background: #272727; }
+.ytcs-in:focus { border-color: #ff2d55; }
+.ytcs-kw { min-width: 170px; cursor: text; }
+
+.ytcs-status { font-size: 12px; color: var(--yt-spec-text-secondary, #aaa); }
+.ytcs-count {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--yt-spec-text-primary, #f1f1f1);
+  white-space: nowrap;
+}
+.ytcs-restore {
+  background: none;
+  border: 1px solid var(--yt-spec-10-percent-layer, #3a3a3a);
+  color: var(--yt-spec-text-primary, #f1f1f1);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+.ytcs-restore:hover { background: var(--yt-spec-badge-chip-background, #272727); }
+
+/* channel stats strip */
+.ytcs-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 0 16px;
+  margin-bottom: 18px;
+}
+.ytcs-stat {
+  flex: 1 1 120px;
+  min-width: 110px;
+  padding: 12px 14px;
+  border: 1px solid var(--yt-spec-10-percent-layer, #2a2a2a);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0));
+}
+.ytcs-statval {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--yt-spec-text-primary, #f1f1f1);
+}
+.ytcs-statlabel {
+  margin-top: 4px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--yt-spec-text-secondary, #aaa);
+}
+
+/* the results grid, styled like YouTube's own video grid */
+.ytcs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px 16px;
+  padding: 0 16px 48px;
+}
+.ytcs-grid.ytcs-busy { opacity: 0.5; pointer-events: none; }
+
+.ytcs-card {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+}
+.ytcs-thumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--yt-spec-badge-chip-background, #1c1c1c);
+}
+.ytcs-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* crops hqdefault letterbox bars */
+  display: block;
+  transition: transform 0.18s ease;
+}
+.ytcs-card:hover .ytcs-thumb img { transform: scale(1.04); }
+.ytcs-dur {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  background: rgba(0, 0, 0, 0.82);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  padding: 3px 5px;
+  border-radius: 4px;
+}
+.ytcs-outlier {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: linear-gradient(95deg, #ff8a00, #ff2d55);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 4px 7px;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(255, 60, 0, 0.35);
+}
+.ytcs-info { padding: 11px 2px 0; }
+.ytcs-ctitle {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.ytcs-card:hover .ytcs-ctitle { color: #fff; }
+.ytcs-cmeta {
+  margin-top: 5px;
+  font-size: 12.5px;
+  color: var(--yt-spec-text-secondary, #aaa);
+}
+.ytcs-cvpd {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #4ea1ff;
+}
+
+.ytcs-empty,
+.ytcs-more {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 28px;
+  color: var(--yt-spec-text-secondary, #aaa);
+  font-size: 13px;
+}
