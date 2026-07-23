@@ -249,7 +249,11 @@
   }
 
   async function fetchCatalog(onProgress) {
-    const url = channelVideosUrl();
+    return fetchCatalogFrom(channelVideosUrl(), onProgress);
+  }
+
+  // Fetch the full uploads catalog for any channel's /videos URL (used by compare too).
+  async function fetchCatalogFrom(url, onProgress) {
     if (!url) throw new Error("Not on a channel page.");
 
     const html = await (await fetch(url, { credentials: "same-origin" })).text();
@@ -308,7 +312,10 @@
   }
 
   // ---- state ---------------------------------------------------------------
-  const state = { catalog: [], loading: false, active: false, nativeGrid: null, nativeDisplay: "", medianVpd: 0 };
+  const state = {
+    catalog: [], loading: false, active: false, nativeGrid: null, nativeDisplay: "",
+    medianVpd: 0, view: "grid", newIds: new Set(), cachedAt: 0,
+  };
   let ui = null;      // cached refs for the injected UI
   let launcher = null;
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -362,7 +369,8 @@
     if (!ui) return;
     const rows = filterAndSort();
     renderStats(rows);
-    renderGrid(rows);
+    if (state.view === "analytics") renderAnalytics(rows);
+    else renderGrid(rows);
     ui.count.textContent = rows.length + " of " + state.catalog.length;
   }
 
@@ -450,6 +458,12 @@
         badge.textContent = "🔥 " + (vpdVal / state.medianVpd).toFixed(1) + "×";
         thumb.appendChild(badge);
       }
+      if (state.newIds && state.newIds.has(v.id)) {
+        const nb = document.createElement("span");
+        nb.className = "ytcs-new";
+        nb.textContent = "NEW";
+        thumb.appendChild(nb);
+      }
 
       card.appendChild(thumb);
       card.appendChild(info);
@@ -469,6 +483,272 @@
       more.textContent = "Showing first 600 of " + rows.length + " — narrow the filters to see the rest.";
       ui.grid.appendChild(more);
     }
+  }
+
+  // ---- IndexedDB cache -----------------------------------------------------
+  function idbOpen() {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open("ytcs", 1);
+      req.onupgradeneeded = () => req.result.createObjectStore("catalogs");
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  async function idbGet(key) {
+    try {
+      const db = await idbOpen();
+      return await new Promise((res, rej) => {
+        const rq = db.transaction("catalogs", "readonly").objectStore("catalogs").get(key);
+        rq.onsuccess = () => res(rq.result || null);
+        rq.onerror = () => rej(rq.error);
+      });
+    } catch (e) { return null; }
+  }
+  async function idbPut(key, val) {
+    try {
+      const db = await idbOpen();
+      await new Promise((res, rej) => {
+        const tx = db.transaction("catalogs", "readwrite");
+        tx.objectStore("catalogs").put(val, key);
+        tx.oncomplete = () => res();
+        tx.onerror = () => rej(tx.error);
+      });
+    } catch (e) { /* cache is best-effort */ }
+  }
+  function fmtAgo(ms) {
+    if (!ms) return "";
+    const s = Math.max(1, Math.floor((Date.now() - ms) / 1000));
+    if (s < 60) return s + "s ago";
+    const m = Math.floor(s / 60);
+    if (m < 60) return m + "m ago";
+    const h = Math.floor(m / 60);
+    if (h < 24) return h + "h ago";
+    return Math.floor(h / 24) + "d ago";
+  }
+
+  // ---- aggregate stats -----------------------------------------------------
+  function statsOf(cat) {
+    const n = cat.length;
+    const total = cat.reduce((s, v) => s + v.views, 0);
+    const medViews = median(cat.map((v) => v.views));
+    const avgDur = n ? Math.round(cat.reduce((s, v) => s + v.seconds, 0) / n) : 0;
+    const vpds = cat.filter((v) => v.days).map((v) => v.views / Math.max(v.days, 1));
+    const medVpd = median(vpds);
+    const topVpd = vpds.length ? Math.max.apply(null, vpds) : 0;
+    return { n, total, medViews, avgDur, medVpd, topVpd };
+  }
+
+  // ---- export --------------------------------------------------------------
+  function toCSV(rows) {
+    const cols = ["title", "videoId", "url", "durationSeconds", "duration", "views", "published", "approxDaysAgo", "viewsPerDay"];
+    const esc = (s) => {
+      s = String(s == null ? "" : s);
+      return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    };
+    const lines = [cols.join(",")];
+    for (const v of rows) {
+      const vpd = v.days ? Math.round(v.views / Math.max(v.days, 1)) : "";
+      lines.push([
+        esc(v.title), v.id, "https://youtu.be/" + v.id, v.seconds, esc(fmtDuration(v.seconds)),
+        v.views, esc(v.publishedText), v.days != null ? Math.round(v.days) : "", vpd,
+      ].join(","));
+    }
+    return lines.join("\n");
+  }
+  function download(filename, text, mime) {
+    const blob = new Blob([text], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  function exportName(ext) {
+    const base = (channelBasePath() || "channel").replace(/[^\w@.-]/g, "_").replace(/^_+/, "");
+    return (base || "channel") + "-videos." + ext;
+  }
+  function exportCSV() { download(exportName("csv"), toCSV(filterAndSort()), "text/csv;charset=utf-8"); }
+  function exportJSON() { download(exportName("json"), JSON.stringify(filterAndSort(), null, 2), "application/json"); }
+
+  // ---- tiny SVG charts (no libraries, CSP-safe) ----------------------------
+  const SVGNS = "http://www.w3.org/2000/svg";
+  function svg(tag, attrs, kids) {
+    const el = document.createElementNS(SVGNS, tag);
+    for (const k in attrs) el.setAttribute(k, attrs[k]);
+    (kids || []).forEach((c) => el.appendChild(c));
+    return el;
+  }
+  function svgText(x, y, s, cls) {
+    const t = svg("text", { x: x, y: y, "text-anchor": "middle", class: cls });
+    t.textContent = s;
+    return t;
+  }
+  function barChart(data) {
+    const W = 340, H = 172, pad = { t: 14, r: 8, b: 30, l: 8 };
+    const max = Math.max(1, Math.max.apply(null, data.map((d) => d.value)));
+    const iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
+    const slot = iw / (data.length || 1);
+    const bw = Math.min(slot * 0.68, 46);
+    const root = svg("svg", { viewBox: "0 0 " + W + " " + H, class: "ytcs-svg", preserveAspectRatio: "xMidYMid meet" });
+    data.forEach((d, i) => {
+      const h = (d.value / max) * ih;
+      const x = pad.l + i * slot + (slot - bw) / 2;
+      const y = pad.t + (ih - h);
+      root.appendChild(svg("rect", { x: x, y: y, width: bw, height: Math.max(h, 1), rx: 3, class: "ytcs-bar" }));
+      if (d.value) root.appendChild(svgText(x + bw / 2, y - 4, fmtCompact(d.value), "ytcs-barval"));
+      root.appendChild(svgText(x + bw / 2, H - 12, d.label, "ytcs-barlab"));
+    });
+    return root;
+  }
+  function scatterChart(points, xMax, xlab) {
+    const W = 340, H = 178, pad = { t: 10, r: 10, b: 26, l: 10 };
+    const iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
+    const yMaxLog = Math.log10(Math.max(10, Math.max.apply(null, points.map((p) => p.y))));
+    const root = svg("svg", { viewBox: "0 0 " + W + " " + H, class: "ytcs-svg", preserveAspectRatio: "xMidYMid meet" });
+    root.appendChild(svg("line", { x1: pad.l, y1: pad.t + ih, x2: pad.l + iw, y2: pad.t + ih, class: "ytcs-axis" }));
+    points.forEach((p) => {
+      const px = pad.l + (Math.min(p.x, xMax) / xMax) * iw;
+      const py = pad.t + ih - (Math.log10(Math.max(1, p.y)) / yMaxLog) * ih;
+      root.appendChild(svg("circle", { cx: px, cy: py, r: 2.4, class: "ytcs-dot" }));
+    });
+    root.appendChild(svgText(pad.l + iw / 2, H - 4, xlab, "ytcs-axlab"));
+    return root;
+  }
+  function chartCard(title, node) {
+    const card = document.createElement("div");
+    card.className = "ytcs-chart";
+    const h = document.createElement("div");
+    h.className = "ytcs-charttitle";
+    h.textContent = title;
+    card.appendChild(h);
+    card.appendChild(node);
+    return card;
+  }
+  function chartEmpty() {
+    const d = document.createElement("div");
+    d.className = "ytcs-chartempty";
+    d.textContent = "not enough data";
+    return d;
+  }
+
+  // ---- analytics view ------------------------------------------------------
+  function bucketCounts(rows, buckets, valueOf) {
+    return buckets.map((b) => ({
+      label: b[0],
+      value: rows.filter((v) => valueOf(v) >= b[1] && valueOf(v) < b[2]).length,
+    }));
+  }
+  function renderAnalytics(rows) {
+    ui.charts.innerHTML = "";
+
+    const nowYear = new Date().getFullYear();
+    const byYear = {};
+    rows.forEach((v) => {
+      if (v.days != null) {
+        const y = nowYear - Math.floor(v.days / 365);
+        byYear[y] = (byYear[y] || 0) + 1;
+      }
+    });
+    const years = Object.keys(byYear).map(Number).sort((a, b) => a - b);
+    const uploads = years.map((y) => ({ label: "'" + String(y).slice(2), value: byYear[y] }));
+    ui.charts.appendChild(chartCard("Uploads per year", uploads.length ? barChart(uploads) : chartEmpty()));
+
+    const viewsData = bucketCounts(rows, [
+      ["<1K", 0, 1e3], ["1–10K", 1e3, 1e4], ["10–100K", 1e4, 1e5],
+      ["100K–1M", 1e5, 1e6], ["1–10M", 1e6, 1e7], ["10M+", 1e7, Infinity],
+    ], (v) => v.views);
+    ui.charts.appendChild(chartCard("Views distribution", barChart(viewsData)));
+
+    const lenData = bucketCounts(rows, [
+      ["<1m", 0, 60], ["1–4m", 60, 240], ["4–20m", 240, 1200],
+      ["20–60m", 1200, 3600], ["60m+", 3600, Infinity],
+    ], (v) => v.seconds);
+    ui.charts.appendChild(chartCard("Length distribution", barChart(lenData)));
+
+    const pts = rows.filter((v) => v.seconds > 0 && v.views > 0).map((v) => ({ x: v.seconds, y: v.views }));
+    const xMax = pts.length ? Math.max.apply(null, pts.map((p) => p.x)) : 3600;
+    ui.charts.appendChild(chartCard("Length vs views (log)", pts.length ? scatterChart(pts, xMax, "video length →") : chartEmpty()));
+  }
+
+  // ---- compare channels ----------------------------------------------------
+  function normalizeChannelInput(input) {
+    input = (input || "").trim();
+    if (!input) return null;
+    const m = input.match(/youtube\.com\/(@[\w.-]+|channel\/[\w-]+|c\/[\w.-]+|user\/[\w.-]+)/i);
+    if (m) return "https://www.youtube.com/" + m[1] + "/videos";
+    if (input.charAt(0) === "@") return "https://www.youtube.com/" + input + "/videos";
+    if (/^UC[\w-]{20,}$/.test(input)) return "https://www.youtube.com/channel/" + input + "/videos";
+    if (/^[\w.-]+$/.test(input)) return "https://www.youtube.com/@" + input + "/videos";
+    return null;
+  }
+  async function runCompare() {
+    const raw = ui.cmpInput.value.trim();
+    if (!raw) return;
+    const url = normalizeChannelInput(raw);
+    if (!url) { ui.cmpStatus.textContent = "couldn't parse that channel"; return; }
+    ui.cmpBtn.disabled = true;
+    ui.cmpStatus.textContent = "loading… 0";
+    try {
+      const cat = await fetchCatalogFrom(url, (n) => (ui.cmpStatus.textContent = "loading… " + n));
+      ui.cmpStatus.textContent = cat.length + " videos";
+      const label = raw.replace(/^https?:\/\/(www\.)?youtube\.com\//i, "").replace(/\/.*$/, "");
+      renderCompare(state.catalog, cat, label);
+    } catch (e) {
+      ui.cmpStatus.textContent = "error: " + e.message;
+    } finally {
+      ui.cmpBtn.disabled = false;
+    }
+  }
+  function renderCompare(catA, catB, labelB) {
+    const a = statsOf(catA), b = statsOf(catB);
+    const metrics = [
+      ["Videos", String(a.n), String(b.n)],
+      ["Total views", fmtCompact(a.total), fmtCompact(b.total)],
+      ["Median views", fmtCompact(a.medViews), fmtCompact(b.medViews)],
+      ["Avg length", fmtDuration(a.avgDur) || "–", fmtDuration(b.avgDur) || "–"],
+      ["Median views/day", fmtCompact(Math.round(a.medVpd)), fmtCompact(Math.round(b.medVpd))],
+      ["Top views/day", fmtCompact(Math.round(a.topVpd)), fmtCompact(Math.round(b.topVpd))],
+    ];
+    const thisLabel = (channelBasePath() || "this channel").replace(/^\//, "");
+    const tbl = document.createElement("table");
+    tbl.className = "ytcs-cmptable";
+    const thead = document.createElement("thead");
+    const htr = document.createElement("tr");
+    ["", thisLabel, labelB].forEach((h) => {
+      const th = document.createElement("th");
+      th.textContent = h;
+      htr.appendChild(th);
+    });
+    thead.appendChild(htr);
+    tbl.appendChild(thead);
+    const tb = document.createElement("tbody");
+    for (const row of metrics) {
+      const tr = document.createElement("tr");
+      row.forEach((cell, i) => {
+        const td = document.createElement("td");
+        td.textContent = cell;
+        if (i === 0) td.className = "ytcs-cmpk";
+        tr.appendChild(td);
+      });
+      tb.appendChild(tr);
+    }
+    tbl.appendChild(tb);
+    ui.cmpResult.innerHTML = "";
+    ui.cmpResult.appendChild(tbl);
+  }
+
+  // ---- view toggle ---------------------------------------------------------
+  function setView(name) {
+    state.view = name;
+    const analytics = name === "analytics";
+    ui.grid.style.display = analytics ? "none" : "";
+    ui.analytics.style.display = analytics ? "" : "none";
+    ui.tabGrid.classList.toggle("ytcs-tabon", !analytics);
+    ui.tabAnalytics.classList.toggle("ytcs-tabon", analytics);
+    applyView();
   }
 
   // ---- UI helpers ----------------------------------------------------------
@@ -551,12 +831,40 @@
     status.className = "ytcs-status";
     const count = document.createElement("span");
     count.className = "ytcs-count";
+
+    // view tabs
+    const tabGrid = document.createElement("button");
+    tabGrid.className = "ytcs-tab ytcs-tabon";
+    tabGrid.textContent = "Grid";
+    const tabAnalytics = document.createElement("button");
+    tabAnalytics.className = "ytcs-tab";
+    tabAnalytics.textContent = "Analytics";
+    const tabs = document.createElement("div");
+    tabs.className = "ytcs-tabs";
+    tabs.appendChild(tabGrid);
+    tabs.appendChild(tabAnalytics);
+
+    // action buttons
+    const iconBtn = (label, title) => {
+      const b = document.createElement("button");
+      b.className = "ytcs-icbtn";
+      b.textContent = label;
+      if (title) b.title = title;
+      return b;
+    };
+    const refresh = iconBtn("↻ Refresh", "Re-fetch and highlight new uploads");
+    refresh.onclick = () => refreshCatalog();
+    const csv = iconBtn("CSV", "Export the filtered videos as CSV");
+    csv.onclick = () => exportCSV();
+    const json = iconBtn("JSON", "Export the filtered videos as JSON");
+    json.onclick = () => exportJSON();
     const restore = document.createElement("button");
     restore.className = "ytcs-restore";
     restore.textContent = "Restore YouTube";
     restore.onclick = () => disable();
 
     bar.appendChild(brand);
+    bar.appendChild(tabs);
     bar.appendChild(field("Keyword", kw));
     bar.appendChild(field("Length", duration));
     bar.appendChild(field("Views", views));
@@ -564,6 +872,9 @@
     bar.appendChild(field("Sort", sort));
     bar.appendChild(status);
     bar.appendChild(count);
+    bar.appendChild(refresh);
+    bar.appendChild(csv);
+    bar.appendChild(json);
     bar.appendChild(restore);
 
     const stats = document.createElement("div");
@@ -572,11 +883,55 @@
     const grid = document.createElement("div");
     grid.className = "ytcs-grid";
 
+    // analytics view (charts + compare), hidden until the Analytics tab is picked
+    const analytics = document.createElement("div");
+    analytics.className = "ytcs-analytics";
+    analytics.style.display = "none";
+    const charts = document.createElement("div");
+    charts.className = "ytcs-charts";
+    analytics.appendChild(charts);
+
+    const cmp = document.createElement("div");
+    cmp.className = "ytcs-compare";
+    const cmpHead = document.createElement("div");
+    cmpHead.className = "ytcs-cmphead";
+    cmpHead.textContent = "Compare with another channel";
+    const cmpRow = document.createElement("div");
+    cmpRow.className = "ytcs-cmprow";
+    const cmpInput = document.createElement("input");
+    cmpInput.type = "text";
+    cmpInput.className = "ytcs-in";
+    cmpInput.placeholder = "@handle or channel URL";
+    const cmpBtn = document.createElement("button");
+    cmpBtn.className = "ytcs-icbtn";
+    cmpBtn.textContent = "Compare";
+    const cmpStatus = document.createElement("span");
+    cmpStatus.className = "ytcs-status";
+    cmpRow.appendChild(cmpInput);
+    cmpRow.appendChild(cmpBtn);
+    cmpRow.appendChild(cmpStatus);
+    const cmpResult = document.createElement("div");
+    cmpResult.className = "ytcs-cmpresult";
+    cmp.appendChild(cmpHead);
+    cmp.appendChild(cmpRow);
+    cmp.appendChild(cmpResult);
+    analytics.appendChild(cmp);
+
     wrap.appendChild(bar);
     wrap.appendChild(stats);
     wrap.appendChild(grid);
+    wrap.appendChild(analytics);
 
-    ui = { wrap, bar, kw, duration, views, uploaded, sort, status, count, stats, grid };
+    ui = {
+      wrap, bar, kw, duration, views, uploaded, sort, status, count,
+      stats, grid, analytics, charts, tabGrid, tabAnalytics,
+      cmpInput, cmpBtn, cmpStatus, cmpResult,
+    };
+
+    tabGrid.onclick = () => setView("grid");
+    tabAnalytics.onclick = () => setView("analytics");
+    cmpBtn.onclick = () => runCompare();
+    cmpInput.addEventListener("keydown", (e) => { if (e.key === "Enter") runCompare(); });
 
     for (const el of [kw, duration, views, uploaded, sort]) {
       el.addEventListener("input", applyView);
@@ -599,17 +954,47 @@
     return null;
   }
 
+  function recomputeMedianVpd() {
+    const vpds = state.catalog.filter((v) => v.days).map((v) => v.views / Math.max(v.days, 1));
+    state.medianVpd = median(vpds);
+  }
+
+  // Load from cache instantly if present; otherwise fetch fresh.
   async function loadCatalog() {
+    if (state.loading) return;
+    const key = channelBasePath();
+    const cached = key ? await idbGet(key) : null;
+    if (cached && cached.videos && cached.videos.length) {
+      state.catalog = cached.videos;
+      state.cachedAt = cached.fetchedAt || 0;
+      state.newIds = new Set();
+      recomputeMedianVpd();
+      ui.status.textContent = state.catalog.length + " cached • " + fmtAgo(state.cachedAt);
+      applyView();
+      return;
+    }
+    await refreshCatalog();
+  }
+
+  // Always re-fetch; diff against the cached ids to flag new uploads.
+  async function refreshCatalog() {
     if (state.loading) return;
     state.loading = true;
     ui.grid.classList.add("ytcs-busy");
     ui.status.textContent = "loading… 0";
+    const key = channelBasePath();
+    let oldIds = null;
+    const prev = key ? await idbGet(key) : null;
+    if (prev && prev.ids) oldIds = new Set(prev.ids);
     try {
       const cat = await fetchCatalog((n) => (ui.status.textContent = "loading… " + n));
       state.catalog = cat;
-      const vpds = cat.filter((v) => v.days).map((v) => v.views / Math.max(v.days, 1));
-      state.medianVpd = median(vpds);
-      ui.status.textContent = cat.length + " loaded";
+      state.cachedAt = Date.now();
+      recomputeMedianVpd();
+      state.newIds = oldIds ? new Set(cat.filter((v) => !oldIds.has(v.id)).map((v) => v.id)) : new Set();
+      if (key) idbPut(key, { channel: key, fetchedAt: state.cachedAt, videos: cat, ids: cat.map((v) => v.id) });
+      const newN = state.newIds.size;
+      ui.status.textContent = cat.length + " loaded" + (newN ? " • " + newN + " new" : "");
       applyView();
     } catch (e) {
       ui.status.textContent = "error: " + e.message;
@@ -685,6 +1070,9 @@
     // YouTube replaces the grid node on navigation; tear down and reset.
     disable();
     state.catalog = [];
+    state.newIds = new Set();
+    state.cachedAt = 0;
+    state.view = "grid";
     setTimeout(ensureUi, 300);
   });
   setInterval(ensureUi, 1500);

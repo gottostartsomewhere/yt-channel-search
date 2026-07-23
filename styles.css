@@ -221,3 +221,126 @@ select.ytcs-in { padding-right: 8px; }
   color: var(--yt-spec-text-secondary, #aaa);
   font-size: 13px;
 }
+
+/* view tabs */
+.ytcs-tabs {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  background: var(--yt-spec-badge-chip-background, #1f1f1f);
+  border: 1px solid var(--yt-spec-10-percent-layer, #3a3a3a);
+  border-radius: 999px;
+}
+.ytcs-tab {
+  border: none;
+  background: none;
+  color: var(--yt-spec-text-secondary, #aaa);
+  font: 600 12.5px/1 "Roboto", system-ui, sans-serif;
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.ytcs-tab.ytcs-tabon {
+  background: #ff2d55;
+  color: #fff;
+}
+
+/* action buttons (refresh, csv, json) */
+.ytcs-icbtn {
+  background: var(--yt-spec-badge-chip-background, #1f1f1f);
+  border: 1px solid var(--yt-spec-10-percent-layer, #3a3a3a);
+  color: var(--yt-spec-text-primary, #f1f1f1);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+.ytcs-icbtn:hover { background: #2f2f2f; }
+.ytcs-icbtn:disabled { opacity: 0.5; cursor: default; }
+
+/* "new since last visit" badge */
+.ytcs-new {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  background: #2ba640;
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  padding: 3px 6px;
+  border-radius: 5px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+/* if a card is both new and an outlier, drop the NEW chip just below the outlier */
+.ytcs-outlier + .ytcs-new { top: 32px; }
+
+/* analytics view */
+.ytcs-analytics { padding: 0 16px 48px; }
+.ytcs-charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 14px;
+}
+.ytcs-chart {
+  border: 1px solid var(--yt-spec-10-percent-layer, #2a2a2a);
+  border-radius: 14px;
+  padding: 14px 14px 8px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0));
+}
+.ytcs-charttitle {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: var(--yt-spec-text-primary, #f1f1f1);
+}
+.ytcs-chartempty {
+  padding: 40px 0;
+  text-align: center;
+  color: var(--yt-spec-text-secondary, #888);
+  font-size: 12px;
+}
+.ytcs-svg { width: 100%; height: auto; display: block; }
+.ytcs-bar { fill: #4ea1ff; }
+.ytcs-barval { fill: var(--yt-spec-text-primary, #f1f1f1); font-size: 11px; font-weight: 600; }
+.ytcs-barlab { fill: var(--yt-spec-text-secondary, #9a9a9a); font-size: 10.5px; }
+.ytcs-axis { stroke: var(--yt-spec-10-percent-layer, #3a3a3a); stroke-width: 1; }
+.ytcs-dot { fill: #ff5fa2; fill-opacity: 0.7; }
+.ytcs-axlab { fill: var(--yt-spec-text-secondary, #9a9a9a); font-size: 10.5px; }
+
+/* compare */
+.ytcs-compare {
+  margin-top: 22px;
+  border-top: 1px solid var(--yt-spec-10-percent-layer, #2a2a2a);
+  padding-top: 18px;
+}
+.ytcs-cmphead { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+.ytcs-cmprow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ytcs-cmprow .ytcs-in { min-width: 240px; }
+.ytcs-cmpresult { margin-top: 14px; overflow-x: auto; }
+.ytcs-cmptable {
+  border-collapse: collapse;
+  width: 100%;
+  max-width: 620px;
+  font-size: 13px;
+}
+.ytcs-cmptable th,
+.ytcs-cmptable td {
+  text-align: right;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--yt-spec-10-percent-layer, #262626);
+}
+.ytcs-cmptable th {
+  color: var(--yt-spec-text-secondary, #aaa);
+  font-weight: 600;
+  font-size: 12px;
+}
+.ytcs-cmptable th:first-child,
+.ytcs-cmptable .ytcs-cmpk {
+  text-align: left;
+  color: var(--yt-spec-text-secondary, #aaa);
+}
+.ytcs-cmptable td { color: var(--yt-spec-text-primary, #f1f1f1); font-weight: 600; }
+.ytcs-cmptable tbody tr:hover { background: rgba(255, 255, 255, 0.03); }

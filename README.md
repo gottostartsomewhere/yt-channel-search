@@ -22,6 +22,25 @@ On top of the filters it shows:
 - **outlier badges** on any video beating 2x the channel's median views-per-day,
   so breakout uploads jump out immediately
 
+## Beyond filtering
+
+- **Analytics tab** — switch from the grid to a charts view built from the full
+  catalog: uploads per year, views distribution, length distribution, and a
+  length-vs-views scatter that shows the channel's sweet-spot video length.
+- **Compare channels** — paste another `@handle` or channel URL and get a
+  side-by-side table (videos, total/median views, average length, median and top
+  views-per-day). This is only possible because the tool reads every upload, not
+  just what is on screen.
+- **Export** — download the current filtered set as **CSV** or **JSON** for a
+  spreadsheet or your own analysis.
+- **Instant re-open + new-upload detection** — catalogs are cached in IndexedDB,
+  so re-opening a channel is instant. Hit **Refresh** to re-fetch and any uploads
+  added since your last visit get a **NEW** badge.
+
+Most in-page filter extensions only hide the video cards already loaded on the
+page, so they can only sort what you have scrolled past. This one fetches the
+whole catalog first, so filters, sorts, stats, and charts cover **every upload**.
+
 ## How it works
 
 YouTube's in-channel search box is a server-side [InnerTube](https://www.youtube.com/youtubei/v1)
@@ -61,7 +80,7 @@ session and need no API key of your own.
 
 ## Roadmap
 
-- Exact stats + likes via the official Data API (opt-in with your own key).
-- CSV export of the filtered set.
-- Engagement-rate (likes/views) and duration-bucket histograms.
-- Cache catalogs in IndexedDB so re-opening a channel is instant.
+- Exact stats + likes via the official Data API (opt-in with your own key), for
+  precise views-per-day and an engagement-rate (likes/views) filter.
+- "Hidden gems" sort (high views-per-day, recent, modest absolute views).
+- Raise or make configurable the ~1800-video fetch cap.
