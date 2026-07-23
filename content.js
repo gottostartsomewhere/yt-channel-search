@@ -1,9 +1,10 @@
-/* YouTube Channel Search+  —  content script
+/*
+ * YouTube Channel Search+  ·  content script
  *
- * Core idea: YouTube's in-channel search is a server-side InnerTube request that
- * only matches text. To filter by duration / views / date, we pull the channel's
- * full uploads catalog once (via InnerTube continuations), then filter + sort it
- * client-side and RENDER the results in place of the channel's native video grid.
+ * YouTube's in-channel search only matches text. To filter by duration, views,
+ * or date you need the data first, so this reads the channel's entire uploads
+ * catalog through InnerTube, then filters, sorts, and renders it in place of the
+ * native video grid.
  */
 (function () {
   "use strict";
@@ -455,7 +456,7 @@
       if (state.medianVpd && vpdVal >= 2 * state.medianVpd) {
         const badge = document.createElement("span");
         badge.className = "ytcs-outlier";
-        badge.textContent = "🔥 " + (vpdVal / state.medianVpd).toFixed(1) + "×";
+        badge.textContent = (vpdVal / state.medianVpd).toFixed(1) + "×";
         thumb.appendChild(badge);
       }
       if (state.newIds && state.newIds.has(v.id)) {
@@ -480,7 +481,7 @@
     if (rows.length > shown.length) {
       const more = document.createElement("div");
       more.className = "ytcs-more";
-      more.textContent = "Showing first 600 of " + rows.length + " — narrow the filters to see the rest.";
+      more.textContent = "Showing the first 600 of " + rows.length + ". Narrow the filters to see the rest.";
       ui.grid.appendChild(more);
     }
   }
@@ -823,7 +824,7 @@
       ["views_asc", "Fewest views"],
       ["duration_desc", "Longest"],
       ["duration_asc", "Shortest"],
-      ["vpd_desc", "Views/day ⚡"],
+      ["vpd_desc", "Views per day"],
       ["title_az", "Title A→Z"],
     ]);
 
@@ -1024,7 +1025,7 @@
     }
 
     state.active = true;
-    if (launcher) launcher.textContent = "✕ Close filters";
+    if (launcher) launcher.textContent = "Close";
     if (!state.catalog.length) await loadCatalog();
     else applyView();
   }

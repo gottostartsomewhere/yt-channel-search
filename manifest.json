@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "YouTube Channel Search+",
   "version": "0.3.0",
-  "description": "Advanced search inside a YouTube channel: filter/sort every upload by length, views, date, and views-per-day, with channel analytics, side-by-side channel comparison, CSV/JSON export, outlier detection, and offline caching with new-upload alerts.",
+  "description": "Filter, sort, chart, and compare a YouTube channel's full upload history by length, views, date, and views per day.",
   "content_scripts": [
     {
       "matches": ["*://www.youtube.com/*"],

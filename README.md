@@ -1,86 +1,81 @@
 # YouTube Channel Search+
 
-A Chrome extension (MV3) that adds real search and filtering inside a YouTube
-channel. YouTube's own in-channel search only matches text on titles. This pulls
-the channel's full uploads catalog once, then **takes over the channel's video
-grid** to show only the videos matching your filters, rendered as normal
-YouTube-style cards. Metrics YouTube never exposes:
+A Chrome extension that turns a YouTube channel's Videos tab into something you
+can actually query. YouTube's own in-channel search matches title text and
+nothing else. This reads the channel's entire upload history, then lets you
+filter, sort, chart, and compare it by numbers YouTube never exposes: exact
+duration ranges, view thresholds, upload recency, and views per day.
 
-- duration ranges (min/max minutes)
-- minimum view count
-- long-form vs Shorts split
-- sort by views, duration, title, or **views-per-day** (surfaces breakout videos)
-- keyword on top of all of the above
+## The idea
 
-The filtered results replace the native grid in place (a sticky filter bar sits
-on top), and a **Restore YouTube** button brings the original view back.
+Most in-page filter tools only touch the video cards already loaded on the
+screen, so they can sort what you have scrolled past and no further. This one
+works differently. Before it filters anything, it pulls the channel's complete
+catalog through YouTube's internal InnerTube API, so every filter, sort, stat,
+and chart covers all of it, not a visible slice. That completeness is the whole
+point. "Show me this channel's least-viewed videos" or "the median length across
+1,200 uploads" are questions you simply cannot answer from the loaded DOM.
 
-On top of the filters it shows:
+## What it does
 
-- a **live stats strip** for the current result set (video count, total views,
-  median views, average length, median views-per-day) that updates as you filter
-- **outlier badges** on any video beating 2x the channel's median views-per-day,
-  so breakout uploads jump out immediately
+Once loaded, it replaces the native grid in place, with a sticky control bar on
+top and a Restore YouTube button to put things back.
 
-## Beyond filtering
-
-- **Analytics tab** — switch from the grid to a charts view built from the full
-  catalog: uploads per year, views distribution, length distribution, and a
-  length-vs-views scatter that shows the channel's sweet-spot video length.
-- **Compare channels** — paste another `@handle` or channel URL and get a
-  side-by-side table (videos, total/median views, average length, median and top
-  views-per-day). This is only possible because the tool reads every upload, not
-  just what is on screen.
-- **Export** — download the current filtered set as **CSV** or **JSON** for a
-  spreadsheet or your own analysis.
-- **Instant re-open + new-upload detection** — catalogs are cached in IndexedDB,
-  so re-opening a channel is instant. Hit **Refresh** to re-fetch and any uploads
-  added since your last visit get a **NEW** badge.
-
-Most in-page filter extensions only hide the video cards already loaded on the
-page, so they can only sort what you have scrolled past. This one fetches the
-whole catalog first, so filters, sorts, stats, and charts cover **every upload**.
+- Filter by title keyword, length band, view band, and upload recency.
+- Sort by views, length, title, or views per day, the last of which surfaces
+  breakout videos rather than just old ones.
+- A live stats strip (count, total and median views, average length, median
+  views per day) that recalculates as you filter.
+- Outlier badges on any video beating twice the channel's median views per day.
+- An Analytics view with charts drawn from the full catalog: uploads per year,
+  view distribution, length distribution, and a length versus views scatter that
+  shows where the channel's audience actually is.
+- Compare, which pulls any other channel's full catalog and lays the two side by
+  side.
+- Export the current filtered set to CSV or JSON.
+- Catalogs are cached locally, so re-opening a channel is instant. Refresh
+  re-reads it and flags anything posted since your last visit.
 
 ## How it works
 
-YouTube's in-channel search box is a server-side [InnerTube](https://www.youtube.com/youtubei/v1)
-request that only does text matching. To filter on duration/views/date you have
-to have the data locally first, so the extension:
+The in-channel search box is a server-side InnerTube request that only matches
+text, so the metrics have to be computed on the client. The extension:
 
-1. Reads the channel's `/videos` page HTML and pulls `ytInitialData` plus the
-   InnerTube API key and client version.
-2. Walks the uploads grid using continuation tokens (`/youtubei/v1/browse`),
-   collecting each video's id, title, duration, view count, and relative upload
-   date. Duration and views are already in the list payload (the thumbnail time
-   badge and `viewCountText`), so no per-video call is needed.
-3. Renders its own results list in an in-page panel, filtered and sorted
-   entirely client-side.
+1. Reads the channel's `/videos` HTML and pulls `ytInitialData` along with the
+   InnerTube key and client version.
+2. Walks the uploads grid with continuation tokens against `/youtubei/v1/browse`,
+   reading each video's id, title, duration, view count, and relative date. All
+   of that already lives in the list payload (the thumbnail time badge and the
+   metadata rows), so there is no per-video request.
+3. Filters, sorts, and renders everything client-side as native-looking cards.
 
-All requests are same-origin from the YouTube tab, so they carry your normal
-session and need no API key of your own.
+Every request is same-origin from the YouTube tab, so it rides your normal
+session and needs no API key of your own.
 
-## Install (unpacked)
+## Install
 
-1. Go to `chrome://extensions`.
-2. Turn on **Developer mode** (top right).
-3. Click **Load unpacked** and select this `yt-channel-search` folder.
-4. Open any channel's **Videos** tab (e.g. `youtube.com/@MrBeast/videos`),
-   click the **Search+** pill at the bottom right. It loads the full catalog
-   once, hides YouTube's grid, and shows the filtered results in its place.
-   Adjust the filter bar and the grid updates live.
+1. Open `chrome://extensions` and turn on Developer mode.
+2. Choose Load unpacked and select this folder.
+3. Open any channel's Videos tab, for example `youtube.com/@mkbhd/videos`, and
+   click the Search+ button at the bottom right.
 
 ## Notes and limits
 
-- Upload dates from InnerTube are relative ("2 years ago"), so views-per-day is
-  approximate. Exact dates/views/likes need the official YouTube Data API v3
-  (`videos.list`) — a planned upgrade path for an "engagement rate" metric.
-- Catalog fetch is capped at ~1800 videos (`MAX_PAGES` in `content.js`).
-- InnerTube is an unofficial endpoint. It's stable in practice but YouTube can
-  change the payload shape, which would need a parser tweak. For personal use.
+- Upload dates from InnerTube are relative ("6 months ago"), so views per day and
+  the per-year chart are approximate. Exact figures, plus likes and comments,
+  would need the official YouTube Data API.
+- The catalog fetch is capped at roughly 1,800 videos, set by `MAX_PAGES`.
+- InnerTube is an unofficial endpoint. It is stable in practice, but YouTube can
+  change the payload shape, which would call for a small parser update. Built for
+  personal use.
 
 ## Roadmap
 
-- Exact stats + likes via the official Data API (opt-in with your own key), for
-  precise views-per-day and an engagement-rate (likes/views) filter.
-- "Hidden gems" sort (high views-per-day, recent, modest absolute views).
-- Raise or make configurable the ~1800-video fetch cap.
+- Exact stats and likes through the official Data API, opt-in with your own key,
+  for precise views per day and an engagement-rate filter.
+- A "hidden gems" sort: high views per day, recent, modest absolute views.
+- A configurable fetch cap for very large channels.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
