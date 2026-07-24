@@ -379,6 +379,14 @@
 }
 .ytcs-section .ytcs-svg { max-width: 460px; }
 
+/* two-column analytics layout so tables fill the width instead of floating */
+.ytcs-tcols { display: flex; gap: 32px; align-items: flex-start; }
+.ytcs-tcol { flex: 1 1 0; min-width: 0; }
+.ytcs-tcol .ytcs-section { margin-bottom: 26px; }
+.ytcs-tcol .ytcs-section:last-child { margin-bottom: 0; }
+.ytcs-tcol .ytcs-dtable { max-width: none; width: 100%; }
+@media (max-width: 900px) { .ytcs-tcols { flex-direction: column; gap: 24px; } }
+
 /* data tables */
 .ytcs-dtable {
   border-collapse: collapse;

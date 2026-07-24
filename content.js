@@ -859,9 +859,18 @@
     "the a an and or but of to in on for with at by from up about into over after " +
     "is are was were be been being do does did doing have has had this that these " +
     "those it its you your my our their his her they them we he she who what why " +
-    "when where which how all any can will just not no yes get got more most out " +
-    "one two new now than then there here"
-  ).split(" "));
+    "when where which how all any can will just not no yes more most out " +
+    "one two new now than then there here another every each " +
+    // common verbs and filler that co-occur with anything
+    "get gets got getting make makes made making go goes going gone let lets " +
+    "like want wants need needs know think see saw look looks watch watching " +
+    "off again really very still even back away only also too way ways thing " +
+    "things stuff day days time today first last next " +
+    // contractions, after the apostrophe is stripped
+    "dont doesnt didnt wasnt werent isnt arent wont wouldnt couldnt shouldnt " +
+    "hasnt havent hadnt cant youre theyre weve ive im id ill hes shes thats " +
+    "whats theres heres wheres whos gonna wanna gotta aint"
+  ).split(/\s+/));
 
   function tokenize(title) {
     return String(title)
@@ -897,7 +906,7 @@
     ["Numbered or list", (t) => /^\s*\d+\b|\btop\s+\d+\b|\b\d+\s+(things|ways|tips|reasons|rules)\b/i.test(t)],
     ["Bracketed tag", (t) => /\[[^\]]+\]|\([^)]+\)/.test(t)],
     ["First person", (t) => /\b(i|my|me|we)\b/i.test(t)],
-    ["Shouted word", (t) => /\b[A-Z]{3,}\b/.test(t)],
+    ["All-caps word", (t) => (String(t).match(/\b[A-Z]{4,}\b/g) || []).some((w) => !/^[IVXLCDM]+$/.test(w))],
     ["Superlative", (t) => /\b(best|worst|ultimate|greatest|craziest|insane)\b/i.test(t)],
     ["How to", (t) => /\bhow to\b/i.test(t)],
   ];
@@ -916,10 +925,12 @@
 
   function titleLengthStats(rows) {
     const buckets = [["<30", 0, 30], ["30-45", 30, 45], ["45-60", 45, 60], ["60-75", 60, 75], ["75+", 75, Infinity]];
-    return buckets.map((b) => {
-      const hit = rows.filter((v) => v.title.length >= b[1] && v.title.length < b[2]);
-      return { label: b[0], value: hit.length ? Math.round(median(hit.map((v) => v.views))) : 0 };
-    });
+    return buckets
+      .map((b) => {
+        const hit = rows.filter((v) => v.title.length >= b[1] && v.title.length < b[2]);
+        return { label: b[0], value: hit.length >= 2 ? Math.round(median(hit.map((v) => v.views))) : null };
+      })
+      .filter((d) => d.value != null);
   }
 
   function renderTitles(rows) {
@@ -928,27 +939,36 @@
       ui.titles.appendChild(chartEmpty());
       return;
     }
-    ui.titles.appendChild(section("Median views by title length", barChart(titleLengthStats(rows))));
-
-    const kw = keywordStats(rows, 3).slice(0, 20);
-    ui.titles.appendChild(section(
-      "Words that lift performance",
-      kw.length
-        ? dataTable(["Word", "Videos", "Median views", "Lift"], kw.map((k) => [
-            k.word, String(k.count), fmtCompact(Math.round(k.medViews)), k.lift.toFixed(2) + "x",
-          ]))
-        : chartEmpty()
-    ));
-
+    // Require a word to appear in a small share of the catalog, so big channels
+    // do not surface three-video coincidences.
+    const minCount = Math.max(3, Math.round(rows.length * 0.01));
+    const lenData = titleLengthStats(rows);
+    const kw = keywordStats(rows, minCount).slice(0, 18);
     const pat = patternStats(rows);
-    ui.titles.appendChild(section(
-      "Title formats",
-      pat.length
-        ? dataTable(["Format", "Videos", "Median views", "Lift"], pat.map((p) => [
-            p.name, String(p.count), fmtCompact(Math.round(p.medViews)), p.lift.toFixed(2) + "x",
-          ]))
-        : chartEmpty()
-    ));
+
+    const wordsTable = kw.length
+      ? dataTable(["Word", "Videos", "Median views", "Lift"], kw.map((k) => [
+          k.word, String(k.count), fmtCompact(Math.round(k.medViews)), k.lift.toFixed(2) + "x",
+        ]))
+      : chartEmpty();
+    const formatsTable = pat.length
+      ? dataTable(["Format", "Videos", "Median views", "Lift"], pat.map((p) => [
+          p.name, String(p.count), fmtCompact(Math.round(p.medViews)), p.lift.toFixed(2) + "x",
+        ]))
+      : chartEmpty();
+
+    const cols = document.createElement("div");
+    cols.className = "ytcs-tcols";
+    const left = document.createElement("div");
+    left.className = "ytcs-tcol";
+    left.appendChild(section("Words that lift performance", wordsTable));
+    const right = document.createElement("div");
+    right.className = "ytcs-tcol";
+    right.appendChild(section("Median views by title length", lenData.length ? barChart(lenData) : chartEmpty()));
+    right.appendChild(section("Title formats", formatsTable));
+    cols.appendChild(left);
+    cols.appendChild(right);
+    ui.titles.appendChild(cols);
   }
 
   // ---- niche watchlist -----------------------------------------------------
