@@ -3,6 +3,12 @@
   "name": "YouTube Channel Search+",
   "version": "0.4.0",
   "description": "Competitive research for YouTube: read any channel's full upload history, track measured view velocity, and see what is working across your niche.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
   "content_scripts": [
     {
       "matches": ["*://www.youtube.com/*"],
