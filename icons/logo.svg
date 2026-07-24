@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="Channel Search Plus logo">
+  <mask id="ytcsCut">
+    <rect width="128" height="128" fill="#000"/>
+    <path d="M45 30 L45 98 L101 64 Z" fill="#fff" stroke="#fff" stroke-width="12" stroke-linejoin="round"/>
+    <rect x="51" y="68" width="9" height="50" fill="#000"/>
+    <rect x="64" y="58" width="9" height="60" fill="#000"/>
+    <rect x="77" y="52" width="9" height="66" fill="#000"/>
+  </mask>
+  <rect width="128" height="128" rx="24" fill="#0F0F0F"/>
+  <rect width="128" height="128" fill="#E5484D" mask="url(#ytcsCut)"/>
+</svg>
