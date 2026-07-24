@@ -305,8 +305,17 @@
 }
 .ytcs-barlab { fill: var(--dim); font-size: 10px; }
 .ytcs-axis { stroke: var(--line); stroke-width: 1; }
-.ytcs-dot { fill: var(--txt); fill-opacity: 0.42; }
-.ytcs-axlab { fill: var(--dim); font-size: 10px; }
+.ytcs-line { fill: none; stroke: var(--txt); stroke-opacity: 0.45; stroke-width: 1.8; stroke-linejoin: round; }
+.ytcs-lpt { fill: var(--ac); }
+
+/* short explainer copy at the top of a pane */
+.ytcs-explain {
+  max-width: 640px;
+  margin: 0 0 18px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--dim);
+}
 
 /* compare */
 .ytcs-compare {

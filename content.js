@@ -29,6 +29,13 @@
   ];
   const LEN_VALUES = ["0-60", "60-240", "240-1200", "1200-3600", "3600-"];
 
+  // Finer bins than the filter, so the length/performance curve has some shape.
+  const LENGTH_CURVE = [
+    ["0-2m", 0, 120], ["2-5m", 120, 300], ["5-10m", 300, 600], ["10-15m", 600, 900],
+    ["15-20m", 900, 1200], ["20-30m", 1200, 1800], ["30-45m", 1800, 2700],
+    ["45-60m", 2700, 3600], ["60m+", 3600, Infinity],
+  ];
+
   // ---- small parsers -------------------------------------------------------
   function parseDuration(t) {
     if (!t) return 0;
@@ -643,20 +650,33 @@
     });
     return root;
   }
-  function scatterChart(points, xMax, xlab) {
-    const W = 340, H = 178, pad = { t: 10, r: 10, b: 26, l: 10 };
+  // Line chart for a value that has a shape across ordered bins.
+  function lineChart(data) {
+    const W = 340, H = 172, pad = { t: 18, r: 14, b: 30, l: 14 };
+    const max = Math.max(1, Math.max.apply(null, data.map((d) => d.value)));
     const iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
-    const yMaxLog = Math.log10(Math.max(10, Math.max.apply(null, points.map((p) => p.y))));
+    const step = data.length > 1 ? iw / (data.length - 1) : 0;
+    const pts = data.map((d, i) => ({
+      x: pad.l + i * step,
+      y: pad.t + ih - (d.value / max) * ih,
+      d: d,
+    }));
     const root = svg("svg", { viewBox: "0 0 " + W + " " + H, class: "ytcs-svg", preserveAspectRatio: "xMidYMid meet" });
     root.appendChild(svg("line", { x1: pad.l, y1: pad.t + ih, x2: pad.l + iw, y2: pad.t + ih, class: "ytcs-axis" }));
-    points.forEach((p) => {
-      const px = pad.l + (Math.min(p.x, xMax) / xMax) * iw;
-      const py = pad.t + ih - (Math.log10(Math.max(1, p.y)) / yMaxLog) * ih;
-      root.appendChild(svg("circle", { cx: px, cy: py, r: 2.4, class: "ytcs-dot" }));
+    root.appendChild(svg("polyline", {
+      points: pts.map((p) => p.x.toFixed(1) + "," + p.y.toFixed(1)).join(" "),
+      class: "ytcs-line",
+    }));
+    let peak = 0;
+    pts.forEach((p, i) => { if (p.d.value > pts[peak].d.value) peak = i; });
+    pts.forEach((p, i) => {
+      root.appendChild(svg("circle", { cx: p.x, cy: p.y, r: 2.6, class: "ytcs-lpt" }));
+      root.appendChild(svgText(p.x, H - 12, p.d.label, "ytcs-barlab"));
+      if (i === peak) root.appendChild(svgText(p.x, p.y - 8, fmtCompact(p.d.value), "ytcs-barval"));
     });
-    root.appendChild(svgText(pad.l + iw / 2, H - 4, xlab, "ytcs-axlab"));
     return root;
   }
+
   function chartCard(title, node) {
     const card = document.createElement("div");
     card.className = "ytcs-chart";
@@ -715,9 +735,15 @@
       setView("grid");
     })));
 
-    const pts = rows.filter((v) => v.seconds > 0 && v.views > 0).map((v) => ({ x: v.seconds, y: v.views }));
-    const xMax = pts.length ? Math.max.apply(null, pts.map((p) => p.x)) : 3600;
-    ui.charts.appendChild(chartCard("Length vs views (log scale)", pts.length ? scatterChart(pts, xMax, "video length") : chartEmpty()));
+    // Where the channel's sweet spot actually is. Bins with fewer than two
+    // videos are dropped so one outlier cannot invent a peak.
+    const curve = LENGTH_CURVE
+      .map((b) => {
+        const hit = rows.filter((v) => v.seconds >= b[1] && v.seconds < b[2]);
+        return { label: b[0], value: hit.length >= 2 ? Math.round(median(hit.map((v) => v.views))) : null };
+      })
+      .filter((d) => d.value != null);
+    ui.charts.appendChild(chartCard("Median views by video length", curve.length > 1 ? lineChart(curve) : chartEmpty()));
   }
 
   // ---- compare channels ----------------------------------------------------
@@ -1246,6 +1272,12 @@
     const niche = document.createElement("div");
     niche.className = "ytcs-pane";
     niche.style.display = "none";
+    const nicheIntro = document.createElement("p");
+    nicheIntro.className = "ytcs-explain";
+    nicheIntro.textContent =
+      "Track the channels you compete with. Add a few below, then hit Refresh all. " +
+      "You get two things back: every video that beat its own channel's normal by a wide margin, ranked across all of them, " +
+      "and the topics those channels cover that this one never has.";
     const nicheRow = document.createElement("div");
     nicheRow.className = "ytcs-cmprow";
     const nicheInput = document.createElement("input");
@@ -1264,6 +1296,7 @@
     nicheChips.className = "ytcs-chips";
     const nicheResults = document.createElement("div");
     nicheResults.className = "ytcs-nresults";
+    niche.appendChild(nicheIntro);
     niche.appendChild(nicheRow);
     niche.appendChild(nicheChips);
     niche.appendChild(nicheResults);
