@@ -338,7 +338,7 @@
   const state = {
     catalog: [], loading: false, active: false, nativeGrid: null, nativeDisplay: "",
     medianVpd: 0, medianViews: 0, view: "grid", newIds: new Set(), cachedAt: 0,
-    watchlist: [], nicheItems: [], gapItems: [],
+    watchlist: [], nicheItems: [], gapItems: [], nicheRan: false,
   };
   let ui = null;      // cached refs for the injected UI
   let launcher = null;
@@ -406,6 +406,11 @@
     else if (state.view === "niche") renderNiche();
     else renderGrid(rows);
     ui.count.textContent = rows.length + " of " + state.catalog.length;
+
+    const filtered = !!(ui.kw.value.trim() || ui.duration.value || ui.views.value ||
+      ui.uploaded.value || ui.sort.value !== "newest");
+    ui.clear.style.display = filtered ? "" : "none";
+    ui.count.classList.toggle("ytcs-filtered", filtered);
   }
 
   function median(nums) {
@@ -780,12 +785,12 @@
   function renderCompare(catA, catB, labelB) {
     const a = statsOf(catA), b = statsOf(catB);
     const metrics = [
-      ["Videos", String(a.n), String(b.n)],
-      ["Total views", fmtCompact(a.total), fmtCompact(b.total)],
-      ["Median views", fmtCompact(a.medViews), fmtCompact(b.medViews)],
-      ["Avg length", fmtDuration(a.avgDur) || "–", fmtDuration(b.avgDur) || "–"],
-      ["Median views/day", fmtCompact(Math.round(a.medVpd)), fmtCompact(Math.round(b.medVpd))],
-      ["Top views/day", fmtCompact(Math.round(a.topVpd)), fmtCompact(Math.round(b.topVpd))],
+      ["Videos", a.n, b.n, String(a.n), String(b.n)],
+      ["Total views", a.total, b.total, fmtCompact(a.total), fmtCompact(b.total)],
+      ["Median views", a.medViews, b.medViews, fmtCompact(a.medViews), fmtCompact(b.medViews)],
+      ["Avg length", a.avgDur, b.avgDur, fmtDuration(a.avgDur) || "–", fmtDuration(b.avgDur) || "–"],
+      ["Median views/day", a.medVpd, b.medVpd, fmtCompact(Math.round(a.medVpd)), fmtCompact(Math.round(b.medVpd))],
+      ["Top views/day", a.topVpd, b.topVpd, fmtCompact(Math.round(a.topVpd)), fmtCompact(Math.round(b.topVpd))],
     ];
     const thisLabel = (channelBasePath() || "this channel").replace(/^\//, "");
     const tbl = document.createElement("table");
@@ -802,12 +807,18 @@
     const tb = document.createElement("tbody");
     for (const row of metrics) {
       const tr = document.createElement("tr");
-      row.forEach((cell, i) => {
-        const td = document.createElement("td");
-        td.textContent = cell;
-        if (i === 0) td.className = "ytcs-cmpk";
-        tr.appendChild(td);
-      });
+      const k = document.createElement("td");
+      k.className = "ytcs-cmpk";
+      k.textContent = row[0];
+      const ta = document.createElement("td");
+      ta.textContent = row[3];
+      if (row[1] > row[2]) ta.className = "ytcs-win";
+      const td = document.createElement("td");
+      td.textContent = row[4];
+      if (row[2] > row[1]) td.className = "ytcs-win";
+      tr.appendChild(k);
+      tr.appendChild(ta);
+      tr.appendChild(td);
       tb.appendChild(tr);
     }
     tbl.appendChild(tb);
@@ -852,6 +863,13 @@
     });
     t.appendChild(tb);
     return t;
+  }
+
+  function emptyNote(msg) {
+    const d = document.createElement("div");
+    d.className = "ytcs-emptybox";
+    d.textContent = msg;
+    return d;
   }
 
   // ---- title and format analysis -------------------------------------------
@@ -1005,6 +1023,7 @@
     const outliers = [];
     const theirVideos = [];
     let liveChannels = 0;
+    let fails = 0;
     for (const key of state.watchlist) {
       ui.nicheStatus.textContent = "reading " + key.replace(/^\//, "") + "…";
       try {
@@ -1035,17 +1054,25 @@
         }
         theirVideos.push.apply(theirVideos, cat);
       } catch (e) {
+        fails++;
         console.error("[Channel Search+] watchlist", key, e);
       }
     }
     outliers.sort((a, b) => b.ratio - a.ratio);
     state.nicheItems = outliers;
     state.gapItems = state.catalog.length ? contentGap(state.catalog, theirVideos, 3) : [];
+    state.nicheRan = true;
     const mode = liveChannels
       ? liveChannels + " of " + state.watchlist.length + " live"
       : "baseline set, refresh again later for live velocity";
-    ui.nicheStatus.textContent =
-      state.watchlist.length + " channels · " + theirVideos.length + " videos · " + outliers.length + " outliers · " + mode;
+    const bits = [
+      state.watchlist.length + " channels",
+      theirVideos.length + " videos",
+      outliers.length + " outliers",
+      mode,
+    ];
+    if (fails) bits.push(fails + " couldn't be read");
+    ui.nicheStatus.textContent = bits.join(" · ");
     ui.nicheRefresh.disabled = false;
     renderNiche();
   }
@@ -1126,6 +1153,9 @@
           g.word, String(g.count), fmtCompact(Math.round(g.medViews)),
         ]))
       ));
+    }
+    if (state.watchlist.length && state.nicheRan && !state.nicheItems.length && !state.gapItems.length) {
+      ui.nicheResults.appendChild(emptyNote("Nothing is outperforming across these channels right now. Check back after they post."));
     }
   }
 
@@ -1253,6 +1283,18 @@
     csv.onclick = () => exportCSV();
     const json = iconBtn("JSON", "Export the filtered videos as JSON");
     json.onclick = () => exportJSON();
+    const clear = iconBtn("Clear", "Reset all filters");
+    clear.style.display = "none";
+    clear.onclick = () => {
+      ui.kw.value = "";
+      ui.duration.value = "";
+      ui.views.value = "";
+      ui.uploaded.value = "";
+      ui.sort.value = "newest";
+      applyView();
+    };
+    const divider = document.createElement("span");
+    divider.className = "ytcs-div";
     const restore = document.createElement("button");
     restore.className = "ytcs-restore";
     restore.textContent = "Restore YouTube";
@@ -1267,6 +1309,8 @@
     bar.appendChild(field("Sort", sort));
     bar.appendChild(status);
     bar.appendChild(count);
+    bar.appendChild(clear);
+    bar.appendChild(divider);
     bar.appendChild(refresh);
     bar.appendChild(csv);
     bar.appendChild(json);
@@ -1307,6 +1351,7 @@
     cmpRow.appendChild(cmpStatus);
     const cmpResult = document.createElement("div");
     cmpResult.className = "ytcs-cmpresult";
+    cmpResult.appendChild(emptyNote("Enter a channel above to line it up against this one."));
     cmp.appendChild(cmpHead);
     cmp.appendChild(cmpRow);
     cmp.appendChild(cmpResult);
@@ -1350,15 +1395,20 @@
     niche.appendChild(nicheChips);
     niche.appendChild(nicheResults);
 
+    const foot = document.createElement("div");
+    foot.className = "ytcs-foot";
+    foot.textContent = "Reads public data through YouTube's own endpoints. Not affiliated with YouTube.";
+
     wrap.appendChild(bar);
     wrap.appendChild(stats);
     wrap.appendChild(grid);
     wrap.appendChild(analytics);
     wrap.appendChild(titles);
     wrap.appendChild(niche);
+    wrap.appendChild(foot);
 
     ui = {
-      wrap, bar, kw, duration, views, uploaded, sort, status, count,
+      wrap, bar, kw, duration, views, uploaded, sort, status, count, clear,
       stats, grid, analytics, charts, titles, niche,
       tabGrid, tabAnalytics, tabTitles, tabNiche,
       cmpInput, cmpBtn, cmpStatus, cmpResult,
