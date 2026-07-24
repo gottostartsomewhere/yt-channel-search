@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "YouTube Channel Search+",
-  "version": "0.3.0",
-  "description": "Filter, sort, chart, and compare a YouTube channel's full upload history by length, views, date, and views per day.",
+  "version": "0.4.0",
+  "description": "Competitive research for YouTube: read any channel's full upload history, track measured view velocity, and see what is working across your niche.",
   "content_scripts": [
     {
       "matches": ["*://www.youtube.com/*"],

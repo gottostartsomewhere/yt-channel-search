@@ -15,6 +15,19 @@
   // ---- constants -----------------------------------------------------------
   const MAX_PAGES = 60; // safety cap: ~30 videos/page => ~1800 videos
   const FALLBACK_VER = "2.20240710.01.00";
+  const SNAPSHOT_LIMIT = 8; // how many view-count snapshots we keep per channel
+
+  // Kept in step with the filter dropdowns so a chart bar can drive the grid.
+  const VIEW_BUCKETS = [
+    ["<10K", 0, 1e4], ["10-100K", 1e4, 1e5], ["100K-1M", 1e5, 1e6],
+    ["1-10M", 1e6, 1e7], ["10M+", 1e7, Infinity],
+  ];
+  const VIEW_VALUES = ["0-10000", "10000-100000", "100000-1000000", "1000000-10000000", "10000000-"];
+  const LEN_BUCKETS = [
+    ["<1m", 0, 60], ["1-4m", 60, 240], ["4-20m", 240, 1200],
+    ["20-60m", 1200, 3600], ["60m+", 3600, Infinity],
+  ];
+  const LEN_VALUES = ["0-60", "60-240", "240-1200", "1200-3600", "3600-"];
 
   // ---- small parsers -------------------------------------------------------
   function parseDuration(t) {
@@ -315,7 +328,8 @@
   // ---- state ---------------------------------------------------------------
   const state = {
     catalog: [], loading: false, active: false, nativeGrid: null, nativeDisplay: "",
-    medianVpd: 0, view: "grid", newIds: new Set(), cachedAt: 0,
+    medianVpd: 0, medianViews: 0, view: "grid", newIds: new Set(), cachedAt: 0,
+    watchlist: [], nicheItems: [], gapItems: [],
   };
   let ui = null;      // cached refs for the injected UI
   let launcher = null;
@@ -353,12 +367,20 @@
     });
 
     const vpd = (v) => (v.days ? v.views / Math.max(v.days, 1) : 0);
+    // Punching above its weight: fast relative to the channel, small in absolute terms.
+    const gem = (v) => {
+      const rate = vpd(v) / (state.medianVpd || 1);
+      const size = Math.max(0.25, v.views / (state.medianViews || 1));
+      return rate / size;
+    };
     const sorters = {
       views_desc: (a, b) => b.views - a.views,
       views_asc: (a, b) => a.views - b.views,
       duration_desc: (a, b) => b.seconds - a.seconds,
       duration_asc: (a, b) => a.seconds - b.seconds,
       vpd_desc: (a, b) => vpd(b) - vpd(a),
+      trend_desc: (a, b) => (b.measuredVpd || 0) - (a.measuredVpd || 0),
+      gems_desc: (a, b) => gem(b) - gem(a),
       title_az: (a, b) => a.title.localeCompare(b.title),
     };
     if (sort === "oldest") rows = rows.slice().reverse();
@@ -371,6 +393,8 @@
     const rows = filterAndSort();
     renderStats(rows);
     if (state.view === "analytics") renderAnalytics(rows);
+    else if (state.view === "titles") renderTitles(rows);
+    else if (state.view === "niche") renderNiche();
     else renderGrid(rows);
     ui.count.textContent = rows.length + " of " + state.catalog.length;
   }
@@ -452,6 +476,15 @@
         vpd.className = "ytcs-cvpd";
         vpd.textContent = "≈ " + fmtCompact(Math.round(vpdVal)) + " views/day";
         info.appendChild(vpd);
+      }
+      if (v.gained > 0 && v.sinceDays) {
+        const span = v.sinceDays < 1
+          ? Math.max(1, Math.round(v.sinceDays * 24)) + "h"
+          : Math.round(v.sinceDays) + "d";
+        const measured = document.createElement("div");
+        measured.className = "ytcs-cmeasured";
+        measured.textContent = "+" + fmtCompact(Math.round(v.gained)) + " in the last " + span;
+        info.appendChild(measured);
       }
       if (state.medianVpd && vpdVal >= 2 * state.medianVpd) {
         const badge = document.createElement("span");
@@ -587,7 +620,8 @@
     t.textContent = s;
     return t;
   }
-  function barChart(data) {
+  // `onBar` makes the columns clickable so a chart can drive the grid filters.
+  function barChart(data, onBar) {
     const W = 340, H = 172, pad = { t: 14, r: 8, b: 30, l: 8 };
     const max = Math.max(1, Math.max.apply(null, data.map((d) => d.value)));
     const iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
@@ -601,6 +635,11 @@
       root.appendChild(svg("rect", { x: x, y: y, width: bw, height: Math.max(h, 1), rx: 3, class: "ytcs-bar" }));
       if (d.value) root.appendChild(svgText(x + bw / 2, y - 4, fmtCompact(d.value), "ytcs-barval"));
       root.appendChild(svgText(x + bw / 2, H - 12, d.label, "ytcs-barlab"));
+      if (onBar) {
+        const hit = svg("rect", { x: pad.l + i * slot, y: pad.t, width: slot, height: ih, class: "ytcs-hit" });
+        hit.addEventListener("click", () => onBar(i));
+        root.appendChild(hit);
+      }
     });
     return root;
   }
@@ -657,21 +696,28 @@
     const uploads = years.map((y) => ({ label: "'" + String(y).slice(2), value: byYear[y] }));
     ui.charts.appendChild(chartCard("Uploads per year", uploads.length ? barChart(uploads) : chartEmpty()));
 
-    const viewsData = bucketCounts(rows, [
-      ["<1K", 0, 1e3], ["1–10K", 1e3, 1e4], ["10–100K", 1e4, 1e5],
-      ["100K–1M", 1e5, 1e6], ["1–10M", 1e6, 1e7], ["10M+", 1e7, Infinity],
-    ], (v) => v.views);
-    ui.charts.appendChild(chartCard("Views distribution", barChart(viewsData)));
+    // Trajectory: is the channel's typical video getting bigger or smaller?
+    const trajectory = years.map((y) => {
+      const cohort = rows.filter((v) => v.days != null && nowYear - Math.floor(v.days / 365) === y);
+      return { label: "'" + String(y).slice(2), value: Math.round(median(cohort.map((v) => v.views))) };
+    });
+    ui.charts.appendChild(chartCard("Median views by upload year", trajectory.length ? barChart(trajectory) : chartEmpty()));
 
-    const lenData = bucketCounts(rows, [
-      ["<1m", 0, 60], ["1–4m", 60, 240], ["4–20m", 240, 1200],
-      ["20–60m", 1200, 3600], ["60m+", 3600, Infinity],
-    ], (v) => v.seconds);
-    ui.charts.appendChild(chartCard("Length distribution", barChart(lenData)));
+    const viewsData = bucketCounts(rows, VIEW_BUCKETS, (v) => v.views);
+    ui.charts.appendChild(chartCard("Views distribution", barChart(viewsData, (i) => {
+      ui.views.value = VIEW_VALUES[i];
+      setView("grid");
+    })));
+
+    const lenData = bucketCounts(rows, LEN_BUCKETS, (v) => v.seconds);
+    ui.charts.appendChild(chartCard("Length distribution", barChart(lenData, (i) => {
+      ui.duration.value = LEN_VALUES[i];
+      setView("grid");
+    })));
 
     const pts = rows.filter((v) => v.seconds > 0 && v.views > 0).map((v) => ({ x: v.seconds, y: v.views }));
     const xMax = pts.length ? Math.max.apply(null, pts.map((p) => p.x)) : 3600;
-    ui.charts.appendChild(chartCard("Length vs views (log)", pts.length ? scatterChart(pts, xMax, "video length →") : chartEmpty()));
+    ui.charts.appendChild(chartCard("Length vs views (log scale)", pts.length ? scatterChart(pts, xMax, "video length") : chartEmpty()));
   }
 
   // ---- compare channels ----------------------------------------------------
@@ -741,14 +787,282 @@
     ui.cmpResult.appendChild(tbl);
   }
 
-  // ---- view toggle ---------------------------------------------------------
+  // ---- small layout helpers ------------------------------------------------
+  function section(title, node) {
+    const wrap = document.createElement("div");
+    wrap.className = "ytcs-section";
+    const h = document.createElement("div");
+    h.className = "ytcs-sectitle";
+    h.textContent = title;
+    wrap.appendChild(h);
+    wrap.appendChild(node);
+    return wrap;
+  }
+
+  function dataTable(headers, rows) {
+    const t = document.createElement("table");
+    t.className = "ytcs-dtable";
+    const thead = document.createElement("thead");
+    const htr = document.createElement("tr");
+    headers.forEach((h) => {
+      const th = document.createElement("th");
+      th.textContent = h;
+      htr.appendChild(th);
+    });
+    thead.appendChild(htr);
+    t.appendChild(thead);
+    const tb = document.createElement("tbody");
+    rows.forEach((r) => {
+      const tr = document.createElement("tr");
+      r.forEach((cell, i) => {
+        const td = document.createElement("td");
+        td.textContent = cell;
+        if (i === 0) td.className = "ytcs-dk";
+        tr.appendChild(td);
+      });
+      tb.appendChild(tr);
+    });
+    t.appendChild(tb);
+    return t;
+  }
+
+  // ---- title and format analysis -------------------------------------------
+  const STOPWORDS = new Set((
+    "the a an and or but of to in on for with at by from up about into over after " +
+    "is are was were be been being do does did doing have has had this that these " +
+    "those it its you your my our their his her they them we he she who what why " +
+    "when where which how all any can will just not no yes get got more most out " +
+    "one two new now than then there here"
+  ).split(" "));
+
+  function tokenize(title) {
+    return String(title)
+      .toLowerCase()
+      .replace(/[‘’']/g, "")
+      .split(/[^a-z0-9]+/)
+      .filter((w) => w.length > 2 && !STOPWORDS.has(w) && !/^\d+$/.test(w));
+  }
+
+  // Median views of the videos containing each word, versus the overall median.
+  function keywordStats(rows, minCount) {
+    const buckets = new Map();
+    rows.forEach((v) => {
+      new Set(tokenize(v.title)).forEach((w) => {
+        if (!buckets.has(w)) buckets.set(w, []);
+        buckets.get(w).push(v.views);
+      });
+    });
+    const base = median(rows.map((v) => v.views)) || 1;
+    const out = [];
+    buckets.forEach((views, word) => {
+      if (views.length >= minCount) {
+        const m = median(views);
+        out.push({ word: word, count: views.length, medViews: m, lift: m / base });
+      }
+    });
+    return out.sort((a, b) => b.lift - a.lift);
+  }
+
+  const TITLE_PATTERNS = [
+    ["Question", (t) => /\?/.test(t)],
+    ["Versus / comparison", (t) => /\bvs\.?\b|\bversus\b/i.test(t)],
+    ["Numbered or list", (t) => /^\s*\d+\b|\btop\s+\d+\b|\b\d+\s+(things|ways|tips|reasons|rules)\b/i.test(t)],
+    ["Bracketed tag", (t) => /\[[^\]]+\]|\([^)]+\)/.test(t)],
+    ["First person", (t) => /\b(i|my|me|we)\b/i.test(t)],
+    ["Shouted word", (t) => /\b[A-Z]{3,}\b/.test(t)],
+    ["Superlative", (t) => /\b(best|worst|ultimate|greatest|craziest|insane)\b/i.test(t)],
+    ["How to", (t) => /\bhow to\b/i.test(t)],
+  ];
+
+  function patternStats(rows) {
+    const base = median(rows.map((v) => v.views)) || 1;
+    return TITLE_PATTERNS
+      .map((p) => {
+        const hit = rows.filter((v) => p[1](v.title));
+        const m = hit.length ? median(hit.map((v) => v.views)) : 0;
+        return { name: p[0], count: hit.length, medViews: m, lift: hit.length ? m / base : 0 };
+      })
+      .filter((r) => r.count >= 2)
+      .sort((a, b) => b.lift - a.lift);
+  }
+
+  function titleLengthStats(rows) {
+    const buckets = [["<30", 0, 30], ["30-45", 30, 45], ["45-60", 45, 60], ["60-75", 60, 75], ["75+", 75, Infinity]];
+    return buckets.map((b) => {
+      const hit = rows.filter((v) => v.title.length >= b[1] && v.title.length < b[2]);
+      return { label: b[0], value: hit.length ? Math.round(median(hit.map((v) => v.views))) : 0 };
+    });
+  }
+
+  function renderTitles(rows) {
+    ui.titles.innerHTML = "";
+    if (rows.length < 4) {
+      ui.titles.appendChild(chartEmpty());
+      return;
+    }
+    ui.titles.appendChild(section("Median views by title length", barChart(titleLengthStats(rows))));
+
+    const kw = keywordStats(rows, 3).slice(0, 20);
+    ui.titles.appendChild(section(
+      "Words that lift performance",
+      kw.length
+        ? dataTable(["Word", "Videos", "Median views", "Lift"], kw.map((k) => [
+            k.word, String(k.count), fmtCompact(Math.round(k.medViews)), k.lift.toFixed(2) + "x",
+          ]))
+        : chartEmpty()
+    ));
+
+    const pat = patternStats(rows);
+    ui.titles.appendChild(section(
+      "Title formats",
+      pat.length
+        ? dataTable(["Format", "Videos", "Median views", "Lift"], pat.map((p) => [
+            p.name, String(p.count), fmtCompact(Math.round(p.medViews)), p.lift.toFixed(2) + "x",
+          ]))
+        : chartEmpty()
+    ));
+  }
+
+  // ---- niche watchlist -----------------------------------------------------
+  async function getWatchlist() {
+    const rec = await idbGet("__watchlist");
+    return (rec && rec.list) || [];
+  }
+  async function saveWatchlist(list) {
+    await idbPut("__watchlist", { list: list });
+  }
+  function channelKeyFromUrl(url) {
+    try {
+      return new URL(url).pathname.replace(/\/videos\/?$/, "");
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Words the tracked channels rank for that this channel never uses.
+  function contentGap(mine, theirs, minCount) {
+    const mineWords = new Set();
+    mine.forEach((v) => tokenize(v.title).forEach((w) => mineWords.add(w)));
+    return keywordStats(theirs, minCount)
+      .filter((k) => !mineWords.has(k.word))
+      .sort((a, b) => b.medViews - a.medViews);
+  }
+
+  async function refreshWatchlist() {
+    if (!state.watchlist.length) {
+      ui.nicheStatus.textContent = "add a channel first";
+      return;
+    }
+    ui.nicheRefresh.disabled = true;
+    const outliers = [];
+    const theirVideos = [];
+    for (const key of state.watchlist) {
+      ui.nicheStatus.textContent = "reading " + key.replace(/^\//, "") + "…";
+      try {
+        const cat = await fetchCatalogFrom(location.origin + key + "/videos", () => {});
+        await persistCatalog(key, cat);
+        const rates = cat.filter((v) => v.days).map((v) => v.views / Math.max(v.days, 1));
+        const med = median(rates) || 1;
+        cat.forEach((v) => {
+          const rate = v.days ? v.views / Math.max(v.days, 1) : 0;
+          const ratio = rate / med;
+          if (ratio >= 1.5) outliers.push({ v: v, channel: key, ratio: ratio });
+        });
+        theirVideos.push.apply(theirVideos, cat);
+      } catch (e) {
+        console.error("[Channel Search+] watchlist", key, e);
+      }
+    }
+    outliers.sort((a, b) => b.ratio - a.ratio);
+    state.nicheItems = outliers;
+    state.gapItems = state.catalog.length ? contentGap(state.catalog, theirVideos, 3) : [];
+    ui.nicheStatus.textContent =
+      state.watchlist.length + " channels · " + theirVideos.length + " videos · " + outliers.length + " outliers";
+    ui.nicheRefresh.disabled = false;
+    renderNiche();
+  }
+
+  function nicheList(items) {
+    const wrap = document.createElement("div");
+    wrap.className = "ytcs-nlist";
+    items.slice(0, 24).forEach((it) => {
+      const row = document.createElement("a");
+      row.className = "ytcs-nrow";
+      row.href = "/watch?v=" + it.v.id;
+      const img = document.createElement("img");
+      img.loading = "lazy";
+      img.src = "https://i.ytimg.com/vi/" + it.v.id + "/mqdefault.jpg";
+      const meta = document.createElement("div");
+      meta.className = "ytcs-nmeta";
+      const t = document.createElement("div");
+      t.className = "ytcs-ntitle";
+      t.textContent = it.v.title;
+      const sub = document.createElement("div");
+      sub.className = "ytcs-nsub";
+      sub.textContent = [
+        it.channel.replace(/^\//, ""),
+        fmtCompact(it.v.views) + " views",
+        it.ratio.toFixed(1) + "x channel median",
+      ].join("  ·  ");
+      meta.appendChild(t);
+      meta.appendChild(sub);
+      row.appendChild(img);
+      row.appendChild(meta);
+      wrap.appendChild(row);
+    });
+    return wrap;
+  }
+
+  function renderNiche() {
+    ui.nicheChips.innerHTML = "";
+    if (!state.watchlist.length) {
+      const hint = document.createElement("div");
+      hint.className = "ytcs-status";
+      hint.textContent = "No channels tracked yet. Add a few competitors, then refresh to see what is working across the niche.";
+      ui.nicheChips.appendChild(hint);
+    }
+    state.watchlist.forEach((key) => {
+      const chip = document.createElement("span");
+      chip.className = "ytcs-chip";
+      const label = document.createElement("span");
+      label.textContent = key.replace(/^\//, "");
+      const x = document.createElement("button");
+      x.className = "ytcs-chipx";
+      x.textContent = "×";
+      x.title = "Stop tracking";
+      x.onclick = async () => {
+        state.watchlist = state.watchlist.filter((k) => k !== key);
+        await saveWatchlist(state.watchlist);
+        renderNiche();
+      };
+      chip.appendChild(label);
+      chip.appendChild(x);
+      ui.nicheChips.appendChild(chip);
+    });
+
+    ui.nicheResults.innerHTML = "";
+    if (state.nicheItems.length) {
+      ui.nicheResults.appendChild(section("What is working right now", nicheList(state.nicheItems)));
+    }
+    if (state.gapItems.length) {
+      ui.nicheResults.appendChild(section(
+        "Content gaps: topics they cover and you do not",
+        dataTable(["Topic", "Their videos", "Median views"], state.gapItems.slice(0, 20).map((g) => [
+          g.word, String(g.count), fmtCompact(Math.round(g.medViews)),
+        ]))
+      ));
+    }
+  }
+
+  // ---- view switching ------------------------------------------------------
   function setView(name) {
     state.view = name;
-    const analytics = name === "analytics";
-    ui.grid.style.display = analytics ? "none" : "";
-    ui.analytics.style.display = analytics ? "" : "none";
-    ui.tabGrid.classList.toggle("ytcs-tabon", !analytics);
-    ui.tabAnalytics.classList.toggle("ytcs-tabon", analytics);
+    const panes = { grid: ui.grid, analytics: ui.analytics, titles: ui.titles, niche: ui.niche };
+    const tabs = { grid: ui.tabGrid, analytics: ui.tabAnalytics, titles: ui.tabTitles, niche: ui.tabNiche };
+    Object.keys(panes).forEach((k) => {
+      panes[k].style.display = k === name ? "" : "none";
+      tabs[k].classList.toggle("ytcs-tabon", k === name);
+    });
     applyView();
   }
 
@@ -825,6 +1139,8 @@
       ["duration_desc", "Longest"],
       ["duration_asc", "Shortest"],
       ["vpd_desc", "Views per day"],
+      ["trend_desc", "Trending (measured)"],
+      ["gems_desc", "Hidden gems"],
       ["title_az", "Title A→Z"],
     ]);
 
@@ -834,16 +1150,19 @@
     count.className = "ytcs-count";
 
     // view tabs
-    const tabGrid = document.createElement("button");
-    tabGrid.className = "ytcs-tab ytcs-tabon";
-    tabGrid.textContent = "Grid";
-    const tabAnalytics = document.createElement("button");
-    tabAnalytics.className = "ytcs-tab";
-    tabAnalytics.textContent = "Analytics";
     const tabs = document.createElement("div");
     tabs.className = "ytcs-tabs";
-    tabs.appendChild(tabGrid);
-    tabs.appendChild(tabAnalytics);
+    const mkTab = (label, on) => {
+      const b = document.createElement("button");
+      b.className = "ytcs-tab" + (on ? " ytcs-tabon" : "");
+      b.textContent = label;
+      tabs.appendChild(b);
+      return b;
+    };
+    const tabGrid = mkTab("Grid", true);
+    const tabAnalytics = mkTab("Analytics");
+    const tabTitles = mkTab("Titles");
+    const tabNiche = mkTab("Niche");
 
     // action buttons
     const iconBtn = (label, title) => {
@@ -918,21 +1237,70 @@
     cmp.appendChild(cmpResult);
     analytics.appendChild(cmp);
 
+    // title analysis pane
+    const titles = document.createElement("div");
+    titles.className = "ytcs-pane";
+    titles.style.display = "none";
+
+    // niche watchlist pane
+    const niche = document.createElement("div");
+    niche.className = "ytcs-pane";
+    niche.style.display = "none";
+    const nicheRow = document.createElement("div");
+    nicheRow.className = "ytcs-cmprow";
+    const nicheInput = document.createElement("input");
+    nicheInput.type = "text";
+    nicheInput.className = "ytcs-in";
+    nicheInput.placeholder = "@handle or channel URL";
+    const nicheAdd = iconBtn("Track channel", "Add this channel to the watchlist");
+    const nicheRefresh = iconBtn("Refresh all", "Read every tracked channel and rank what is working");
+    const nicheStatus = document.createElement("span");
+    nicheStatus.className = "ytcs-status";
+    nicheRow.appendChild(nicheInput);
+    nicheRow.appendChild(nicheAdd);
+    nicheRow.appendChild(nicheRefresh);
+    nicheRow.appendChild(nicheStatus);
+    const nicheChips = document.createElement("div");
+    nicheChips.className = "ytcs-chips";
+    const nicheResults = document.createElement("div");
+    nicheResults.className = "ytcs-nresults";
+    niche.appendChild(nicheRow);
+    niche.appendChild(nicheChips);
+    niche.appendChild(nicheResults);
+
     wrap.appendChild(bar);
     wrap.appendChild(stats);
     wrap.appendChild(grid);
     wrap.appendChild(analytics);
+    wrap.appendChild(titles);
+    wrap.appendChild(niche);
 
     ui = {
       wrap, bar, kw, duration, views, uploaded, sort, status, count,
-      stats, grid, analytics, charts, tabGrid, tabAnalytics,
+      stats, grid, analytics, charts, titles, niche,
+      tabGrid, tabAnalytics, tabTitles, tabNiche,
       cmpInput, cmpBtn, cmpStatus, cmpResult,
+      nicheInput, nicheAdd, nicheRefresh, nicheStatus, nicheChips, nicheResults,
     };
 
     tabGrid.onclick = () => setView("grid");
     tabAnalytics.onclick = () => setView("analytics");
+    tabTitles.onclick = () => setView("titles");
+    tabNiche.onclick = () => setView("niche");
     cmpBtn.onclick = () => runCompare();
     cmpInput.addEventListener("keydown", (e) => { if (e.key === "Enter") runCompare(); });
+
+    nicheAdd.onclick = async () => {
+      const url = normalizeChannelInput(nicheInput.value);
+      const key = url && channelKeyFromUrl(url);
+      if (!key) { nicheStatus.textContent = "couldn't parse that channel"; return; }
+      if (state.watchlist.indexOf(key) === -1) state.watchlist.push(key);
+      await saveWatchlist(state.watchlist);
+      nicheInput.value = "";
+      nicheStatus.textContent = state.watchlist.length + " tracked";
+      renderNiche();
+    };
+    nicheRefresh.onclick = () => refreshWatchlist();
 
     for (const el of [kw, duration, views, uploaded, sort]) {
       el.addEventListener("input", applyView);
@@ -955,9 +1323,10 @@
     return null;
   }
 
-  function recomputeMedianVpd() {
+  function recomputeMedians() {
     const vpds = state.catalog.filter((v) => v.days).map((v) => v.views / Math.max(v.days, 1));
     state.medianVpd = median(vpds);
+    state.medianViews = median(state.catalog.map((v) => v.views));
   }
 
   // Load from cache instantly if present; otherwise fetch fresh.
@@ -969,7 +1338,7 @@
       state.catalog = cached.videos;
       state.cachedAt = cached.fetchedAt || 0;
       state.newIds = new Set();
-      recomputeMedianVpd();
+      recomputeMedians();
       ui.status.textContent = state.catalog.length + " cached • " + fmtAgo(state.cachedAt);
       applyView();
       return;
@@ -977,25 +1346,67 @@
     await refreshCatalog();
   }
 
-  // Always re-fetch; diff against the cached ids to flag new uploads.
+  /*
+   * Store the catalog and keep a rolling set of view-count snapshots. Diffing
+   * the newest fetch against the previous snapshot gives measured velocity,
+   * which is real rather than inferred from YouTube's relative dates. Videos
+   * are annotated in place so the numbers survive in the cache.
+   */
+  async function persistCatalog(key, cat) {
+    const prev = await idbGet(key);
+    const history = (prev && prev.history) || [];
+    const last = history[history.length - 1];
+    const now = Date.now();
+
+    if (last && last.t) {
+      const days = (now - last.t) / 86400000;
+      if (days > 0.02) {
+        for (const v of cat) {
+          const before = last.v[v.id];
+          if (typeof before === "number" && v.views >= before) {
+            v.gained = v.views - before;
+            v.sinceDays = days;
+            v.measuredVpd = v.gained / days;
+          }
+        }
+      }
+    }
+
+    const snapshot = {};
+    for (const v of cat) snapshot[v.id] = v.views;
+    const nextHistory = history.concat([{ t: now, v: snapshot }]).slice(-SNAPSHOT_LIMIT);
+
+    const oldIds = prev && prev.ids ? new Set(prev.ids) : null;
+    const newIds = oldIds ? cat.filter((v) => !oldIds.has(v.id)).map((v) => v.id) : [];
+
+    await idbPut(key, {
+      channel: key,
+      fetchedAt: now,
+      videos: cat,
+      ids: cat.map((v) => v.id),
+      history: nextHistory,
+    });
+    return { newIds: newIds, snapshots: nextHistory.length, at: now };
+  }
+
   async function refreshCatalog() {
     if (state.loading) return;
     state.loading = true;
     ui.grid.classList.add("ytcs-busy");
     ui.status.textContent = "loading… 0";
     const key = channelBasePath();
-    let oldIds = null;
-    const prev = key ? await idbGet(key) : null;
-    if (prev && prev.ids) oldIds = new Set(prev.ids);
     try {
       const cat = await fetchCatalog((n) => (ui.status.textContent = "loading… " + n));
       state.catalog = cat;
       state.cachedAt = Date.now();
-      recomputeMedianVpd();
-      state.newIds = oldIds ? new Set(cat.filter((v) => !oldIds.has(v.id)).map((v) => v.id)) : new Set();
-      if (key) idbPut(key, { channel: key, fetchedAt: state.cachedAt, videos: cat, ids: cat.map((v) => v.id) });
-      const newN = state.newIds.size;
-      ui.status.textContent = cat.length + " loaded" + (newN ? " • " + newN + " new" : "");
+      let info = { newIds: [], snapshots: 1 };
+      if (key) info = await persistCatalog(key, cat);
+      state.newIds = new Set(info.newIds);
+      recomputeMedians();
+      const bits = [cat.length + " videos"];
+      if (info.newIds.length) bits.push(info.newIds.length + " new");
+      bits.push(info.snapshots > 1 ? info.snapshots + " snapshots" : "first snapshot");
+      ui.status.textContent = bits.join(" · ");
       applyView();
     } catch (e) {
       ui.status.textContent = "error: " + e.message;
@@ -1026,6 +1437,8 @@
 
     state.active = true;
     if (launcher) launcher.textContent = "Close";
+    state.watchlist = await getWatchlist();
+    renderNiche();
     if (!state.catalog.length) await loadCatalog();
     else applyView();
   }

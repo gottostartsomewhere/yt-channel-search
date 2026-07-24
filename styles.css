@@ -343,3 +343,104 @@
 .ytcs-cmptable .ytcs-cmpk { text-align: left; color: var(--dim); font-weight: 400; }
 .ytcs-cmptable td { color: var(--txt); font-weight: 600; }
 .ytcs-cmptable tbody tr:last-child td { border-bottom: 0; }
+
+/* measured velocity, the one number worth the accent */
+.ytcs-cmeasured {
+  margin-top: 3px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ac);
+  font-variant-numeric: tabular-nums;
+}
+
+/* clickable chart columns */
+.ytcs-hit { fill: transparent; cursor: pointer; }
+.ytcs-hit:hover { fill: rgba(127, 127, 127, 0.12); }
+
+/* generic panes and sections */
+.ytcs-pane { padding: 0 16px 48px; }
+.ytcs-section { margin-bottom: 30px; }
+.ytcs-sectitle {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 12px;
+}
+.ytcs-section .ytcs-svg { max-width: 460px; }
+
+/* data tables */
+.ytcs-dtable {
+  border-collapse: collapse;
+  width: 100%;
+  max-width: 560px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.ytcs-dtable th,
+.ytcs-dtable td {
+  text-align: right;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.ytcs-dtable th { color: var(--dim); font-weight: 500; font-size: 11.5px; }
+.ytcs-dtable th:first-child,
+.ytcs-dtable .ytcs-dk { text-align: left; color: var(--txt); font-weight: 500; }
+.ytcs-dtable td { color: var(--txt); }
+.ytcs-dtable tbody tr:hover { background: rgba(127, 127, 127, 0.06); }
+.ytcs-dtable tbody tr:last-child td { border-bottom: 0; }
+
+/* watchlist chips */
+.ytcs-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 4px; }
+.ytcs-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 12.5px;
+  color: var(--txt);
+}
+.ytcs-chipx {
+  border: 0;
+  background: none;
+  color: var(--dim);
+  font-size: 15px;
+  line-height: 1;
+  padding: 0 2px;
+  cursor: pointer;
+}
+.ytcs-chipx:hover { color: var(--ac); }
+
+/* niche results */
+.ytcs-nresults { margin-top: 26px; }
+.ytcs-nlist { display: flex; flex-direction: column; gap: 4px; max-width: 680px; }
+.ytcs-nrow {
+  display: flex;
+  gap: 12px;
+  padding: 8px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: inherit;
+}
+.ytcs-nrow:hover { background: rgba(127, 127, 127, 0.08); }
+.ytcs-nrow img {
+  width: 104px;
+  height: 58px;
+  object-fit: cover;
+  border-radius: 7px;
+  flex: 0 0 auto;
+  background: var(--surface);
+}
+.ytcs-nmeta { min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+.ytcs-ntitle {
+  font-size: 13.5px;
+  font-weight: 500;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.ytcs-nsub { font-size: 12px; color: var(--dim); font-variant-numeric: tabular-nums; }
