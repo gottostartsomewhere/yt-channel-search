@@ -38,9 +38,12 @@ median views and by how much, which title formats land (question, versus,
 numbered, how-to, superlative), and how title length maps to views.
 
 **Niche.** Track a set of competitor channels. Refresh reads all of them and
-gives you two things: what is working right now, ranked by how far each video
-beats its own channel's median, and content gaps, the topics they rank for that
-you have never covered.
+gives you two things: what is working right now, and content gaps, the topics
+they rank for that you have never covered. Once a tracked channel has been
+refreshed twice, "what is working" ranks by measured velocity, how fast each
+video is moving relative to how fast that channel normally moves, so a small
+channel's breakout can outrank a big channel's average upload. Until then it
+falls back to the lifetime average.
 
 Alongside that: catalogs cache locally so re-opening is instant, refreshing flags
 uploads added since your last visit, and any filtered set exports to CSV or JSON.

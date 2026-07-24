@@ -16,6 +16,8 @@
   const MAX_PAGES = 60; // safety cap: ~30 videos/page => ~1800 videos
   const FALLBACK_VER = "2.20240710.01.00";
   const SNAPSHOT_LIMIT = 8; // how many view-count snapshots we keep per channel
+  const VELOCITY_FLOOR = 200; // ignore measured growth below this many views as noise
+  const MIN_MEASURED = 3; // videos with velocity needed before a channel ranks by it
 
   // Kept in step with the filter dropdowns so a chart bar can drive the grid.
   const VIEW_BUCKETS = [
@@ -982,18 +984,35 @@
     ui.nicheRefresh.disabled = true;
     const outliers = [];
     const theirVideos = [];
+    let liveChannels = 0;
     for (const key of state.watchlist) {
       ui.nicheStatus.textContent = "reading " + key.replace(/^\//, "") + "…";
       try {
         const cat = await fetchCatalogFrom(location.origin + key + "/videos", () => {});
-        await persistCatalog(key, cat);
-        const rates = cat.filter((v) => v.days).map((v) => v.views / Math.max(v.days, 1));
-        const med = median(rates) || 1;
-        cat.forEach((v) => {
-          const rate = v.days ? v.views / Math.max(v.days, 1) : 0;
-          const ratio = rate / med;
-          if (ratio >= 1.5) outliers.push({ v: v, channel: key, ratio: ratio });
-        });
+        await persistCatalog(key, cat); // annotates measured velocity in place
+
+        // Prefer measured velocity: rank videos moving fastest relative to how
+        // fast this channel normally moves right now. Only once there is enough
+        // measured data, otherwise fall back to the lifetime average.
+        const measured = cat.filter((v) => v.measuredVpd > 0 && v.gained >= VELOCITY_FLOOR);
+        if (measured.length >= MIN_MEASURED) {
+          liveChannels++;
+          const base = median(measured.map((v) => v.measuredVpd)) || 1;
+          measured.forEach((v) => {
+            const ratio = v.measuredVpd / base;
+            if (ratio >= 1.5) {
+              outliers.push({ v: v, channel: key, ratio: ratio, measured: true, gained: v.gained, sinceDays: v.sinceDays });
+            }
+          });
+        } else {
+          const rates = cat.filter((v) => v.days).map((v) => v.views / Math.max(v.days, 1));
+          const base = median(rates) || 1;
+          cat.forEach((v) => {
+            const rate = v.days ? v.views / Math.max(v.days, 1) : 0;
+            const ratio = rate / base;
+            if (ratio >= 1.5) outliers.push({ v: v, channel: key, ratio: ratio, measured: false });
+          });
+        }
         theirVideos.push.apply(theirVideos, cat);
       } catch (e) {
         console.error("[Channel Search+] watchlist", key, e);
@@ -1002,8 +1021,11 @@
     outliers.sort((a, b) => b.ratio - a.ratio);
     state.nicheItems = outliers;
     state.gapItems = state.catalog.length ? contentGap(state.catalog, theirVideos, 3) : [];
+    const mode = liveChannels
+      ? liveChannels + " of " + state.watchlist.length + " live"
+      : "baseline set, refresh again later for live velocity";
     ui.nicheStatus.textContent =
-      state.watchlist.length + " channels · " + theirVideos.length + " videos · " + outliers.length + " outliers";
+      state.watchlist.length + " channels · " + theirVideos.length + " videos · " + outliers.length + " outliers · " + mode;
     ui.nicheRefresh.disabled = false;
     renderNiche();
   }
@@ -1025,11 +1047,18 @@
       t.textContent = it.v.title;
       const sub = document.createElement("div");
       sub.className = "ytcs-nsub";
-      sub.textContent = [
-        it.channel.replace(/^\//, ""),
-        fmtCompact(it.v.views) + " views",
-        it.ratio.toFixed(1) + "x channel median",
-      ].join("  ·  ");
+      const parts = [it.channel.replace(/^\//, "")];
+      if (it.measured) {
+        const span = it.sinceDays < 1
+          ? Math.max(1, Math.round(it.sinceDays * 24)) + "h"
+          : Math.round(it.sinceDays) + "d";
+        parts.push("+" + fmtCompact(Math.round(it.gained)) + " in " + span);
+        parts.push(it.ratio.toFixed(1) + "x normal pace");
+      } else {
+        parts.push(fmtCompact(it.v.views) + " views");
+        parts.push(it.ratio.toFixed(1) + "x lifetime median");
+      }
+      sub.textContent = parts.join("  ·  ");
       meta.appendChild(t);
       meta.appendChild(sub);
       row.appendChild(img);
@@ -1407,7 +1436,10 @@
 
     const snapshot = {};
     for (const v of cat) snapshot[v.id] = v.views;
-    const nextHistory = history.concat([{ t: now, v: snapshot }]).slice(-SNAPSHOT_LIMIT);
+    // Only lay down a fresh snapshot once enough time has passed, otherwise a
+    // burst of refreshes would collapse the measurement window to minutes.
+    const tooSoon = last && last.t && (now - last.t) / 86400000 <= 0.02;
+    const nextHistory = tooSoon ? history : history.concat([{ t: now, v: snapshot }]).slice(-SNAPSHOT_LIMIT);
 
     const oldIds = prev && prev.ids ? new Set(prev.ids) : null;
     const newIds = oldIds ? cat.filter((v) => !oldIds.has(v.id)).map((v) => v.id) : [];
