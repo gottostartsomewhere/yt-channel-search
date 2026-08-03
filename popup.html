@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Channel Search+</title>
+<link rel="stylesheet" href="popup.css">
+</head>
+<body>
+<header>
+  <img src="icons/icon48.png" alt="" width="26" height="26">
+  <span class="name">Channel Search+</span>
+</header>
+
+<button id="open" class="primary">Open on this channel</button>
+<p id="hint" class="hint">Alt+Y does the same thing.</p>
+
+<div class="rows">
+  <label class="row" for="defaultSort">
+    <span>Opening sort</span>
+    <select id="defaultSort">
+      <option value="newest">Newest</option>
+      <option value="oldest">Oldest</option>
+      <option value="starthere">Start here</option>
+      <option value="views_desc">Most views</option>
+      <option value="vpd_desc">Views per day</option>
+      <option value="trend_desc">Trending</option>
+    </select>
+  </label>
+
+  <label class="row" for="hideWatched">
+    <span>Hide finished videos</span>
+    <input type="checkbox" id="hideWatched">
+  </label>
+
+  <label class="row" for="autoOpen">
+    <span>Open automatically</span>
+    <input type="checkbox" id="autoOpen">
+  </label>
+
+  <label class="row" for="maxVideos">
+    <span>Video limit <em>how deep to read</em></span>
+    <input type="number" id="maxVideos" min="30" max="10000" step="30">
+  </label>
+
+  <label class="row" for="finishedAt">
+    <span>Finished at <em>percent watched</em></span>
+    <input type="number" id="finishedAt" min="50" max="100" step="5">
+  </label>
+
+  <label class="row" for="outlierX">
+    <span>Outlier threshold <em>times normal pace</em></span>
+    <input type="number" id="outlierX" min="1.2" max="10" step="0.1">
+  </label>
+</div>
+
+<footer>
+  <button id="reset" class="ghost">Reset</button>
+  <span id="saved" class="saved"></span>
+  <a href="#" id="shortcuts">Change shortcut</a>
+</footer>
+<script src="popup.js"></script>
+</body>
+</html>

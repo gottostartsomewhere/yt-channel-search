@@ -97,9 +97,10 @@ session and needs no API key of your own.
 3. Open any channel's Videos tab, for example `youtube.com/@mkbhd/videos`, and
    click the Search+ button at the bottom right, or press Alt+Y.
 
-Settings live on the extension's options page: how deep to read a channel, what
-counts as finished, which sort to open on, whether to hide watched videos or
-open automatically, and the outlier threshold. The shortcut can be rebound at
+Clicking the toolbar icon opens the panel on the channel you are looking at and
+holds the settings: how deep to read a channel, what counts as finished, which
+sort to open on, whether to hide watched videos or open automatically, and the
+outlier threshold. Changes save as you make them. The shortcut can be rebound at
 `chrome://extensions/shortcuts`.
 
 ## Notes and limits
