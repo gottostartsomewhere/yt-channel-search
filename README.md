@@ -21,7 +21,11 @@ across 1,200 uploads" are unanswerable from the loaded DOM, and trivial here.
 The extension replaces the native grid in place, with a control bar on top and a
 Restore YouTube button to put things back. It has four views.
 
-**Grid.** Filter by title keyword, length band, view band, and upload recency.
+**Grid.** Filter by title keyword, length band, view band, upload recency, and
+**watch state**. That last one is the piece plain YouTube never gives you: hide
+everything you have already finished, or pull up only the videos you started and
+abandoned. Your progress rides along in the same payload the catalog comes from,
+so finding the unwatched half of a 900-video back catalogue takes one dropdown.
 Sort by views, length, views per day, measured trend, or hidden gems (fast
 relative to the channel but still small in absolute terms). A live stats strip
 recalculates as you filter, and outliers get a badge showing how far they beat
@@ -87,6 +91,9 @@ session and needs no API key of your own.
   the per-year charts are approximate. Measured velocity is not, because it comes
   from your own snapshots.
 - Velocity needs at least two visits before it can show anything.
+- Watch state comes from your signed-in session, so it is empty when signed out
+  and it ages with the cache. Refresh to bring it up to date. A video counts as
+  finished at 90 percent, which is roughly where YouTube stops offering a resume.
 - The catalog fetch is capped at roughly 1,800 videos, set by `MAX_PAGES`.
   Refreshing a watchlist reads each channel in turn, so a large one takes a while.
 - InnerTube is an unofficial endpoint. It is stable in practice, but YouTube can

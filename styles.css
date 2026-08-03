@@ -242,6 +242,22 @@
 }
 .ytcs-outlier + .ytcs-new { top: 34px; }
 
+/* watch progress, mirroring YouTube's own resume bar */
+.ytcs-prog {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.28);
+}
+.ytcs-progfill { display: block; height: 100%; background: var(--ac); }
+
+/* already finished: present but visually stepped back */
+.ytcs-seen .ytcs-thumb img { opacity: 0.42; }
+.ytcs-seen .ytcs-ctitle { color: var(--dim); font-weight: 400; }
+.ytcs-seen:hover .ytcs-thumb img { opacity: 0.7; }
+
 .ytcs-info { padding: 12px 2px 0; }
 .ytcs-ctitle {
   font-size: 14px;

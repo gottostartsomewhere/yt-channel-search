@@ -133,6 +133,16 @@
     return "";
   }
 
+  // Resume-playback overlay: how far through the video this account already is.
+  function overlayProgress(vr) {
+    const overlays = vr.thumbnailOverlays || [];
+    for (const o of overlays) {
+      const r = o.thumbnailOverlayResumePlaybackRenderer;
+      if (r && typeof r.percentDurationWatched === "number") return r.percentDurationWatched;
+    }
+    return null;
+  }
+
   function mapVideo(vr) {
     const id = vr.videoId;
     const title =
@@ -146,7 +156,7 @@
     const views = parseViews(viewsText);
     const publishedText = (vr.publishedTimeText && vr.publishedTimeText.simpleText) || "";
     const days = parseRelativeDays(publishedText);
-    return { id, title, durationText, seconds, views, publishedText, days };
+    return { id, title, durationText, seconds, views, publishedText, days, progress: overlayProgress(vr) };
   }
 
   // ---- video mapping (current lockupViewModel shape) -----------------------
@@ -182,6 +192,18 @@
     return { viewsText, publishedText };
   }
 
+  // Same idea in the lockup shape: a progress bar sits in the bottom overlay.
+  function lockupProgress(lvm) {
+    const tvm = lvm.contentImage && lvm.contentImage.thumbnailViewModel;
+    const overlays = (tvm && tvm.overlays) || [];
+    for (const o of overlays) {
+      const bottom = o.thumbnailBottomOverlayViewModel;
+      const bar = bottom && bottom.progressBar && bottom.progressBar.thumbnailOverlayProgressBarViewModel;
+      if (bar && typeof bar.startPercent === "number") return bar.startPercent;
+    }
+    return null;
+  }
+
   function idFromThumb(lvm) {
     const tvm = lvm.contentImage && lvm.contentImage.thumbnailViewModel;
     const sources = tvm && tvm.image && tvm.image.sources;
@@ -207,6 +229,7 @@
       views: parseViews(viewsText),
       publishedText,
       days: parseRelativeDays(publishedText),
+      progress: lockupProgress(lvm),
     };
   }
 
@@ -354,17 +377,31 @@
     return [min, max];
   }
 
+  // YouTube marks a video finished well before 100%, so treat the tail as done.
+  const FINISHED_AT = 90;
+  function watchState(v) {
+    if (typeof v.progress !== "number") return "new";
+    if (v.progress >= FINISHED_AT) return "done";
+    if (v.progress > 0) return "partial";
+    return "new";
+  }
+
   function filterAndSort() {
     const kw = ui.kw.value.trim().toLowerCase();
     const [minDur, maxDur] = rangeVal(ui.duration);
     const [minViews, maxViews] = rangeVal(ui.views);
     const uploaded = ui.uploaded.value; // "", "7", "31", "93", "366", "old"
+    const watched = ui.watched.value; // "", "new", "partial", "done", "unfinished"
     const sort = ui.sort.value;
 
     let rows = state.catalog.filter((v) => {
       if (kw && !v.title.toLowerCase().includes(kw)) return false;
       if (v.seconds < minDur || v.seconds > maxDur) return false;
       if (v.views < minViews || v.views > maxViews) return false;
+      if (watched) {
+        const ws = watchState(v);
+        if (watched === "unfinished" ? ws === "done" : ws !== watched) return false;
+      }
       if (uploaded) {
         if (uploaded === "old") {
           if (!(v.days != null && v.days > 366)) return false;
@@ -408,7 +445,7 @@
     ui.count.textContent = rows.length + " of " + state.catalog.length;
 
     const filtered = !!(ui.kw.value.trim() || ui.duration.value || ui.views.value ||
-      ui.uploaded.value || ui.sort.value !== "newest");
+      ui.uploaded.value || ui.watched.value || ui.sort.value !== "newest");
     ui.clear.style.display = filtered ? "" : "none";
     ui.count.classList.toggle("ytcs-filtered", filtered);
   }
@@ -434,6 +471,10 @@
       ["Avg length", fmtDuration(avgDur) || "–"],
       ["Median/day", fmtCompact(Math.round(medVpd))],
     ];
+    // Only meaningful when this account actually has history on the channel.
+    if (state.catalog.some((v) => typeof v.progress === "number")) {
+      tiles.push(["Not started", String(rows.filter((v) => watchState(v) === "new").length)]);
+    }
     ui.stats.innerHTML = "";
     for (const [label, val] of tiles) {
       const tile = document.createElement("div");
@@ -454,8 +495,9 @@
     const frag = document.createDocumentFragment();
     const shown = rows.slice(0, 600);
     for (const v of shown) {
+      const ws = watchState(v);
       const card = document.createElement("a");
-      card.className = "ytcs-card";
+      card.className = "ytcs-card" + (ws === "done" ? " ytcs-seen" : "");
       card.href = "/watch?v=" + v.id;
 
       const thumb = document.createElement("div");
@@ -470,6 +512,15 @@
         d.className = "ytcs-dur";
         d.textContent = durText;
         thumb.appendChild(d);
+      }
+      if (ws !== "new") {
+        const track = document.createElement("span");
+        track.className = "ytcs-prog";
+        const fill = document.createElement("span");
+        fill.className = "ytcs-progfill";
+        fill.style.width = Math.min(100, Math.max(2, v.progress)) + "%";
+        track.appendChild(fill);
+        thumb.appendChild(track);
       }
 
       const info = document.createElement("div");
@@ -1228,6 +1279,13 @@
       ["1000000-10000000", "1M – 10M"],
       ["10000000-", "Over 10M"],
     ]);
+    const watched = select([
+      ["", "Any"],
+      ["new", "Not started"],
+      ["unfinished", "Not finished"],
+      ["partial", "Still watching"],
+      ["done", "Finished"],
+    ]);
     const uploaded = select([
       ["", "Any time"],
       ["7", "Past week"],
@@ -1290,6 +1348,7 @@
       ui.duration.value = "";
       ui.views.value = "";
       ui.uploaded.value = "";
+      ui.watched.value = "";
       ui.sort.value = "newest";
       applyView();
     };
@@ -1306,6 +1365,7 @@
     bar.appendChild(field("Length", duration));
     bar.appendChild(field("Views", views));
     bar.appendChild(field("Uploaded", uploaded));
+    bar.appendChild(field("Watched", watched));
     bar.appendChild(field("Sort", sort));
     bar.appendChild(status);
     bar.appendChild(count);
@@ -1408,7 +1468,7 @@
     wrap.appendChild(foot);
 
     ui = {
-      wrap, bar, kw, duration, views, uploaded, sort, status, count, clear,
+      wrap, bar, kw, duration, views, uploaded, watched, sort, status, count, clear,
       stats, grid, analytics, charts, titles, niche,
       tabGrid, tabAnalytics, tabTitles, tabNiche,
       cmpInput, cmpBtn, cmpStatus, cmpResult,
@@ -1434,7 +1494,7 @@
     };
     nicheRefresh.onclick = () => refreshWatchlist();
 
-    for (const el of [kw, duration, views, uploaded, sort]) {
+    for (const el of [kw, duration, views, uploaded, watched, sort]) {
       el.addEventListener("input", applyView);
       el.addEventListener("change", applyView);
     }
@@ -1471,7 +1531,9 @@
       state.cachedAt = cached.fetchedAt || 0;
       state.newIds = new Set();
       recomputeMedians();
-      ui.status.textContent = state.catalog.length + " cached • " + fmtAgo(state.cachedAt);
+      const hasWatch = state.catalog.some((v) => typeof v.progress === "number");
+      ui.status.textContent = state.catalog.length + " cached · " + fmtAgo(state.cachedAt) +
+        (hasWatch ? "" : " · refresh for watch history");
       applyView();
       return;
     }
