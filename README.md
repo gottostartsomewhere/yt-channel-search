@@ -49,6 +49,13 @@ you what performed. This tells you which *patterns* perform: which words lift
 median views and by how much, which title formats land (question, versus,
 numbered, how-to, superlative), and how title length maps to views.
 
+**Series.** Channels run long series and routinely never build a playlist for
+them, which leaves the episodes scattered through hundreds of uploads. This
+recovers them from the titles, both explicitly numbered runs (`Ep 12`, `Part 3`,
+`#7`, `Day 40`) and series that only share a prefix (`Rust Tutorial: ...`).
+Each one expands into its episodes in order, with the ones you have already
+finished greyed out, so you can pick up where you left off.
+
 **Niche.** Track a set of competitor channels. Refresh reads all of them and
 gives you two things: what is working right now, and content gaps, the topics
 they rank for that you have never covered. Once a tracked channel has been
@@ -88,7 +95,12 @@ session and needs no API key of your own.
 1. Open `chrome://extensions` and turn on Developer mode.
 2. Choose Load unpacked and select this folder.
 3. Open any channel's Videos tab, for example `youtube.com/@mkbhd/videos`, and
-   click the Search+ button at the bottom right.
+   click the Search+ button at the bottom right, or press Alt+Y.
+
+Settings live on the extension's options page: how deep to read a channel, what
+counts as finished, which sort to open on, whether to hide watched videos or
+open automatically, and the outlier threshold. The shortcut can be rebound at
+`chrome://extensions/shortcuts`.
 
 ## Notes and limits
 
@@ -102,8 +114,10 @@ session and needs no API key of your own.
 - Watch state comes from your signed-in session, so it is empty when signed out
   and it ages with the cache. Refresh to bring it up to date. A video counts as
   finished at 90 percent, which is roughly where YouTube stops offering a resume.
-- The catalog fetch is capped at roughly 1,800 videos, set by `MAX_PAGES`.
+- The catalog fetch is capped at 1,800 videos by default, adjustable in options.
   Refreshing a watchlist reads each channel in turn, so a large one takes a while.
+- Series detection reads titles, so it finds what the titles describe. A channel
+  that numbers nothing and shares no prefixes has nothing to recover.
 - InnerTube is an unofficial endpoint. It is stable in practice, but YouTube can
   change the payload shape, which would call for a small parser update.
 

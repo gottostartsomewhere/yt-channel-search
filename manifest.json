@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "YouTube Channel Search+",
-  "version": "0.4.0",
-  "description": "Competitive research for YouTube: read any channel's full upload history, track measured view velocity, and see what is working across your niche.",
+  "version": "0.5.0",
+  "description": "Search a YouTube channel properly: filter its whole back catalogue by length, views, date and what you have already watched, and find the series it never made a playlist for.",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
@@ -17,5 +17,21 @@
       "run_at": "document_idle"
     }
   ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "commands": {
+    "toggle-panel": {
+      "suggested_key": {
+        "default": "Alt+Y"
+      },
+      "description": "Open or close the Channel Search+ panel"
+    }
+  },
+  "permissions": ["storage"],
   "host_permissions": ["*://www.youtube.com/*"]
 }

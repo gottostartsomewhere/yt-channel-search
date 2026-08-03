@@ -13,8 +13,32 @@
   window.__ytcsLoaded = true;
 
   // ---- constants -----------------------------------------------------------
-  const MAX_PAGES = 60; // safety cap: ~30 videos/page => ~1800 videos
   const FALLBACK_VER = "2.20240710.01.00";
+
+  // Defaults, overridden from the options page. Kept in one place so the
+  // options form and the runtime cannot drift apart.
+  const DEFAULTS = {
+    maxVideos: 1800,
+    outlierX: 2,
+    finishedAt: 90,
+    defaultSort: "newest",
+    hideWatched: false,
+    autoOpen: false,
+  };
+  const cfg = Object.assign({}, DEFAULTS);
+
+  function loadSettings() {
+    return new Promise((resolve) => {
+      try {
+        chrome.storage.sync.get(DEFAULTS, (got) => {
+          if (!chrome.runtime.lastError && got) Object.assign(cfg, got);
+          resolve();
+        });
+      } catch (e) {
+        resolve();
+      }
+    });
+  }
   const SNAPSHOT_LIMIT = 8; // how many view-count snapshots we keep per channel
   const VELOCITY_FLOOR = 200; // ignore measured growth below this many views as noise
   const MIN_MEASURED = 3; // videos with velocity needed before a channel ranks by it
@@ -320,7 +344,8 @@
     onProgress(all.length);
 
     let pages = 0;
-    while (token && pages < MAX_PAGES) {
+    const maxPages = Math.max(1, Math.ceil(cfg.maxVideos / 30));
+    while (token && pages < maxPages) {
       pages++;
       let json;
       try {
@@ -378,10 +403,9 @@
   }
 
   // YouTube marks a video finished well before 100%, so treat the tail as done.
-  const FINISHED_AT = 90;
   function watchState(v) {
     if (typeof v.progress !== "number") return "new";
-    if (v.progress >= FINISHED_AT) return "done";
+    if (v.progress >= cfg.finishedAt) return "done";
     if (v.progress > 0) return "partial";
     return "new";
   }
@@ -471,6 +495,7 @@
     renderStats(rows);
     if (state.view === "analytics") renderAnalytics(rows);
     else if (state.view === "titles") renderTitles(rows);
+    else if (state.view === "series") renderSeries(rows);
     else if (state.view === "niche") renderNiche();
     else renderGrid(rows);
     ui.count.textContent = rows.length + " of " + state.catalog.length;
@@ -582,7 +607,7 @@
         measured.textContent = "+" + fmtCompact(Math.round(v.gained)) + " in the last " + span;
         info.appendChild(measured);
       }
-      if (state.medianVpd && vpdVal >= 2 * state.medianVpd) {
+      if (state.medianVpd && vpdVal >= cfg.outlierX * state.medianVpd) {
         const badge = document.createElement("span");
         badge.className = "ytcs-outlier";
         badge.textContent = (vpdVal / state.medianVpd).toFixed(1) + "×";
@@ -1071,6 +1096,161 @@
     ui.titles.appendChild(cols);
   }
 
+  /* ---- series detection ----------------------------------------------------
+   * Plenty of channels run long-form series and never build a playlist for
+   * them, which leaves the episodes scattered through hundreds of uploads.
+   * Two signals recover them: an explicit episode marker in the title, and a
+   * shared prefix ahead of a delimiter. Both collapse to a stem, and a stem
+   * only counts as a series once enough episodes agree on it.
+   */
+  const EPISODE_PATTERNS = [
+    /\b(?:ep|episode|pt|part|day|week|chapter|lesson|round|round)\s*\.?\s*#?(\d{1,3})\b/i,
+    /#(\d{1,3})\b/,
+    /\b(\d{1,3})\s*(?:of|\/)\s*\d{1,3}\b/i,
+  ];
+
+  function episodeOf(title) {
+    for (const re of EPISODE_PATTERNS) {
+      const m = title.match(re);
+      if (m) {
+        const n = parseInt(m[1], 10);
+        // A bare year or a huge number is almost never an episode index.
+        if (n > 0 && n < 500 && !/^(19|20)\d{2}$/.test(m[1])) {
+          return { num: n, stem: title.replace(re, " ") };
+        }
+      }
+    }
+    return null;
+  }
+
+  function cleanStem(s) {
+    return s
+      .replace(/[\[(][^\])]*[\])]/g, " ")
+      .replace(/[|\-–—:•·]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      // Pulling a marker out of the middle can strand a connector at either
+      // end, as in "Day 5 of building X" leaving "of building X".
+      .replace(/^(?:of|the|a|an|in|on|at|to|for|and|with|my)\s+/i, "")
+      .replace(/\s+(?:of|the|a|an|in|on|at|to|for|and|with|my)$/i, "")
+      .trim();
+  }
+
+  function prefixStem(title) {
+    const m = title.match(/^(.{6,60}?)\s*[|:\-–—]\s*\S/);
+    return m ? cleanStem(m[1]) : null;
+  }
+
+  function detectSeries(rows) {
+    const groups = new Map();
+    const add = (stem, v, num) => {
+      const key = stem.toLowerCase();
+      if (key.length < 4) return;
+      if (!groups.has(key)) groups.set(key, { label: stem, items: [], numbered: 0 });
+      const g = groups.get(key);
+      g.items.push({ v: v, num: num });
+      if (num != null) g.numbered++;
+    };
+
+    rows.forEach((v) => {
+      const ep = episodeOf(v.title);
+      if (ep) {
+        const stem = cleanStem(ep.stem);
+        if (stem) { add(stem, v, ep.num); return; }
+      }
+      const pre = prefixStem(v.title);
+      if (pre) add(pre, v, null);
+    });
+
+    const out = [];
+    groups.forEach((g) => {
+      if (g.items.length < 3) return;
+      // Numbered series sort by episode, prefix-only series read oldest first.
+      const items = g.numbered >= 2
+        ? g.items.slice().sort((a, b) => (a.num || 0) - (b.num || 0))
+        : g.items.slice().reverse();
+      const done = items.filter((i) => watchState(i.v) === "done").length;
+      out.push({
+        label: g.label,
+        items: items,
+        count: items.length,
+        numbered: g.numbered >= 2,
+        done: done,
+        views: median(items.map((i) => i.v.views)),
+      });
+    });
+    return out.sort((a, b) => b.count - a.count);
+  }
+
+  function renderSeries(rows) {
+    ui.series.innerHTML = "";
+    const found = detectSeries(rows);
+    if (!found.length) {
+      ui.series.appendChild(emptyNote(
+        "No repeating series found in these titles. This channel probably names each upload on its own."
+      ));
+      return;
+    }
+
+    const intro = document.createElement("p");
+    intro.className = "ytcs-explain";
+    intro.textContent =
+      "Runs of episodes recovered from the titles, including the ones this channel never made a playlist for. " +
+      "Numbered series are ordered by episode, the rest run oldest first.";
+    ui.series.appendChild(intro);
+
+    found.slice(0, 40).forEach((s) => {
+      const box = document.createElement("div");
+      box.className = "ytcs-series";
+
+      const head = document.createElement("button");
+      head.className = "ytcs-shead";
+      const name = document.createElement("span");
+      name.className = "ytcs-sname";
+      name.textContent = s.label;
+      const meta = document.createElement("span");
+      meta.className = "ytcs-smeta";
+      const bits = [s.count + " episodes"];
+      if (s.done) bits.push(s.done + " watched");
+      bits.push(fmtCompact(Math.round(s.views)) + " median views");
+      meta.textContent = bits.join("  ·  ");
+      head.appendChild(name);
+      head.appendChild(meta);
+
+      const list = document.createElement("div");
+      list.className = "ytcs-slist";
+      list.style.display = "none";
+      s.items.forEach((it, i) => {
+        const row = document.createElement("a");
+        row.className = "ytcs-srow" + (watchState(it.v) === "done" ? " ytcs-seen" : "");
+        row.href = "/watch?v=" + it.v.id;
+        const idx = document.createElement("span");
+        idx.className = "ytcs-sidx";
+        idx.textContent = s.numbered && it.num != null ? String(it.num) : String(i + 1);
+        const t = document.createElement("span");
+        t.className = "ytcs-stitle";
+        t.textContent = it.v.title;
+        const d = document.createElement("span");
+        d.className = "ytcs-sdur";
+        d.textContent = fmtDuration(it.v.seconds);
+        row.appendChild(idx);
+        row.appendChild(t);
+        row.appendChild(d);
+        list.appendChild(row);
+      });
+
+      head.onclick = () => {
+        const open = list.style.display !== "none";
+        list.style.display = open ? "none" : "";
+        head.classList.toggle("ytcs-sopen", !open);
+      };
+
+      box.appendChild(head);
+      box.appendChild(list);
+      ui.series.appendChild(box);
+    });
+  }
+
   // ---- niche watchlist -----------------------------------------------------
   async function getWatchlist() {
     const rec = await idbGet("__watchlist");
@@ -1244,8 +1424,8 @@
   // ---- view switching ------------------------------------------------------
   function setView(name) {
     state.view = name;
-    const panes = { grid: ui.grid, analytics: ui.analytics, titles: ui.titles, niche: ui.niche };
-    const tabs = { grid: ui.tabGrid, analytics: ui.tabAnalytics, titles: ui.tabTitles, niche: ui.tabNiche };
+    const panes = { grid: ui.grid, analytics: ui.analytics, titles: ui.titles, series: ui.series, niche: ui.niche };
+    const tabs = { grid: ui.tabGrid, analytics: ui.tabAnalytics, titles: ui.tabTitles, series: ui.tabSeries, niche: ui.tabNiche };
     Object.keys(panes).forEach((k) => {
       panes[k].style.display = k === name ? "" : "none";
       tabs[k].classList.toggle("ytcs-tabon", k === name);
@@ -1364,6 +1544,7 @@
     const tabGrid = mkTab("Grid", true);
     const tabAnalytics = mkTab("Analytics");
     const tabTitles = mkTab("Titles");
+    const tabSeries = mkTab("Series");
     const tabNiche = mkTab("Niche");
 
     // action buttons
@@ -1463,6 +1644,11 @@
     titles.className = "ytcs-pane";
     titles.style.display = "none";
 
+    // series pane
+    const series = document.createElement("div");
+    series.className = "ytcs-pane";
+    series.style.display = "none";
+
     // niche watchlist pane
     const niche = document.createElement("div");
     niche.className = "ytcs-pane";
@@ -1505,13 +1691,14 @@
     wrap.appendChild(grid);
     wrap.appendChild(analytics);
     wrap.appendChild(titles);
+    wrap.appendChild(series);
     wrap.appendChild(niche);
     wrap.appendChild(foot);
 
     ui = {
       wrap, bar, kw, duration, views, uploaded, watched, fits, sort, status, count, clear,
-      stats, grid, analytics, charts, titles, niche,
-      tabGrid, tabAnalytics, tabTitles, tabNiche,
+      stats, grid, analytics, charts, titles, series, niche,
+      tabGrid, tabAnalytics, tabTitles, tabSeries, tabNiche,
       cmpInput, cmpBtn, cmpStatus, cmpResult,
       nicheInput, nicheAdd, nicheRefresh, nicheStatus, nicheChips, nicheResults,
     };
@@ -1519,6 +1706,7 @@
     tabGrid.onclick = () => setView("grid");
     tabAnalytics.onclick = () => setView("analytics");
     tabTitles.onclick = () => setView("titles");
+    tabSeries.onclick = () => setView("series");
     tabNiche.onclick = () => setView("niche");
     cmpBtn.onclick = () => runCompare();
     cmpInput.addEventListener("keydown", (e) => { if (e.key === "Enter") runCompare(); });
@@ -1675,6 +1863,8 @@
 
     state.active = true;
     if (launcher) launcher.textContent = "Close";
+    ui.sort.value = cfg.defaultSort;
+    if (cfg.hideWatched) ui.watched.value = "unfinished";
     state.watchlist = await getWatchlist();
     renderNiche();
     if (!state.catalog.length) await loadCatalog();
@@ -1727,6 +1917,19 @@
     state.view = "grid";
     setTimeout(ensureUi, 300);
   });
+  // Keyboard shortcut, relayed from the service worker.
+  try {
+    chrome.runtime.onMessage.addListener((msg) => {
+      if (msg && msg.type === "ytcs-toggle" && isChannelPage()) {
+        if (state.active) disable();
+        else enable();
+      }
+    });
+  } catch (e) { /* no extension context, nothing to relay */ }
+
   setInterval(ensureUi, 1500);
-  ensureUi();
+  loadSettings().then(() => {
+    ensureUi();
+    if (cfg.autoOpen && isChannelPage()) setTimeout(() => { if (!state.active) enable(); }, 800);
+  });
 })();
