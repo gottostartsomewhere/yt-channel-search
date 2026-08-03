@@ -26,6 +26,14 @@ Restore YouTube button to put things back. It has four views.
 everything you have already finished, or pull up only the videos you started and
 abandoned. Your progress rides along in the same payload the catalog comes from,
 so finding the unwatched half of a 900-video back catalogue takes one dropdown.
+
+Two more built for the moment you actually want to watch something. **Start
+here** is for landing on a huge channel cold: sorting by raw views just hands
+you the oldest uploads, so it scores by views per day and caps how many come
+from any one year, giving you the channel's best work spread across its life.
+**Fits in** takes the minutes you have and shows only what will fit. Set it to
+25, set Watched to not started, and you have the answer to what should I watch
+right now.
 Sort by views, length, views per day, measured trend, or hidden gems (fast
 relative to the channel but still small in absolute terms). A live stats strip
 recalculates as you filter, and outliers get a badge showing how far they beat

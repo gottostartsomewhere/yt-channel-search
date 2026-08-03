@@ -115,6 +115,7 @@
 .ytcs-in:hover { border-color: #3a3a3a; }
 .ytcs-in:focus { border-color: var(--ac); }
 .ytcs-kw { min-width: 168px; }
+.ytcs-fits { width: 74px; }
 
 .ytcs-status { font-size: 12px; color: var(--dim); }
 .ytcs-count {

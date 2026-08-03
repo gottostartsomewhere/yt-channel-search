@@ -393,9 +393,11 @@
     const uploaded = ui.uploaded.value; // "", "7", "31", "93", "366", "old"
     const watched = ui.watched.value; // "", "new", "partial", "done", "unfinished"
     const sort = ui.sort.value;
+    const fits = parseFloat(ui.fits.value) > 0 ? parseFloat(ui.fits.value) * 60 : Infinity;
 
     let rows = state.catalog.filter((v) => {
       if (kw && !v.title.toLowerCase().includes(kw)) return false;
+      if (v.seconds > fits) return false;
       if (v.seconds < minDur || v.seconds > maxDur) return false;
       if (v.views < minViews || v.views > maxViews) return false;
       if (watched) {
@@ -429,9 +431,38 @@
       gems_desc: (a, b) => gem(b) - gem(a),
       title_az: (a, b) => a.title.localeCompare(b.title),
     };
-    if (sort === "oldest") rows = rows.slice().reverse();
+    if (sort === "starthere") rows = startHere(rows);
+    else if (sort === "oldest") rows = rows.slice().reverse();
     else if (sort !== "newest" && sorters[sort]) rows = rows.slice().sort(sorters[sort]);
     return rows;
+  }
+
+  /*
+   * A sampler for landing on a big channel cold. Ranking by lifetime views just
+   * hands you the oldest uploads, so score by views per day instead, then cap
+   * how many come from any one year. You get the channel's best work spread
+   * across its life rather than twelve videos from one hot month.
+   */
+  function startHere(rows) {
+    const PER_YEAR = 3;
+    const nowYear = new Date().getFullYear();
+    const scored = rows
+      .map((v) => ({
+        v: v,
+        score: v.days ? v.views / Math.max(v.days, 1) : 0,
+        year: v.days != null ? nowYear - Math.floor(v.days / 365) : 0,
+      }))
+      .sort((a, b) => b.score - a.score);
+
+    const perYear = {};
+    const picked = [];
+    const rest = [];
+    scored.forEach((s) => {
+      perYear[s.year] = (perYear[s.year] || 0) + 1;
+      if (perYear[s.year] <= PER_YEAR) picked.push(s);
+      else rest.push(s);
+    });
+    return picked.concat(rest).map((s) => s.v);
   }
 
   function applyView() {
@@ -445,7 +476,7 @@
     ui.count.textContent = rows.length + " of " + state.catalog.length;
 
     const filtered = !!(ui.kw.value.trim() || ui.duration.value || ui.views.value ||
-      ui.uploaded.value || ui.watched.value || ui.sort.value !== "newest");
+      ui.uploaded.value || ui.watched.value || ui.fits.value || ui.sort.value !== "newest");
     ui.clear.style.display = filtered ? "" : "none";
     ui.count.classList.toggle("ytcs-filtered", filtered);
   }
@@ -1294,9 +1325,17 @@
       ["366", "Past year"],
       ["old", "Over a year ago"],
     ]);
+    const fits = document.createElement("input");
+    fits.type = "number";
+    fits.min = "1";
+    fits.placeholder = "any";
+    fits.className = "ytcs-in ytcs-fits";
+    fits.title = "Show only videos that fit in this many minutes";
+
     const sort = select([
       ["newest", "Newest"],
       ["oldest", "Oldest"],
+      ["starthere", "Start here"],
       ["views_desc", "Most views"],
       ["views_asc", "Fewest views"],
       ["duration_desc", "Longest"],
@@ -1349,6 +1388,7 @@
       ui.views.value = "";
       ui.uploaded.value = "";
       ui.watched.value = "";
+      ui.fits.value = "";
       ui.sort.value = "newest";
       applyView();
     };
@@ -1366,6 +1406,7 @@
     bar.appendChild(field("Views", views));
     bar.appendChild(field("Uploaded", uploaded));
     bar.appendChild(field("Watched", watched));
+    bar.appendChild(field("Fits in (min)", fits));
     bar.appendChild(field("Sort", sort));
     bar.appendChild(status);
     bar.appendChild(count);
@@ -1468,7 +1509,7 @@
     wrap.appendChild(foot);
 
     ui = {
-      wrap, bar, kw, duration, views, uploaded, watched, sort, status, count, clear,
+      wrap, bar, kw, duration, views, uploaded, watched, fits, sort, status, count, clear,
       stats, grid, analytics, charts, titles, niche,
       tabGrid, tabAnalytics, tabTitles, tabNiche,
       cmpInput, cmpBtn, cmpStatus, cmpResult,
@@ -1494,7 +1535,7 @@
     };
     nicheRefresh.onclick = () => refreshWatchlist();
 
-    for (const el of [kw, duration, views, uploaded, watched, sort]) {
+    for (const el of [kw, duration, views, uploaded, watched, fits, sort]) {
       el.addEventListener("input", applyView);
       el.addEventListener("change", applyView);
     }
