@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube Channel Search+",
+  "version": "0.5.0",
+  "description": "Search a YouTube channel properly: filter its whole back catalogue by length, views, date and what you have already watched, and find the series it never made a playlist for.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "channel-search-plus@johnkevin.dev",
+      "strict_min_version": "121.0"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://www.youtube.com/*"],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Channel Search+"
+  },
+  "commands": {
+    "toggle-panel": {
+      "suggested_key": {
+        "default": "Alt+Y"
+      },
+      "description": "Open or close the Channel Search+ panel"
+    }
+  },
+  "permissions": ["storage"],
+  "host_permissions": ["*://www.youtube.com/*"]
+}

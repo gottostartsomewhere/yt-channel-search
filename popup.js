@@ -53,9 +53,11 @@ $("reset").addEventListener("click", () => {
   chrome.storage.sync.set(DEFAULTS, () => flash("Reset"));
 });
 
+// Firefox keeps shortcuts under about:addons and refuses the chrome:// URL.
+const IS_GECKO = navigator.userAgent.indexOf("Firefox") !== -1;
 $("shortcuts").addEventListener("click", (e) => {
   e.preventDefault();
-  chrome.tabs.create({ url: "chrome://extensions/shortcuts" });
+  chrome.tabs.create({ url: IS_GECKO ? "about:addons" : "chrome://extensions/shortcuts" });
 });
 
 // The panel lives in the page, so opening it means messaging the active tab.
