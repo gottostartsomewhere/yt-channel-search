@@ -12,7 +12,15 @@
   "content_scripts": [
     {
       "matches": ["*://www.youtube.com/*"],
-      "js": ["content.js"],
+      "js": [
+        "src/core.js",
+        "src/grid.js",
+        "src/store.js",
+        "src/charts.js",
+        "src/analysis.js",
+        "src/niche.js",
+        "src/panel.js"
+      ],
       "css": ["styles.css"],
       "run_at": "document_idle"
     }

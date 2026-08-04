@@ -10,7 +10,7 @@ const path = require("path");
 
 const ROOT = __dirname;
 const DIST = path.join(ROOT, "dist");
-const SHARED = ["content.js", "styles.css", "background.js", "popup.html", "popup.css", "popup.js", "icons"];
+const SHARED = ["src", "styles.css", "background.js", "popup.html", "popup.css", "popup.js", "icons"];
 const TARGETS = [
   { name: "chrome", manifest: "manifest.json" },
   { name: "firefox", manifest: "manifest.firefox.json" },
@@ -39,6 +39,17 @@ for (const target of TARGETS) {
   }
 
   const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, target.manifest), "utf8"));
+
+  // Content scripts share one scope and run in listed order, so a missing or
+  // renamed module is a runtime break. Catch it at build time instead.
+  for (const cs of manifest.content_scripts || []) {
+    for (const file of cs.js || []) {
+      if (!fs.existsSync(path.join(out, file))) {
+        throw new Error(target.name + " manifest lists " + file + ", which is not in the build");
+      }
+    }
+  }
+
   fs.writeFileSync(path.join(out, "manifest.json"), JSON.stringify(manifest, null, 2) + "\n");
 
   console.log(target.name + ": " + manifest.version + " -> dist/" + target.name);

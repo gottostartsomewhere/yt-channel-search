@@ -92,16 +92,43 @@ session and needs no API key of your own.
 
 ## Install
 
-1. Open `chrome://extensions` and turn on Developer mode.
-2. Choose Load unpacked and select this folder.
-3. Open any channel's Videos tab, for example `youtube.com/@mkbhd/videos`, and
-   click the Search+ button at the bottom right, or press Alt+Y.
+Run `node build.js` first. It has no dependencies and writes `dist/chrome` and
+`dist/firefox`, which differ only in the manifest.
+
+**Chrome.** Open `chrome://extensions`, turn on Developer mode, choose Load
+unpacked, and select `dist/chrome`.
+
+**Firefox.** Open `about:debugging`, choose This Firefox, then Load Temporary
+Add-on, and pick the `manifest.json` inside `dist/firefox`.
+
+Then open any channel's Videos tab, for example `youtube.com/@mkbhd/videos`, and
+click the Search+ button at the bottom right, or press Alt+Y.
 
 Clicking the toolbar icon opens the panel on the channel you are looking at and
 holds the settings: how deep to read a channel, what counts as finished, which
 sort to open on, whether to hide watched videos or open automatically, and the
 outlier threshold. Changes save as you make them. The shortcut can be rebound at
 `chrome://extensions/shortcuts`.
+
+## Layout
+
+The panel is plain JavaScript with no build step and no dependencies. Chrome
+loads content scripts in order into a single shared scope, so the modules below
+are ordinary scripts rather than ES modules, and the order in the manifest is
+load-bearing.
+
+| File | Holds |
+| --- | --- |
+| `src/core.js` | Settings, parsers, and the InnerTube catalog reader. No DOM. |
+| `src/grid.js` | Runtime state, the filter and sort pipeline, the video grid. |
+| `src/store.js` | IndexedDB cache, view-count snapshots, stats, export. |
+| `src/charts.js` | SVG charts and the analytics pane. |
+| `src/analysis.js` | Channel comparison, title, format, and series analysis. |
+| `src/niche.js` | Watchlist, cross-channel outliers, view switching. |
+| `src/panel.js` | Panel construction, grid takeover, startup. |
+
+`background.js` exists only to relay the keyboard shortcut into the page, and
+`popup.*` is the toolbar popup.
 
 ## Notes and limits
 
