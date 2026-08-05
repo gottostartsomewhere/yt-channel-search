@@ -86,7 +86,8 @@ session and needs no API key of your own.
 ## Install
 
 Run `node build.js` first. It has no dependencies and writes `dist/chrome` and
-`dist/firefox`, which differ only in the manifest.
+`dist/firefox`, which differ only in the manifest, plus a zip of each for store
+submission.
 
 **Chrome.** Open `chrome://extensions`, turn on Developer mode, choose Load
 unpacked, and select `dist/chrome`.
@@ -145,6 +146,11 @@ load-bearing.
 - Sparklines per video once a few snapshots have accumulated.
 - Exact stats and likes through the official Data API, opt-in with your own key.
 - A configurable fetch cap for very large channels.
+
+## Privacy
+
+Nothing is collected, transmitted, or sold. Catalogues, snapshots and watchlists
+stay in your browser. See [PRIVACY.md](PRIVACY.md).
 
 ## License
 

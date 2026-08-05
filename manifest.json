@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "YouTube Channel Search+",
+  "name": "Channel Search+ for YouTube",
   "version": "0.5.0",
   "description": "Search a YouTube channel properly: filter its whole back catalogue by length, views, date and what you have already watched.",
   "icons": {

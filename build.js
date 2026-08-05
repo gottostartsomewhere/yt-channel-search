@@ -7,6 +7,7 @@
  */
 const fs = require("fs");
 const path = require("path");
+const { execFileSync } = require("child_process");
 
 const ROOT = __dirname;
 const DIST = path.join(ROOT, "dist");
@@ -52,5 +53,20 @@ for (const target of TARGETS) {
 
   fs.writeFileSync(path.join(out, "manifest.json"), JSON.stringify(manifest, null, 2) + "\n");
 
-  console.log(target.name + ": " + manifest.version + " -> dist/" + target.name);
+  // Both stores take a zip of the extension directory. Shell out rather than
+  // take a dependency: PowerShell ships with Windows, zip with everything else.
+  const zip = path.join(DIST, target.name + "-" + manifest.version + ".zip");
+  try {
+    if (process.platform === "win32") {
+      execFileSync("powershell", [
+        "-NoProfile", "-Command",
+        "Compress-Archive -Path '" + out + "\\*' -DestinationPath '" + zip + "' -Force",
+      ], { stdio: "ignore" });
+    } else {
+      execFileSync("zip", ["-qr", zip, "."], { cwd: out });
+    }
+    console.log(target.name + ": " + manifest.version + " -> dist/" + target.name + " and " + path.basename(zip));
+  } catch (e) {
+    console.log(target.name + ": " + manifest.version + " -> dist/" + target.name + " (zip skipped: " + e.message.split("\n")[0] + ")");
+  }
 }

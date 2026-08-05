@@ -1,0 +1,149 @@
+===============================================================================
+ STORE LISTING COPY          paste these into the dashboards
+===============================================================================
+
+ Keep this file in sync with the manifest. The store text and the extension
+ have to describe the same thing or review pushes back.
+
+
+-------------------------------------------------------------------------------
+ NAME
+-------------------------------------------------------------------------------
+
+ Channel Search+ for YouTube
+
+ Not "YouTube Channel Search+". Google's branding rules do not allow a product
+ name that begins with YouTube. The "X for YouTube" form is the accepted one.
+
+
+-------------------------------------------------------------------------------
+ SHORT DESCRIPTION            132 char limit
+-------------------------------------------------------------------------------
+
+ Search a channel's whole back catalogue by length, views, date, and what you
+ have already watched.
+
+ (109 characters)
+
+
+-------------------------------------------------------------------------------
+ DETAILED DESCRIPTION
+-------------------------------------------------------------------------------
+
+YouTube's in-channel search only matches words in titles. You cannot ask it for
+videos under twenty minutes, or the ones you have not finished, or what a
+channel's best work actually is. This adds all of that.
+
+Open any channel's Videos tab and press the Search+ button. The extension reads
+the channel's entire upload history, then replaces the grid with one you can
+actually query.
+
+FILTER AND SORT
+- Length, view count, upload date, and keyword, combined freely
+- Watch state: hide what you have finished, or find what you abandoned
+- Fits in: enter the minutes you have, see only what fits
+- Start here: a spread of a channel's best work for when you arrive cold
+- Sort by views per day, which surfaces breakouts rather than just old uploads
+
+SEE THE SHAPE OF A CHANNEL
+- Uploads per year, and whether the typical video is growing or shrinking
+- View and length distributions, clickable to filter the grid
+- Which video length actually performs best on that channel
+
+TITLES
+- Which words lift median views, and by how much
+- Which title formats land: questions, versus, numbered, how-to
+
+TRACK COMPETITORS
+- Compare any two channels side by side
+- Keep a watchlist and see what is outperforming across all of them
+- Content gaps: topics they cover that you never have
+
+Everything runs in your browser. No account, no API key, no server, and nothing
+is ever sent anywhere. Open source under the MIT licence.
+
+Not affiliated with YouTube or Google.
+
+
+-------------------------------------------------------------------------------
+ CATEGORY
+-------------------------------------------------------------------------------
+
+ Chrome:  Productivity     (Tools is the alternative, Productivity fits better)
+ Firefox: Search Tools
+
+
+-------------------------------------------------------------------------------
+ PRIVACY POLICY URL
+-------------------------------------------------------------------------------
+
+ https://github.com/gottostartsomewhere/yt-channel-search/blob/main/PRIVACY.md
+
+
+-------------------------------------------------------------------------------
+ PERMISSION JUSTIFICATIONS      the dashboard asks for each one
+-------------------------------------------------------------------------------
+
+ storage
+   Stores the user's own settings, such as which sort the panel opens on and
+   how deep to read a channel, so they persist between sessions. No browsing
+   data is placed in sync storage.
+
+ Host permission for www.youtube.com
+   The extension's entire function is to read a YouTube channel's public video
+   listings and render a filtered view of them onto that page. It requests the
+   same listing endpoints the site itself uses, and it draws its interface into
+   the channel page. It runs on no other site.
+
+ Remote code
+   None. All code is contained in the package. No scripts are fetched or
+   evaluated at runtime.
+
+ Data usage disclosures, tick these
+   [x] Website content ....... video titles, lengths, view counts, upload dates
+                               and the user's own watch progress, all read from
+                               the page and kept on the device
+   [ ] Personally identifiable information
+   [ ] Health, financial, authentication, personal communications, location,
+       user activity beyond the above, web history
+
+   And certify:
+   [x] Not being sold to third parties
+   [x] Not used or transferred for purposes unrelated to the single purpose
+   [x] Not used or transferred to determine creditworthiness
+
+
+-------------------------------------------------------------------------------
+ SINGLE PURPOSE STATEMENT
+-------------------------------------------------------------------------------
+
+ Searching and filtering the videos of a YouTube channel.
+
+ Every feature serves that: the filters narrow a channel's catalogue, the charts
+ describe it, and the comparison view sets one channel's catalogue against
+ another. Keep the framing tight. Review objects to extensions that read as a
+ bundle of unrelated tools.
+
+
+-------------------------------------------------------------------------------
+ SCREENSHOTS            1280x800, up to 5, first one is the thumbnail
+-------------------------------------------------------------------------------
+
+ 1. Grid takeover, stats strip visible, a filter active
+ 2. Titles tab, words that lift performance
+ 3. Niche tab, cross-channel outliers with multipliers
+ 4. Analytics, with the median-views-by-length peak visible
+ 5. The popup
+
+ Use a channel people recognise so the numbers mean something at a glance.
+
+
+-------------------------------------------------------------------------------
+ ASSETS STILL NEEDED
+-------------------------------------------------------------------------------
+
+ [ ] 5 screenshots at 1280x800
+ [ ] Small promo tile, 440x280        (optional, but listings without it look
+                                       unfinished in search results)
+ [ ] Chrome developer account, 5 USD one-off
+ [ ] Firefox developer account, free
