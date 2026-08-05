@@ -7,6 +7,9 @@ it using numbers YouTube never exposes publicly.
 
 It runs entirely in your browser. No account, no API key, no server.
 
+![The grid, filtered to 18 of 177 videos matching a keyword, with a live stats
+strip and views per day on every card](docs/grid.jpg)
+
 ## The idea
 
 Most in-page filter tools only touch the video cards already loaded on screen,
@@ -57,6 +60,9 @@ video is moving relative to how fast that channel normally moves, so a small
 channel's breakout can outrank a big channel's average upload. Until then it
 falls back to the lifetime average.
 
+![The niche tab, tracking a competitor channel and ranking its videos by how far
+each beat that channel's own normal](docs/niche.jpg)
+
 Alongside that: catalogs cache locally so re-opening is instant, refreshing flags
 uploads added since your last visit, and any filtered set exports to CSV or JSON.
 
@@ -103,6 +109,10 @@ holds the settings: how deep to read a channel, what counts as finished, which
 sort to open on, and whether to hide watched videos or open automatically.
 Changes save as you make them. The shortcut can be rebound at
 `chrome://extensions/shortcuts`.
+
+<img src="docs/popup.jpg" alt="The toolbar popup, with a button to open the panel
+and the settings beneath it" width="330">
+
 
 ## Layout
 
