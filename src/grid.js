@@ -119,7 +119,6 @@ function applyView() {
   renderStats(rows);
   if (state.view === "analytics") renderAnalytics(rows);
   else if (state.view === "titles") renderTitles(rows);
-  else if (state.view === "series") renderSeries(rows);
   else if (state.view === "niche") renderNiche();
   else renderGrid(rows);
   ui.count.textContent = rows.length + " of " + state.catalog.length;
@@ -231,7 +230,7 @@ function renderGrid(rows) {
       measured.textContent = "+" + fmtCompact(Math.round(v.gained)) + " in the last " + span;
       info.appendChild(measured);
     }
-    if (state.medianVpd && vpdVal >= cfg.outlierX * state.medianVpd) {
+    if (state.medianVpd && vpdVal >= OUTLIER_X * state.medianVpd) {
       const badge = document.createElement("span");
       badge.className = "ytcs-outlier";
       badge.textContent = (vpdVal / state.medianVpd).toFixed(1) + "×";

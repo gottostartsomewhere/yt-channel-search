@@ -1,7 +1,6 @@
 /* Toolbar popup. Settings save as you change them, so there is no Save button. */
 const DEFAULTS = {
   maxVideos: 1800,
-  outlierX: 2,
   finishedAt: 90,
   defaultSort: "newest",
   hideWatched: false,

@@ -14,7 +14,6 @@ const FALLBACK_VER = "2.20240710.01.00";
 // options form and the runtime cannot drift apart.
 const DEFAULTS = {
   maxVideos: 1800,
-  outlierX: 2,
   finishedAt: 90,
   defaultSort: "newest",
   hideWatched: false,
@@ -37,6 +36,7 @@ function loadSettings() {
 const SNAPSHOT_LIMIT = 8; // how many view-count snapshots we keep per channel
 const VELOCITY_FLOOR = 200; // ignore measured growth below this many views as noise
 const MIN_MEASURED = 3; // videos with velocity needed before a channel ranks by it
+const OUTLIER_X = 2; // how far past the channel median earns an outlier badge
 
 // Kept in step with the filter dropdowns so a chart bar can drive the grid.
 const VIEW_BUCKETS = [

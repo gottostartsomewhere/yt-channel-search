@@ -45,7 +45,6 @@
  [ ] Open automatically .... panel opens without clicking
  [ ] Video limit ........... set 60, refresh, catalog stops near 60
  [ ] Finished at ........... set 50, videos past halfway count as finished
- [ ] Outlier threshold ..... raising it leaves fewer badges
 
 
 -------------------------------------------------------------------------------
@@ -129,10 +128,6 @@
  [ ] No mangled contractions such as "youre"
  [ ] Title format percentages look plausible
  [ ] Median views by title length skips empty bands rather than drawing gaps
-
- SERIES
- [ ] Groups recognisable series, for example numbered parts and episodes
- [ ] A channel with no series shows the empty state
 
  NICHE
  [ ] Track channel adds a chip

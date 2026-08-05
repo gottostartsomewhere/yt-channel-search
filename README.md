@@ -49,13 +49,6 @@ you what performed. This tells you which *patterns* perform: which words lift
 median views and by how much, which title formats land (question, versus,
 numbered, how-to, superlative), and how title length maps to views.
 
-**Series.** Channels run long series and routinely never build a playlist for
-them, which leaves the episodes scattered through hundreds of uploads. This
-recovers them from the titles, both explicitly numbered runs (`Ep 12`, `Part 3`,
-`#7`, `Day 40`) and series that only share a prefix (`Rust Tutorial: ...`).
-Each one expands into its episodes in order, with the ones you have already
-finished greyed out, so you can pick up where you left off.
-
 **Niche.** Track a set of competitor channels. Refresh reads all of them and
 gives you two things: what is working right now, and content gaps, the topics
 they rank for that you have never covered. Once a tracked channel has been
@@ -106,8 +99,8 @@ click the Search+ button at the bottom right, or press Alt+Y.
 
 Clicking the toolbar icon opens the panel on the channel you are looking at and
 holds the settings: how deep to read a channel, what counts as finished, which
-sort to open on, whether to hide watched videos or open automatically, and the
-outlier threshold. Changes save as you make them. The shortcut can be rebound at
+sort to open on, and whether to hide watched videos or open automatically.
+Changes save as you make them. The shortcut can be rebound at
 `chrome://extensions/shortcuts`.
 
 ## Layout
@@ -123,7 +116,7 @@ load-bearing.
 | `src/grid.js` | Runtime state, the filter and sort pipeline, the video grid. |
 | `src/store.js` | IndexedDB cache, view-count snapshots, stats, export. |
 | `src/charts.js` | SVG charts and the analytics pane. |
-| `src/analysis.js` | Channel comparison, title, format, and series analysis. |
+| `src/analysis.js` | Channel comparison, plus title and format analysis. |
 | `src/niche.js` | Watchlist, cross-channel outliers, view switching. |
 | `src/panel.js` | Panel construction, grid takeover, startup. |
 
@@ -144,8 +137,6 @@ load-bearing.
   finished at 90 percent, which is roughly where YouTube stops offering a resume.
 - The catalog fetch is capped at 1,800 videos by default, adjustable in options.
   Refreshing a watchlist reads each channel in turn, so a large one takes a while.
-- Series detection reads titles, so it finds what the titles describe. A channel
-  that numbers nothing and shares no prefixes has nothing to recover.
 - InnerTube is an unofficial endpoint. It is stable in practice, but YouTube can
   change the payload shape, which would call for a small parser update.
 

@@ -179,8 +179,8 @@ function renderNiche() {
 // ---- view switching ------------------------------------------------------
 function setView(name) {
   state.view = name;
-  const panes = { grid: ui.grid, analytics: ui.analytics, titles: ui.titles, series: ui.series, niche: ui.niche };
-  const tabs = { grid: ui.tabGrid, analytics: ui.tabAnalytics, titles: ui.tabTitles, series: ui.tabSeries, niche: ui.tabNiche };
+  const panes = { grid: ui.grid, analytics: ui.analytics, titles: ui.titles, niche: ui.niche };
+  const tabs = { grid: ui.tabGrid, analytics: ui.tabAnalytics, titles: ui.tabTitles, niche: ui.tabNiche };
   Object.keys(panes).forEach((k) => {
     panes[k].style.display = k === name ? "" : "none";
     tabs[k].classList.toggle("ytcs-tabon", k === name);

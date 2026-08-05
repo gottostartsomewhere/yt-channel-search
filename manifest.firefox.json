@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "YouTube Channel Search+",
   "version": "0.5.0",
-  "description": "Search a YouTube channel properly: filter its whole back catalogue by length, views, date and what you have already watched, and find the series it never made a playlist for.",
+  "description": "Search a YouTube channel properly: filter its whole back catalogue by length, views, date and what you have already watched.",
   "browser_specific_settings": {
     "gecko": {
       "id": "channel-search-plus@johnkevin.dev",

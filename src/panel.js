@@ -117,7 +117,6 @@ function buildUi() {
   const tabGrid = mkTab("Grid", true);
   const tabAnalytics = mkTab("Analytics");
   const tabTitles = mkTab("Titles");
-  const tabSeries = mkTab("Series");
   const tabNiche = mkTab("Niche");
 
   // action buttons
@@ -217,11 +216,6 @@ function buildUi() {
   titles.className = "ytcs-pane";
   titles.style.display = "none";
 
-  // series pane
-  const series = document.createElement("div");
-  series.className = "ytcs-pane";
-  series.style.display = "none";
-
   // niche watchlist pane
   const niche = document.createElement("div");
   niche.className = "ytcs-pane";
@@ -264,14 +258,13 @@ function buildUi() {
   wrap.appendChild(grid);
   wrap.appendChild(analytics);
   wrap.appendChild(titles);
-  wrap.appendChild(series);
   wrap.appendChild(niche);
   wrap.appendChild(foot);
 
   ui = {
     wrap, bar, kw, duration, views, uploaded, watched, fits, sort, status, count, clear,
-    stats, grid, analytics, charts, titles, series, niche,
-    tabGrid, tabAnalytics, tabTitles, tabSeries, tabNiche,
+    stats, grid, analytics, charts, titles, niche,
+    tabGrid, tabAnalytics, tabTitles, tabNiche,
     cmpInput, cmpBtn, cmpStatus, cmpResult,
     nicheInput, nicheAdd, nicheRefresh, nicheStatus, nicheChips, nicheResults,
   };
@@ -279,7 +272,6 @@ function buildUi() {
   tabGrid.onclick = () => setView("grid");
   tabAnalytics.onclick = () => setView("analytics");
   tabTitles.onclick = () => setView("titles");
-  tabSeries.onclick = () => setView("series");
   tabNiche.onclick = () => setView("niche");
   cmpBtn.onclick = () => runCompare();
   cmpInput.addEventListener("keydown", (e) => { if (e.key === "Enter") runCompare(); });
