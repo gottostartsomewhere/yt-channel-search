@@ -1,4 +1,4 @@
-# YouTube Channel Search+
+# Channel Search+ for YouTube
 
 YouTube Studio tells you how your own videos did. It is blind to every other
 channel on the platform. This fills that gap: point it at anyone's channel and
@@ -41,8 +41,8 @@ the channel's median rate.
 
 **Analytics.** Charts drawn from the whole catalog: uploads per year, median
 views by upload year (is the channel rising or fading), view and length
-distributions, and a length-versus-views scatter. Click any distribution bar to
-filter the grid by that band.
+distributions, and the median views for each video length, which shows where a
+channel's sweet spot is. Click any distribution bar to filter the grid by it.
 
 **Titles.** The part Studio does not do even for your own channel. Studio tells
 you what performed. This tells you which *patterns* perform: which words lift
