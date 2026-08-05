@@ -71,6 +71,24 @@ Not affiliated with YouTube or Google.
 
  Chrome:  Productivity     (Tools is the alternative, Productivity fits better)
  Firefox: Search Tools
+ Edge:    Productivity
+
+
+-------------------------------------------------------------------------------
+ WHERE TO SUBMIT, AND WHAT IT COSTS
+-------------------------------------------------------------------------------
+
+ Firefox   addons.mozilla.org/developers      free      hours to days
+ Edge      partner.microsoft.com/dashboard    free      days
+ Chrome    chrome.google.com/webstore/devconsole
+                                              5 USD once, covers 20 extensions
+                                              days to weeks for a first review
+
+ Edge runs Chromium, so dist/chrome-<version>.zip uploads to Edge unchanged.
+ There is no separate build and no manifest difference.
+
+ Launching on Firefox and Edge first costs nothing and gets real users while
+ Chrome review sits in a queue.
 
 
 -------------------------------------------------------------------------------
