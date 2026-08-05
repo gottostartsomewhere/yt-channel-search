@@ -26,7 +26,7 @@ async function runCompare() {
   ui.cmpStatus.textContent = "loading… 0";
   try {
     const cat = await fetchCatalogFrom(url, (n) => (ui.cmpStatus.textContent = "loading… " + n));
-    ui.cmpStatus.textContent = cat.length + " videos";
+    ui.cmpStatus.textContent = plural(cat.length, "video");
     const label = raw.replace(/^https?:\/\/(www\.)?youtube\.com\//i, "").replace(/\/.*$/, "");
     renderCompare(state.catalog, cat, label);
   } catch (e) {

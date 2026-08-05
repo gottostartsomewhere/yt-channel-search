@@ -38,6 +38,11 @@ const VELOCITY_FLOOR = 200; // ignore measured growth below this many views as n
 const MIN_MEASURED = 3; // videos with velocity needed before a channel ranks by it
 const OUTLIER_X = 2; // how far past the channel median earns an outlier badge
 
+// "1 channels" reads like a bug even when the number is right.
+function plural(n, word) {
+  return n + " " + word + (n === 1 ? "" : "s");
+}
+
 // Kept in step with the filter dropdowns so a chart bar can drive the grid.
 const VIEW_BUCKETS = [
   ["<10K", 0, 1e4], ["10-100K", 1e4, 1e5], ["100K-1M", 1e5, 1e6],

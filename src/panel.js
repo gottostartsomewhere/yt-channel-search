@@ -394,7 +394,7 @@ async function refreshCatalog() {
     if (key) info = await persistCatalog(key, cat);
     state.newIds = new Set(info.newIds);
     recomputeMedians();
-    const bits = [cat.length + " videos"];
+    const bits = [plural(cat.length, "video")];
     if (info.newIds.length) bits.push(info.newIds.length + " new");
     bits.push(info.snapshots > 1 ? info.snapshots + " snapshots" : "first snapshot");
     ui.status.textContent = bits.join(" · ");

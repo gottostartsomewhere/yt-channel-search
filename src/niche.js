@@ -83,9 +83,9 @@ async function refreshWatchlist() {
     ? liveChannels + " of " + state.watchlist.length + " live"
     : "baseline set, refresh again later for live velocity";
   const bits = [
-    state.watchlist.length + " channels",
-    theirVideos.length + " videos",
-    outliers.length + " outliers",
+    plural(state.watchlist.length, "channel"),
+    plural(theirVideos.length, "video"),
+    plural(outliers.length, "outlier"),
     mode,
   ];
   if (fails) bits.push(fails + " couldn't be read");

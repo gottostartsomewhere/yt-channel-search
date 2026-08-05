@@ -47,10 +47,16 @@ views by upload year (is the channel rising or fading), view and length
 distributions, and the median views for each video length, which shows where a
 channel's sweet spot is. Click any distribution bar to filter the grid by it.
 
+![The analytics tab: uploads per year, median views by upload year, view and
+length distributions, and median views by video length](docs/analytics.jpg)
+
 **Titles.** The part Studio does not do even for your own channel. Studio tells
 you what performed. This tells you which *patterns* perform: which words lift
 median views and by how much, which title formats land (question, versus,
 numbered, how-to, superlative), and how title length maps to views.
+
+![The titles tab, ranking words by how far they lift median views, alongside
+title length and title format breakdowns](docs/titles.jpg)
 
 **Niche.** Track a set of competitor channels. Refresh reads all of them and
 gives you two things: what is working right now, and content gaps, the topics
