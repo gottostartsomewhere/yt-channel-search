@@ -11,3 +11,6 @@ dist/
 *.zip
 *.crx
 *.pem
+
+# monitor snapshots
+server/data/
