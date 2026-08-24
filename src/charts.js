@@ -288,14 +288,22 @@ function renderAnalytics(rows) {
     uploads.length ? barChart(uploads) : chartEmpty(),
     uploadsNote(uploads)
   ));
+  // Clicking a bar sets the matching filter and drops you into Search to see
+  // what it selected. The pill has to be un-dimmed by hand, since assigning
+  // .value does not fire the change event that normally does it.
+  const crossFilter = (el, value) => {
+    el.value = value;
+    el.classList.toggle("ytcs-dim", !value);
+    setView("search");
+  };
   ui.charts.appendChild(chartCard(
     "Views distribution",
-    barChart(viewsData, (i) => { ui.views.value = VIEW_VALUES[i]; setView("grid"); }),
+    barChart(viewsData, (i) => crossFilter(ui.views, VIEW_VALUES[i])),
     shareNote(viewsData, rows.length, "band")
   ));
   ui.charts.appendChild(chartCard(
     "Length distribution",
-    barChart(lenData, (i) => { ui.duration.value = LEN_VALUES[i]; setView("grid"); }),
+    barChart(lenData, (i) => crossFilter(ui.duration, LEN_VALUES[i])),
     shareNote(lenData, rows.length, "range")
   ));
 }

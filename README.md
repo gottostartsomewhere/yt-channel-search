@@ -1,11 +1,12 @@
 # Channel Search+ for YouTube
 
-YouTube Studio tells you how your own videos did. It is blind to every other
-channel on the platform. This fills that gap: point it at anyone's channel and
-it reads their entire upload history, then filters, charts, tracks, and compares
-it using numbers YouTube never exposes publicly.
+YouTube's in-channel search only matches words in titles. You cannot ask it for
+videos under twenty minutes, or the ones you started and never finished, or a
+big channel's best work. This adds all of that, by reading the channel's entire
+upload history first and then letting you query it.
 
-It runs entirely in your browser. No account, no API key, no server.
+Free, with no paid tier. It runs entirely in your browser: no account, no API
+key, no server, nothing sent anywhere.
 
 ![The grid, filtered to 18 of 177 videos matching a keyword, with a live stats
 strip and views per day on every card](docs/grid.jpg)
@@ -13,64 +14,77 @@ strip and views per day on every card](docs/grid.jpg)
 ## The idea
 
 Most in-page filter tools only touch the video cards already loaded on screen,
-so they can sort what you have scrolled past and nothing more. This one pulls the
-channel's complete catalog through YouTube's internal InnerTube API before it
-filters anything, so every sort, statistic, and chart covers all of it. Questions
-like "what are this channel's least-viewed videos" or "what is the median length
-across 1,200 uploads" are unanswerable from the loaded DOM, and trivial here.
+so they can sort what you have scrolled past and nothing more. This one pulls
+the channel's complete catalogue through YouTube's internal InnerTube API before
+it filters anything, so every sort, statistic, and chart covers all of it.
+Questions like "what are this channel's least-viewed videos" or "what is the
+median length across 1,200 uploads" are unanswerable from the loaded DOM, and
+trivial here.
 
-## What it does
+## Search
 
-The extension replaces the native grid in place, with a control bar on top and a
-Restore YouTube button to put things back. It has four views.
+The main view. It replaces the native grid in place, with a Restore YouTube
+button to put things back.
 
-**Grid.** Filter by title keyword, length band, view band, upload recency, and
-**watch state**. That last one is the piece plain YouTube never gives you: hide
+Filter by title keyword, length band, view band, upload recency, and **watch
+state**. That last one is the piece plain YouTube never gives you: hide
 everything you have already finished, or pull up only the videos you started and
-abandoned. Your progress rides along in the same payload the catalog comes from,
-so finding the unwatched half of a 900-video back catalogue takes one dropdown.
+abandoned. Your progress rides along in the same payload the catalogue comes
+from, so finding the unwatched half of a 900-video back catalogue takes one
+dropdown.
 
-Two more built for the moment you actually want to watch something. **Start
+Two more are built for the moment you actually want to watch something. **Start
 here** is for landing on a huge channel cold: sorting by raw views just hands
 you the oldest uploads, so it scores by views per day and caps how many come
 from any one year, giving you the channel's best work spread across its life.
-**Fits in** takes the minutes you have and shows only what will fit. Set it to
-25, set Watched to not started, and you have the answer to what should I watch
+**Free time** takes the minutes you have and shows only what will fit. Set it to
+20, set Watched to not started, and you have the answer to what should I watch
 right now.
-Sort by views, length, views per day, measured trend, or hidden gems (fast
-relative to the channel but still small in absolute terms). A live stats strip
+
+Sort by views, length, views per day, measured trend, or hidden gems, meaning
+fast relative to the channel but still small in absolute terms. A summary line
 recalculates as you filter, and outliers get a badge showing how far they beat
 the channel's median rate.
 
-**Analytics.** Charts drawn from the whole catalog: uploads per year, median
-views by upload year (is the channel rising or fading), view and length
-distributions, and the median views for each video length, which shows where a
-channel's sweet spot is. Click any distribution bar to filter the grid by it.
+## Insights
 
-![The analytics tab: uploads per year, median views by upload year, view and
-length distributions, and median views by video length](docs/analytics.jpg)
+Everything analytical, behind one tab, in four sections.
 
-**Titles.** The part Studio does not do even for your own channel. Studio tells
-you what performed. This tells you which *patterns* perform: which words lift
-median views and by how much, which title formats land (question, versus,
-numbered, how-to, superlative), and how title length maps to views.
+**Overview.** Charts drawn from whatever the filters currently select: uploads
+per year, median views by upload year (is the channel rising or fading), view
+and length distributions, and the median views for each video length, which
+shows where a channel's sweet spot is. Click any distribution bar to filter the
+grid by it. The pane opens with the conclusion stated in a sentence, and the
+charts sit underneath as the evidence.
 
-![The titles tab, ranking words by how far they lift median views, alongside
+![The Insights overview: the headline finding, then median views by video length
+and by upload year](docs/analytics.jpg)
+
+**Titles.** The part YouTube Studio does not do even for your own channel.
+Studio tells you what performed. This tells you which *patterns* perform: which
+words lift median views and by how much, which title formats land (question,
+versus, numbered, how-to, superlative), and how title length maps to views.
+
+![The Titles section, ranking words by how far they lift median views, alongside
 title length and title format breakdowns](docs/titles.jpg)
 
-**Niche.** Track a set of competitor channels. Refresh reads all of them and
-gives you two things: what is working right now, and content gaps, the topics
-they rank for that you have never covered. Once a tracked channel has been
-refreshed twice, "what is working" ranks by measured velocity, how fast each
-video is moving relative to how fast that channel normally moves, so a small
-channel's breakout can outrank a big channel's average upload. Until then it
-falls back to the lifetime average.
+**Compare.** Read any other channel's full catalogue and set its median views,
+median views per day, length, and top performers against this one.
 
-![The niche tab, tracking a competitor channel and ranking its videos by how far
-each beat that channel's own normal](docs/niche.jpg)
+**Watchlist.** Track a set of channels. Refresh reads all of them and gives you
+two things: what is working right now, and content gaps, the topics they rank
+for that this channel never has. Once a tracked channel has been refreshed
+twice, "what is working" ranks by measured velocity, how fast each video is
+moving relative to how fast that channel normally moves, so a small channel's
+breakout can outrank a big channel's average upload. Until then it falls back to
+the lifetime average.
 
-Alongside that: catalogs cache locally so re-opening is instant, refreshing flags
-uploads added since your last visit, and any filtered set exports to CSV or JSON.
+![The Watchlist section, tracking a competitor channel and ranking its videos by
+how far each beat that channel's own normal](docs/niche.jpg)
+
+Alongside that: catalogues cache locally so re-opening is instant, refreshing
+flags uploads added since your last visit, and any filtered set exports to CSV
+or JSON.
 
 ## Measured velocity
 
@@ -80,6 +94,13 @@ real, measured growth. "Gained 380K views in the last 4 days" is observed, not
 inferred. The tool gets more useful the more often you open it, and the history
 is yours alone, kept locally.
 
+Listing view counts carry two significant figures, so a video showing 2.4M moves
+in steps of 100,000. Growth below one step is invisible, and a single step
+across a boundary is indistinguishable from 100,000 real views. Anything that
+could be explained by that rounding is discarded rather than recorded, which
+costs visibility into ordinary movement on large videos and buys the guarantee
+that a reported jump is a real one.
+
 ## How it works
 
 The in-channel search box is a server-side InnerTube request that only matches
@@ -88,8 +109,8 @@ text, so every metric has to be computed client-side. The extension:
 1. Reads the channel's `/videos` HTML and pulls `ytInitialData` along with the
    InnerTube key and client version.
 2. Walks the uploads grid with continuation tokens against `/youtubei/v1/browse`,
-   reading each video's id, title, duration, view count, and relative date. All of
-   that already lives in the list payload, so there is no per-video request.
+   reading each video's id, title, duration, view count, and relative date. All
+   of that already lives in the list payload, so there is no per-video request.
 3. Filters, analyses, and renders everything locally.
 
 Every request is same-origin from the YouTube tab, so it rides your normal
@@ -97,12 +118,14 @@ session and needs no API key of your own.
 
 ## Install
 
+Once it is on the stores, install links go here. Until then, from source:
+
 Run `node build.js` first. It has no dependencies and writes `dist/chrome` and
 `dist/firefox`, which differ only in the manifest, plus a zip of each for store
 submission.
 
-**Chrome.** Open `chrome://extensions`, turn on Developer mode, choose Load
-unpacked, and select `dist/chrome`.
+**Chrome or Edge.** Open `chrome://extensions` (or `edge://extensions`), turn on
+Developer mode, choose Load unpacked, and select `dist/chrome`.
 
 **Firefox.** Open `about:debugging`, choose This Firefox, then Load Temporary
 Add-on, and pick the `manifest.json` inside `dist/firefox`.
@@ -119,7 +142,6 @@ Changes save as you make them. The shortcut can be rebound at
 <img src="docs/popup.jpg" alt="The toolbar popup, with a button to open the panel
 and the settings beneath it" width="330">
 
-
 ## Layout
 
 The panel is plain JavaScript with no build step and no dependencies. Chrome
@@ -129,31 +151,38 @@ load-bearing.
 
 | File | Holds |
 | --- | --- |
-| `src/core.js` | Settings, parsers, and the InnerTube catalog reader. No DOM. |
+| `src/core.js` | Settings, parsers, and the InnerTube catalogue reader. No DOM. |
 | `src/grid.js` | Runtime state, the filter and sort pipeline, the video grid. |
 | `src/store.js` | IndexedDB cache, view-count snapshots, stats, export. |
-| `src/charts.js` | SVG charts and the analytics pane. |
+| `src/charts.js` | SVG charts and the Overview section. |
 | `src/analysis.js` | Channel comparison, plus title and format analysis. |
 | `src/niche.js` | Watchlist, cross-channel outliers, view switching. |
 | `src/panel.js` | Panel construction, grid takeover, startup. |
 
 `background.js` exists only to relay the keyboard shortcut into the page, and
-`popup.*` is the toolbar popup.
+`popup.*` is the toolbar popup. `docs/design-preview.html` renders the real
+panel against generated data, so the design can be checked without hunting for
+a channel with the right shape of history.
 
 ## Notes and limits
 
 - Public view counts are all anyone gets for a channel they do not own, so this
-  is a competitive-signal tool rather than a precision instrument. For other
-  people's channels every tool is working from the same public numbers.
-- Upload dates from InnerTube are relative ("6 months ago"), so views per day and
-  the per-year charts are approximate. Measured velocity is not, because it comes
-  from your own snapshots.
+  is a signal tool rather than a precision instrument. For other people's
+  channels every tool is working from the same public numbers.
+- Upload dates from InnerTube are relative ("6 months ago"), so views per day
+  and the per-year charts are approximate. Measured velocity is not, because it
+  comes from your own snapshots.
 - Velocity needs at least two visits before it can show anything.
 - Watch state comes from your signed-in session, so it is empty when signed out
   and it ages with the cache. Refresh to bring it up to date. A video counts as
-  finished at 90 percent, which is roughly where YouTube stops offering a resume.
-- The catalog fetch is capped at 1,800 videos by default, adjustable in options.
-  Refreshing a watchlist reads each channel in turn, so a large one takes a while.
+  finished at 90 percent, which is roughly where YouTube stops offering a
+  resume.
+- Shorts carry no duration or upload date in their payload, so anything that
+  depends on age or length is blank for them and they stay out of the main
+  catalogue rather than moving every median in the product.
+- The catalogue fetch is capped at 1,800 videos by default, adjustable in
+  options. Refreshing a watchlist reads each channel in turn, so a large one
+  takes a while.
 - InnerTube is an unofficial endpoint. It is stable in practice, but YouTube can
   change the payload shape, which would call for a small parser update.
 
@@ -161,7 +190,6 @@ load-bearing.
 
 - Sparklines per video once a few snapshots have accumulated.
 - Exact stats and likes through the official Data API, opt-in with your own key.
-- A configurable fetch cap for very large channels.
 
 ## Privacy
 
@@ -173,6 +201,5 @@ stay in your browser. See [PRIVACY.md](PRIVACY.md).
 PolyForm Noncommercial 1.0.0. See [LICENSE](LICENSE).
 
 Source-available rather than open source. Read it, learn from it, run it, modify
-it for yourself. You may not sell it or ship it in something you sell. That is
-the only restriction, and it exists because the paid tiers are how this gets
-maintained.
+it for yourself. The one restriction is that you may not sell it or ship it
+inside something you sell.

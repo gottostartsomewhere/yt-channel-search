@@ -26,6 +26,18 @@
  [ ] Restore YouTube brings the native grid back untouched
  [ ] Switching channel and reopening loads the new one, not the previous
 
+ Navigation, two levels:
+
+ [ ] Search and Insights are the only primary tabs, Search is the one on open
+ [ ] Insights opens on Overview, and its subnav has Overview, Titles, Compare,
+     Watchlist
+ [ ] Switching Insights sections leaves the grid state alone, so going back to
+     Search still shows the same filtered set
+ [ ] The filter row fades on Compare and Watchlist, where the filters do not
+     apply, and comes back solid on Overview, Titles and Search
+ [ ] Nothing on screen mentions Pro, upgrading, or paying. That code is gone,
+     so any surviving reference is a stale build
+
 
 -------------------------------------------------------------------------------
  2. POPUP
@@ -53,15 +65,16 @@
 
  [ ] Keyword matches titles, case-insensitive
 
- [ ] Length    Any / under 1m / 1-4m / 4-20m / 20-60m / over 60m
- [ ] Views     Any / under 10K / 10-100K / 100K-1M / 1-10M / over 10M
- [ ] Uploaded  Any / past week / month / 3 months / year / over a year
- [ ] Watched   Any / not started / not finished / still watching / finished
- [ ] Fits in   10 shows nothing longer than ten minutes
+ [ ] Length     Any / under 1m / 1-4m / 4-20m / 20-60m / over 60m
+ [ ] Views      Any / under 10K / 10-100K / 100K-1M / 1-10M / over 10M
+ [ ] Uploaded   Any / past week / month / 3 months / year / over a year
+ [ ] Watched    Any / not started / not finished / still watching / finished
+ [ ] Free time  20 min free shows nothing longer than twenty minutes
 
  [ ] Filters combine
- [ ] FLAGSHIP: Fits in 25 + Watched not started returns a sensible short list
- [ ] Clear appears only when something is active, and resets everything
+ [ ] FLAGSHIP: 20 min free + Watched not started returns a sensible short list
+ [ ] A set pill turns accent-coloured, an unset one stays quiet
+ [ ] Clear appears only when something is active, resets every pill to quiet
  [ ] Count turns accent-coloured while filtered
  [ ] A filter matching nothing shows the empty state, not a blank pane
 
@@ -109,17 +122,22 @@
 
 
 -------------------------------------------------------------------------------
- 7. TABS
+ 7. INSIGHTS SECTIONS
 -------------------------------------------------------------------------------
 
- ANALYTICS
+ OVERVIEW
+ [ ] The headline finding reads as a sentence and names a real sweet spot
+ [ ] It degrades gracefully: a channel with no clear peak, or under three years
+     of history, drops that clause rather than printing an empty one
  [ ] Uploads per year renders
  [ ] Median views by year renders
  [ ] Views and length distributions render
  [ ] Median views by video length draws a line with a labelled peak
- [ ] Clicking a distribution bar filters the grid and switches to it
- [ ] Compare accepts @handle, bare handle, and full URL
- [ ] Compare bolds the winning value per row
+ [ ] Clicking a distribution bar filters the grid and switches to Search
+
+ COMPARE
+ [ ] Accepts @handle, bare handle, and full URL
+ [ ] Bolds the winning value per row
  [ ] A nonsense channel name reports a parse failure, does not hang
 
  TITLES
@@ -129,8 +147,8 @@
  [ ] Title format percentages look plausible
  [ ] Median views by title length skips empty bands rather than drawing gaps
 
- NICHE
- [ ] Track channel adds a chip
+ WATCHLIST
+ [ ] Track adds a chip
  [ ] Chip remove button works and survives a reopen
  [ ] Refresh all reports progress per channel
  [ ] What is working right now lists videos with a multiplier
@@ -149,7 +167,7 @@
      everything as unwatched
  [ ] After a second refresh hours later, cards show gains like "+12K in 6h"
  [ ] Trending (measured) then orders by those gains
- [ ] Niche status flips from baseline to live once channels have 2 snapshots
+ [ ] Watchlist status flips from baseline to live once channels have 2 snapshots
  [ ] Watchlist survives a browser restart
 
 
@@ -160,7 +178,8 @@
  [ ] A channel with no Videos tab fails with a message, not a stuck spinner
  [ ] A channel with a handful of videos still renders every pane
  [ ] Signed out: watch filters are inert, nothing crashes
- [ ] Narrow window: the control bar wraps without overlapping
+ [ ] Narrow window: both chrome rows wrap without overlapping, and the summary
+     line stays clear of the sticky bar
  [ ] Light theme: text stays legible
  [ ] Reopening the panel repeatedly does not stack duplicates
 
@@ -178,7 +197,14 @@
 
 ===============================================================================
  MOST LIKELY TO FAIL
-   - Section 1, load order. The module split is unverified at runtime.
-   - Section 7 Titles. Stopword fix was never seen running.
    - Section 10 Firefox. Entirely unverified, no Firefox available here.
+   - Anything touching the network: Compare and Watchlist have only ever been
+     seen in their empty states since the last rebuild.
+   - Watch state and measured velocity, which need a real signed-in session and
+     two visits with a gap. Neither can be faked locally.
+
+ ALREADY EXERCISED against generated data in docs/design-preview.html, so these
+ are unlikely to be where it breaks: module load order under the manifest's js
+ array, buildUi, both primary tabs, all four Insights sections, the filter and
+ sort pipeline, the summary line, and the Titles stopword filter.
 ===============================================================================

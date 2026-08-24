@@ -20,10 +20,10 @@
  SHORT DESCRIPTION            132 char limit
 -------------------------------------------------------------------------------
 
- Search a channel's whole back catalogue by length, views, date, and what you
- have already watched.
+ YouTube's channel search only matches text. This searches the whole back
+ catalogue by length, views, date and what you've watched.
 
- (109 characters)
+ (129 characters. Must match the manifest description exactly.)
 
 
 -------------------------------------------------------------------------------
@@ -31,36 +31,34 @@
 -------------------------------------------------------------------------------
 
 YouTube's in-channel search only matches words in titles. You cannot ask it for
-videos under twenty minutes, or the ones you have not finished, or what a
-channel's best work actually is. This adds all of that.
+videos under twenty minutes, or the ones you started and never finished, or a
+big channel's best work. This adds all of that.
 
 Open any channel's Videos tab and press the Search+ button. The extension reads
 the channel's entire upload history, then replaces the grid with one you can
-actually query.
+actually query. Free, with no paid tier and nothing held back.
 
-FILTER AND SORT
+SEARCH
 - Length, view count, upload date, and keyword, combined freely
 - Watch state: hide what you have finished, or find what you abandoned
-- Fits in: enter the minutes you have, see only what fits
+- Free time: pick the minutes you have, see only what fits
 - Start here: a spread of a channel's best work for when you arrive cold
 - Sort by views per day, which surfaces breakouts rather than just old uploads
 
-SEE THE SHAPE OF A CHANNEL
+INSIGHTS
+- Where a channel's sweet spot is, stated plainly, with the charts underneath
 - Uploads per year, and whether the typical video is growing or shrinking
 - View and length distributions, clickable to filter the grid
-- Which video length actually performs best on that channel
-
-TITLES
-- Which words lift median views, and by how much
-- Which title formats land: questions, versus, numbered, how-to
-
-TRACK COMPETITORS
+- Which words and title formats lift median views, and by how much
 - Compare any two channels side by side
 - Keep a watchlist and see what is outperforming across all of them
-- Content gaps: topics they cover that you never have
+
+Most in-page filter tools only touch the video cards already loaded on screen.
+This reads the channel's complete catalogue first, so every sort, statistic and
+chart covers all of it rather than just what you scrolled past.
 
 Everything runs in your browser. No account, no API key, no server, and nothing
-is ever sent anywhere. Open source under the MIT licence.
+is ever sent anywhere. Full source is published.
 
 Not affiliated with YouTube or Google.
 
@@ -147,21 +145,42 @@ Not affiliated with YouTube or Google.
  SCREENSHOTS            1280x800, up to 5, first one is the thumbnail
 -------------------------------------------------------------------------------
 
- 1. Grid takeover, stats strip visible, a filter active
- 2. Titles tab, words that lift performance
- 3. Niche tab, cross-channel outliers with multipliers
- 4. Analytics, with the median-views-by-length peak visible
- 5. The popup
+ 1. Search, with a keyword typed and two filter pills active, summary line
+    visible. This is the thumbnail, so it has to carry the whole pitch on its
+    own: the shot should make it obvious that a specific query is being run
+    against a big catalogue. Get "18 of 177" into frame.
+ 2. Search, sorted by Start here, on a channel with a long history
+ 3. Insights > Overview, headline finding plus the median-views-by-length peak
+ 4. Insights > Titles, words that lift performance
+ 5. Insights > Watchlist, cross-channel outliers with multipliers
 
  Use a channel people recognise so the numbers mean something at a glance.
+
+ Set the browser window so the panel renders at 1280 wide before capturing.
+ Below about 1180 the filter row wraps to two lines and the shot looks cramped.
 
 
 -------------------------------------------------------------------------------
  ASSETS STILL NEEDED
 -------------------------------------------------------------------------------
 
- [ ] 5 screenshots at 1280x800
- [ ] Small promo tile, 440x280        (optional, but listings without it look
-                                       unfinished in search results)
+ [ ] 5 screenshots at 1280x800     the four in docs/ are from the old four-tab
+                                   layout and must be retaken
+ [ ] Small promo tile, 440x280     (optional, but listings without it look
+                                   unfinished in search results)
  [ ] Chrome developer account, 5 USD one-off
  [ ] Firefox developer account, free
+
+
+-------------------------------------------------------------------------------
+ SUGGESTED ORDER
+-------------------------------------------------------------------------------
+
+ Firefox and Edge are free and review in hours to days. Chrome costs 5 USD and
+ a first review can take weeks. So submit Firefox and Edge first, get the
+ listings live and collect real installs, and let Chrome sit in its queue in
+ parallel rather than waiting on it.
+
+ dist/firefox-1.0.0.zip  ->  addons.mozilla.org/developers
+ dist/chrome-1.0.0.zip   ->  partner.microsoft.com/dashboard      (Edge)
+ dist/chrome-1.0.0.zip   ->  chrome.google.com/webstore/devconsole

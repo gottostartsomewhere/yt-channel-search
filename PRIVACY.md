@@ -1,6 +1,6 @@
 # Privacy policy
 
-Last updated: 5 August 2026
+Last updated: 24 August 2026
 
 Channel Search+ for YouTube does not collect, transmit, or sell any data. There
 is no server, no account, and no analytics. Everything the extension reads stays
@@ -54,9 +54,9 @@ restore default settings.
 
 ## Source
 
-The extension is open source under the MIT licence. Every claim above can be
-checked against the code at
-<https://github.com/gottostartsomewhere/yt-channel-search>.
+The extension is free, with no paid tier, and its full source is published under
+the PolyForm Noncommercial licence. Every claim above can be checked against the
+code at <https://github.com/gottostartsomewhere/yt-channel-search>.
 
 ## Contact
 

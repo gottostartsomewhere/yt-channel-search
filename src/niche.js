@@ -273,6 +273,5 @@ function setInsight(name) {
     ui.insightTabs[k].classList.toggle("ytcs-subon", k === name);
     ui.insightTabs[k].setAttribute("aria-selected", k === name ? "true" : "false");
   });
-  if (state.view !== "insights") return setView("insights");
   setView("insights");
 }
