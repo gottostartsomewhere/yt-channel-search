@@ -1,0 +1,99 @@
+<!doctype html>
+<!--
+  Renders the real panel, built by the real buildUi() against the real
+  styles.css, on generated data. Lets the design be checked without loading the
+  extension and hunting for a channel with the right shape of history.
+
+  Open it directly in a browser. Not shipped: build.js only copies the paths in
+  its SHARED list, and docs is not one of them.
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<title>Channel Search+ design preview</title>
+<!-- Cache-busted on every load. Without this the browser keeps serving the
+     stylesheet and modules from the last edit, which silently shows you the
+     previous design and wastes a lot of time working out why. -->
+<script>document.write('<link rel="stylesheet" href="../styles.css?t=' + Date.now() + '">');</script>
+<style>
+  body { margin: 0; background: #0f0f0f; font-family: Roboto, system-ui, sans-serif; }
+  /* .ytcs-wrap is width:100%, so the preview's own padding has to be inside the
+     box or the page overflows. Not an extension concern: in the real panel the
+     wrap sits in YouTube's container and adds no padding of its own. */
+  /* 56px of it stands in for YouTube's masthead. The panel's chrome is sticky
+     at top:56px, so without that clearance sticky pushes the bar down over the
+     stats line at rest and the preview lies about the layout. */
+  .page { box-sizing: border-box; max-width: 1320px; margin: 0 auto; padding: 80px 24px 80px; }
+</style>
+</head>
+<body>
+<div class="page" id="page"></div>
+
+<!-- Enough of the extension APIs for the modules to load. Everything that would
+     actually touch chrome.* sits behind bootstrap, which is blocked below. -->
+<script>
+  window.chrome = {
+    runtime: { id: "preview", onMessage: { addListener: function () {} }, sendMessage: function () {} },
+    storage: { sync: { get: function (d, cb) { cb({}); }, set: function () {} } },
+  };
+  // panel.js self-starts unless this is already set. The preview drives
+  // buildUi() itself, so keep bootstrap out of it.
+  window.__ytcsLoaded = true;
+</script>
+<script>
+  var bust = "?t=" + Date.now();
+  ["core", "grid", "store", "charts", "analysis", "niche", "panel"].forEach(function (m) {
+    document.write('<script src="../src/' + m + '.js' + bust + '"><\/script>');
+  });
+</script>
+<script>
+// A plausible mid-size channel: ramped up, tailed off, best in 10-20 minutes.
+function makeCatalog() {
+  const perYear = { 6: 40, 5: 120, 4: 300, 3: 240, 2: 150, 1: 90, 0: 30 };
+  const bands = [
+    [60, 240, 0.5], [240, 600, 0.8], [600, 1200, 1.9],
+    [1200, 2400, 1.4], [2400, 4200, 0.7],
+  ];
+  const words = ["build", "survive", "review", "why", "the", "truth", "about", "cheap",
+                 "best", "worst", "tested", "hours", "days", "actually", "works", "broke"];
+  const rows = [];
+  let seed = 7;
+  const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
+  Object.keys(perYear).forEach((ago) => {
+    for (let i = 0; i < perYear[ago]; i++) {
+      const b = bands[Math.floor(rnd() * bands.length)];
+      const n = 3 + Math.floor(rnd() * 4);
+      const title = [];
+      for (let w = 0; w < n; w++) title.push(words[Math.floor(rnd() * words.length)]);
+      const days = Number(ago) * 365 + Math.floor(rnd() * 360);
+      rows.push({
+        id: "v" + rows.length,
+        title: title.join(" ").replace(/^./, (c) => c.toUpperCase()),
+        views: Math.max(400, Math.round(120000 * b[2] * (1 - Number(ago) * 0.09) * (0.25 + rnd() * 2.4))),
+        seconds: Math.round(b[0] + rnd() * (b[1] - b[0])),
+        days: days,
+        when: Math.round(days / 30) + " months ago",
+        progress: rnd() < 0.3 ? Math.round(rnd() * 100) : 0,
+      });
+    }
+  });
+  return rows;
+}
+
+buildUi();
+document.getElementById("page").appendChild(ui.wrap);
+state.catalog = makeCatalog();
+state.cachedAt = Date.now() - 7 * 60000;
+state.medianViews = median(state.catalog.map((v) => v.views));
+state.medianVpd = median(state.catalog.filter((v) => v.days).map((v) => v.views / v.days));
+ui.status.textContent = state.catalog.length + " cached · 7m ago";
+applyView();
+
+// A second copy further down, showing Insights with a filter set, so both
+// states can be compared in one screenshot pass.
+const marker = document.createElement("div");
+marker.style.cssText = "height:1px;background:#2a2a2a;margin:60px 0";
+document.getElementById("page").appendChild(marker);
+</script>
+</body>
+</html>

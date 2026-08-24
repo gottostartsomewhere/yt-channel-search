@@ -34,9 +34,33 @@ function loadSettings() {
   });
 }
 const SNAPSHOT_LIMIT = 8; // how many view-count snapshots we keep per channel
-const VELOCITY_FLOOR = 200; // ignore measured growth below this many views as noise
-const MIN_MEASURED = 3; // videos with velocity needed before a channel ranks by it
+const VELOCITY_FLOOR = 200; // a video needs this much measured growth to be a candidate
+const MIN_MEASURED = 5; // moving videos needed before a channel's median is worth trusting
 const OUTLIER_X = 2; // how far past the channel median earns an outlier badge
+const OUTLIER_RATIO = 1.5; // floor: never call anything slower than this an outlier
+const OUTLIER_MADS = 2; // and it must also sit this many MADs above the channel median
+
+/*
+ * Listing view counts carry two significant figures. A video showing 2.4M moves
+ * in steps of 100,000, so growth below that is invisible and a single step
+ * across a boundary is indistinguishable from 100,000 real views. Treating
+ * those as measurements produces confident nonsense: the server prototype threw
+ * 76x alerts that were pure rounding.
+ *
+ * Requiring three steps puts the error at roughly a third. The honest cost is
+ * that ordinary movement on large videos is invisible, which for outlier
+ * detection is the right trade. Exact counts need the Data API.
+ */
+const MIN_STEPS = 3;
+
+function roundingStep(views) {
+  if (views < 1000) return 1;
+  return Math.pow(10, Math.floor(Math.log10(views)) - 1);
+}
+
+function beyondRounding(gained, views) {
+  return gained >= roundingStep(views) * MIN_STEPS;
+}
 
 // "1 channels" reads like a bug even when the number is right.
 function plural(n, word) {
@@ -257,6 +281,48 @@ function mapLockup(lvm) {
   };
 }
 
+// ---- video mapping (shortsLockupViewModel, the /shorts tab) --------------
+/*
+ * Shorts lockups are a different shape and, more importantly, a poorer one.
+ * They carry an id, a title and a view count, and that is all: no upload date
+ * and no duration anywhere in the payload.
+ *
+ * So everything downstream that depends on age (views per day, the per-year
+ * charts, recency filters) or on length has nothing to work with. Those fields
+ * are left empty rather than zero-filled with plausible-looking numbers, and
+ * `isShort` marks the row so shorts can be kept off the main catalog. Merging
+ * them in would quietly move every median in the product, since shorts and
+ * long-form have completely different view dynamics.
+ *
+ * Measured velocity still works on shorts: snapshot diffing never needed dates.
+ */
+function shortsVideoId(slvm) {
+  const cmd = slvm.onTap && slvm.onTap.innertubeCommand;
+  const reel = cmd && cmd.reelWatchEndpoint;
+  if (reel && reel.videoId) return reel.videoId;
+  // entityId is "shorts-shelf-item-<id>". A fallback for when the tap command
+  // shape moves, which it does more often than the entity key.
+  const m = /^shorts-shelf-item-(.+)$/.exec(slvm.entityId || "");
+  return m ? m[1] : null;
+}
+
+function mapShortsLockup(slvm) {
+  const id = shortsVideoId(slvm);
+  if (!id) return null;
+  const meta = slvm.overlayMetadata || {};
+  return {
+    id: id,
+    title: (meta.primaryText && meta.primaryText.content) || "",
+    isShort: true,
+    durationText: "",
+    seconds: 0,
+    views: parseViews((meta.secondaryText && meta.secondaryText.content) || ""),
+    publishedText: "",
+    days: 0,
+    progress: 0,
+  };
+}
+
 function parseItemArray(arr) {
   const videos = [];
   let token = null;
@@ -265,6 +331,9 @@ function parseItemArray(arr) {
       const content = it.richItemRenderer.content;
       if (content.lockupViewModel) {
         const v = mapLockup(content.lockupViewModel);
+        if (v) videos.push(v);
+      } else if (content.shortsLockupViewModel) {
+        const v = mapShortsLockup(content.shortsLockupViewModel);
         if (v) videos.push(v);
       } else if (content.videoRenderer && content.videoRenderer.videoId) {
         videos.push(mapVideo(content.videoRenderer));
@@ -295,6 +364,13 @@ function isChannelPage() {
 function channelVideosUrl() {
   const base = channelBasePath();
   return base ? location.origin + base + "/videos" : null;
+}
+
+// The shorts tab is a separate richGridRenderer with its own continuations, so
+// fetchCatalogFrom walks it with no changes. Only the item mapper differs.
+function channelShortsUrl() {
+  const base = channelBasePath();
+  return base ? location.origin + base + "/shorts" : null;
 }
 
 // ---- catalog fetcher (the core primitive) --------------------------------

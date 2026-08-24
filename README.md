@@ -170,4 +170,9 @@ stay in your browser. See [PRIVACY.md](PRIVACY.md).
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+PolyForm Noncommercial 1.0.0. See [LICENSE](LICENSE).
+
+Source-available rather than open source. Read it, learn from it, run it, modify
+it for yourself. You may not sell it or ship it in something you sell. That is
+the only restriction, and it exists because the paid tiers are how this gets
+maintained.

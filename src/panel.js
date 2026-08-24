@@ -7,87 +7,180 @@
  */
 
 // ---- UI helpers ----------------------------------------------------------
-function select(opts) {
+/*
+ * Filter controls are pills, not labelled fields. Every option string names its
+ * own dimension ("Any length" -> "4 - 20 min"), so the control describes itself
+ * and the row above it can disappear. A stack of uppercase captions over a row
+ * of identical grey boxes was the single most generic thing in this panel.
+ *
+ * `dim` marks the pill as untouched. filterAndSort already treats "" as no
+ * filter, so this is purely how it reads: active filters look chosen.
+ */
+function pill(opts, title) {
   const s = document.createElement("select");
-  s.className = "ytcs-in";
+  s.className = "ytcs-pill ytcs-dim";
+  if (title) s.title = title;
   for (const [val, label] of opts) {
     const o = document.createElement("option");
     o.value = val;
     o.textContent = label;
     s.appendChild(o);
   }
+  s.addEventListener("change", () => s.classList.toggle("ytcs-dim", !s.value));
   return s;
 }
 
-function field(text, el) {
-  const l = document.createElement("label");
-  l.className = "ytcs-field";
-  const s = document.createElement("span");
-  s.className = "ytcs-flabel";
-  s.textContent = text;
-  l.appendChild(s);
-  l.appendChild(el);
-  return l;
+function ghostBtn(label, title) {
+  const b = document.createElement("button");
+  b.className = "ytcs-ghost";
+  b.textContent = label;
+  if (title) b.title = title;
+  return b;
 }
+
+function icon(path, size) {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("width", String(size || 16));
+  svg.setAttribute("height", String(size || 16));
+  svg.setAttribute("fill", "none");
+  svg.setAttribute("stroke", "currentColor");
+  svg.setAttribute("stroke-width", "2");
+  svg.setAttribute("stroke-linecap", "round");
+  svg.setAttribute("stroke-linejoin", "round");
+  svg.setAttribute("aria-hidden", "true");
+  const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  p.setAttribute("d", path);
+  svg.appendChild(p);
+  return svg;
+}
+
+const ICON_SEARCH = "M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4";
+const ICON_REFRESH = "M20 11A8 8 0 1 0 18.4 16M20 5v6h-6";
 
 // ---- UI construction (in-page grid takeover) -----------------------------
 function buildUi() {
   const wrap = document.createElement("div");
   wrap.className = "ytcs-wrap";
 
-  const bar = document.createElement("div");
-  bar.className = "ytcs-bar";
+  // ---- row 1: identity, the two primary tabs, and catalogue state ---------
+  const head = document.createElement("div");
+  head.className = "ytcs-head";
 
   const brand = document.createElement("span");
   brand.className = "ytcs-brand";
   brand.textContent = "Search+";
 
+  const tabs = document.createElement("div");
+  tabs.className = "ytcs-tabs";
+  tabs.setAttribute("role", "tablist");
+  const mkTab = (label, on) => {
+    const b = document.createElement("button");
+    b.className = "ytcs-tab" + (on ? " ytcs-tabon" : "");
+    b.textContent = label;
+    b.setAttribute("role", "tab");
+    b.setAttribute("aria-selected", on ? "true" : "false");
+    tabs.appendChild(b);
+    return b;
+  };
+  const tabSearch = mkTab("Search", true);
+  const tabInsights = mkTab("Insights");
+
+  const status = document.createElement("span");
+  status.className = "ytcs-status";
+
+  const refresh = document.createElement("button");
+  refresh.className = "ytcs-iconbtn";
+  refresh.title = "Re-read the channel and flag anything new";
+  refresh.setAttribute("aria-label", "Refresh catalogue");
+  refresh.appendChild(icon(ICON_REFRESH));
+  refresh.onclick = () => refreshCatalog();
+
+  const restore = document.createElement("button");
+  restore.className = "ytcs-restore";
+  restore.textContent = "Restore YouTube";
+  restore.onclick = () => disable();
+
+  const csv = ghostBtn("CSV", "Download the filtered videos as CSV");
+  csv.onclick = () => exportCSV();
+  const json = ghostBtn("JSON", "Download the filtered videos as JSON");
+  json.onclick = () => exportJSON();
+  const exports = document.createElement("span");
+  exports.className = "ytcs-exports";
+  exports.appendChild(csv);
+  exports.appendChild(json);
+
+  head.appendChild(brand);
+  head.appendChild(tabs);
+  const hspacer = document.createElement("span");
+  hspacer.className = "ytcs-spacer";
+  head.appendChild(hspacer);
+  head.appendChild(status);
+  // Export sits with the other actions rather than among the filters: it is a
+  // thing you do to the result, not a thing that changes it.
+  head.appendChild(exports);
+  head.appendChild(refresh);
+  head.appendChild(restore);
+
+  // ---- row 2: the filter line --------------------------------------------
+  const filters = document.createElement("div");
+  filters.className = "ytcs-filters";
+
+  const searchBox = document.createElement("div");
+  searchBox.className = "ytcs-searchbox";
+  searchBox.appendChild(icon(ICON_SEARCH, 17));
   const kw = document.createElement("input");
   kw.type = "text";
-  kw.placeholder = "keyword in title";
-  kw.className = "ytcs-in ytcs-kw";
+  kw.placeholder = "Search this channel's titles";
+  kw.className = "ytcs-search";
+  kw.setAttribute("aria-label", "Search this channel's titles");
+  searchBox.appendChild(kw);
 
-  const duration = select([
+  const duration = pill([
     ["", "Any length"],
     ["0-60", "Under 1 min"],
     ["60-240", "1 – 4 min"],
     ["240-1200", "4 – 20 min"],
     ["1200-3600", "20 – 60 min"],
     ["3600-", "Over 60 min"],
-  ]);
-  const views = select([
+  ], "Video length");
+  const views = pill([
     ["", "Any views"],
     ["0-10000", "Under 10K"],
     ["10000-100000", "10K – 100K"],
     ["100000-1000000", "100K – 1M"],
     ["1000000-10000000", "1M – 10M"],
     ["10000000-", "Over 10M"],
-  ]);
-  const watched = select([
-    ["", "Any"],
-    ["new", "Not started"],
-    ["unfinished", "Not finished"],
-    ["partial", "Still watching"],
-    ["done", "Finished"],
-  ]);
-  const uploaded = select([
+  ], "View count");
+  const uploaded = pill([
     ["", "Any time"],
     ["7", "Past week"],
     ["31", "Past month"],
     ["93", "Past 3 months"],
     ["366", "Past year"],
     ["old", "Over a year ago"],
-  ]);
-  const fits = document.createElement("input");
-  fits.type = "number";
-  fits.min = "1";
-  fits.placeholder = "any";
-  fits.className = "ytcs-in ytcs-fits";
-  fits.title = "Show only videos that fit in this many minutes";
+  ], "Upload date");
+  const watched = pill([
+    ["", "Watched: any"],
+    ["new", "Not started"],
+    ["unfinished", "Not finished"],
+    ["partial", "Still watching"],
+    ["done", "Finished"],
+  ], "Your watch history on this channel");
+  // Presets rather than a free number box: it makes the feature discoverable,
+  // and it keeps the row one consistent kind of control.
+  const fits = pill([
+    ["", "Any free time"],
+    ["10", "10 min free"],
+    ["20", "20 min free"],
+    ["30", "30 min free"],
+    ["45", "45 min free"],
+    ["60", "1 hour free"],
+  ], "Only show videos that fit the time you have");
 
-  const sort = select([
-    ["newest", "Newest"],
-    ["oldest", "Oldest"],
+  const sort = pill([
+    ["newest", "Newest first"],
+    ["oldest", "Oldest first"],
     ["starthere", "Start here"],
     ["views_desc", "Most views"],
     ["views_asc", "Fewest views"],
@@ -97,78 +190,37 @@ function buildUi() {
     ["trend_desc", "Trending (measured)"],
     ["gems_desc", "Hidden gems"],
     ["title_az", "Title A→Z"],
-  ]);
+  ], "Sort order");
+  sort.classList.remove("ytcs-dim");
+  sort.classList.add("ytcs-sort");
 
-  const status = document.createElement("span");
-  status.className = "ytcs-status";
   const count = document.createElement("span");
   count.className = "ytcs-count";
 
-  // view tabs
-  const tabs = document.createElement("div");
-  tabs.className = "ytcs-tabs";
-  const mkTab = (label, on) => {
-    const b = document.createElement("button");
-    b.className = "ytcs-tab" + (on ? " ytcs-tabon" : "");
-    b.textContent = label;
-    tabs.appendChild(b);
-    return b;
-  };
-  const tabGrid = mkTab("Grid", true);
-  const tabAnalytics = mkTab("Analytics");
-  const tabTitles = mkTab("Titles");
-  const tabNiche = mkTab("Niche");
-
-  // action buttons
-  const iconBtn = (label, title) => {
-    const b = document.createElement("button");
-    b.className = "ytcs-icbtn";
-    b.textContent = label;
-    if (title) b.title = title;
-    return b;
-  };
-  const refresh = iconBtn("↻ Refresh", "Re-fetch and highlight new uploads");
-  refresh.onclick = () => refreshCatalog();
-  const csv = iconBtn("CSV", "Export the filtered videos as CSV");
-  csv.onclick = () => exportCSV();
-  const json = iconBtn("JSON", "Export the filtered videos as JSON");
-  json.onclick = () => exportJSON();
-  const clear = iconBtn("Clear", "Reset all filters");
+  const clear = ghostBtn("Clear", "Reset every filter");
   clear.style.display = "none";
   clear.onclick = () => {
     ui.kw.value = "";
-    ui.duration.value = "";
-    ui.views.value = "";
-    ui.uploaded.value = "";
-    ui.watched.value = "";
-    ui.fits.value = "";
+    for (const el of [ui.duration, ui.views, ui.uploaded, ui.watched, ui.fits]) {
+      el.value = "";
+      el.classList.add("ytcs-dim");
+    }
     ui.sort.value = "newest";
     applyView();
   };
-  const divider = document.createElement("span");
-  divider.className = "ytcs-div";
-  const restore = document.createElement("button");
-  restore.className = "ytcs-restore";
-  restore.textContent = "Restore YouTube";
-  restore.onclick = () => disable();
 
-  bar.appendChild(brand);
-  bar.appendChild(tabs);
-  bar.appendChild(field("Keyword", kw));
-  bar.appendChild(field("Length", duration));
-  bar.appendChild(field("Views", views));
-  bar.appendChild(field("Uploaded", uploaded));
-  bar.appendChild(field("Watched", watched));
-  bar.appendChild(field("Fits in (min)", fits));
-  bar.appendChild(field("Sort", sort));
-  bar.appendChild(status);
-  bar.appendChild(count);
-  bar.appendChild(clear);
-  bar.appendChild(divider);
-  bar.appendChild(refresh);
-  bar.appendChild(csv);
-  bar.appendChild(json);
-  bar.appendChild(restore);
+  filters.appendChild(searchBox);
+  filters.appendChild(duration);
+  filters.appendChild(views);
+  filters.appendChild(uploaded);
+  filters.appendChild(watched);
+  filters.appendChild(fits);
+  const fspacer = document.createElement("span");
+  fspacer.className = "ytcs-spacer";
+  filters.appendChild(fspacer);
+  filters.appendChild(count);
+  filters.appendChild(clear);
+  filters.appendChild(sort);
 
   const stats = document.createElement("div");
   stats.className = "ytcs-stats";
@@ -176,27 +228,57 @@ function buildUi() {
   const grid = document.createElement("div");
   grid.className = "ytcs-grid";
 
-  // analytics view (charts + compare), hidden until the Analytics tab is picked
-  const analytics = document.createElement("div");
-  analytics.className = "ytcs-analytics";
-  analytics.style.display = "none";
+  // ---- Insights: one pane, four sections behind a secondary nav -----------
+  const insights = document.createElement("div");
+  insights.className = "ytcs-insights";
+  insights.style.display = "none";
+
+  const subnav = document.createElement("div");
+  subnav.className = "ytcs-subnav";
+  subnav.setAttribute("role", "tablist");
+  const mkSub = (label, on) => {
+    const b = document.createElement("button");
+    b.className = "ytcs-sub" + (on ? " ytcs-subon" : "");
+    b.textContent = label;
+    b.setAttribute("role", "tab");
+    b.setAttribute("aria-selected", on ? "true" : "false");
+    subnav.appendChild(b);
+    return b;
+  };
+  const subOverview = mkSub("Overview", true);
+  const subTitles = mkSub("Titles");
+  const subCompare = mkSub("Compare");
+  const subWatchlist = mkSub("Watchlist");
+  insights.appendChild(subnav);
+
+  // Overview: the charts drawn from whatever the filters currently select.
+  const paneOverview = document.createElement("div");
+  paneOverview.className = "ytcs-pane";
   const charts = document.createElement("div");
   charts.className = "ytcs-charts";
-  analytics.appendChild(charts);
+  paneOverview.appendChild(charts);
 
-  const cmp = document.createElement("div");
-  cmp.className = "ytcs-compare";
-  const cmpHead = document.createElement("div");
-  cmpHead.className = "ytcs-cmphead";
-  cmpHead.textContent = "Compare with another channel";
+  // Titles
+  const titles = document.createElement("div");
+  titles.className = "ytcs-pane";
+  titles.style.display = "none";
+
+  // Compare
+  const compare = document.createElement("div");
+  compare.className = "ytcs-pane";
+  compare.style.display = "none";
+  const cmpIntro = document.createElement("p");
+  cmpIntro.className = "ytcs-explain";
+  cmpIntro.textContent =
+    "Read another channel's full catalogue and line its numbers up against this one.";
   const cmpRow = document.createElement("div");
-  cmpRow.className = "ytcs-cmprow";
+  cmpRow.className = "ytcs-inputrow";
   const cmpInput = document.createElement("input");
   cmpInput.type = "text";
-  cmpInput.className = "ytcs-in";
+  cmpInput.className = "ytcs-textin";
   cmpInput.placeholder = "@handle or channel URL";
   const cmpBtn = document.createElement("button");
-  cmpBtn.className = "ytcs-icbtn";
+  cmpBtn.className = "ytcs-primary";
   cmpBtn.textContent = "Compare";
   const cmpStatus = document.createElement("span");
   cmpStatus.className = "ytcs-status";
@@ -205,35 +287,31 @@ function buildUi() {
   cmpRow.appendChild(cmpStatus);
   const cmpResult = document.createElement("div");
   cmpResult.className = "ytcs-cmpresult";
-  cmpResult.appendChild(emptyNote("Enter a channel above to line it up against this one."));
-  cmp.appendChild(cmpHead);
-  cmp.appendChild(cmpRow);
-  cmp.appendChild(cmpResult);
-  analytics.appendChild(cmp);
+  compare.appendChild(cmpIntro);
+  compare.appendChild(cmpRow);
+  compare.appendChild(cmpResult);
 
-  // title analysis pane
-  const titles = document.createElement("div");
-  titles.className = "ytcs-pane";
-  titles.style.display = "none";
-
-  // niche watchlist pane
+  // Watchlist
   const niche = document.createElement("div");
   niche.className = "ytcs-pane";
   niche.style.display = "none";
   const nicheIntro = document.createElement("p");
   nicheIntro.className = "ytcs-explain";
   nicheIntro.textContent =
-    "Track the channels you compete with. Add a few below, then hit Refresh all. " +
-    "You get two things back: every video that beat its own channel's normal by a wide margin, ranked across all of them, " +
-    "and the topics those channels cover that this one never has.";
+    "Track a set of channels, then refresh. You get back every video beating its own " +
+    "channel's normal pace by a wide margin, ranked across all of them, and the topics " +
+    "they cover that this channel never has.";
   const nicheRow = document.createElement("div");
-  nicheRow.className = "ytcs-cmprow";
+  nicheRow.className = "ytcs-inputrow";
   const nicheInput = document.createElement("input");
   nicheInput.type = "text";
-  nicheInput.className = "ytcs-in";
+  nicheInput.className = "ytcs-textin";
   nicheInput.placeholder = "@handle or channel URL";
-  const nicheAdd = iconBtn("Track channel", "Add this channel to the watchlist");
-  const nicheRefresh = iconBtn("Refresh all", "Read every tracked channel and rank what is working");
+  const nicheAdd = document.createElement("button");
+  nicheAdd.className = "ytcs-primary";
+  nicheAdd.textContent = "Track";
+  nicheAdd.title = "Add this channel to the watchlist";
+  const nicheRefresh = ghostBtn("Refresh all", "Read every tracked channel and rank what is working");
   const nicheStatus = document.createElement("span");
   nicheStatus.className = "ytcs-status";
   nicheRow.appendChild(nicheInput);
@@ -249,30 +327,49 @@ function buildUi() {
   niche.appendChild(nicheChips);
   niche.appendChild(nicheResults);
 
+  insights.appendChild(paneOverview);
+  insights.appendChild(titles);
+  insights.appendChild(compare);
+  insights.appendChild(niche);
+
   const foot = document.createElement("div");
   foot.className = "ytcs-foot";
   foot.textContent = "Reads public data through YouTube's own endpoints. Not affiliated with YouTube.";
 
-  wrap.appendChild(bar);
+  // Both rows stick as one block. Two separately-sticky rows would need their
+  // tops kept in sync with the header's rendered height, which does not survive
+  // a wrap at narrow widths.
+  const chrome = document.createElement("div");
+  chrome.className = "ytcs-chrome";
+  chrome.appendChild(head);
+  chrome.appendChild(filters);
+
+  wrap.appendChild(chrome);
   wrap.appendChild(stats);
   wrap.appendChild(grid);
-  wrap.appendChild(analytics);
-  wrap.appendChild(titles);
-  wrap.appendChild(niche);
+  wrap.appendChild(insights);
   wrap.appendChild(foot);
 
   ui = {
-    wrap, bar, kw, duration, views, uploaded, watched, fits, sort, status, count, clear,
-    stats, grid, analytics, charts, titles, niche,
-    tabGrid, tabAnalytics, tabTitles, tabNiche,
+    wrap, head, filters, kw, duration, views, uploaded, watched, fits, sort,
+    status, count, clear, stats, grid,
+    insights, charts, titles,
+    tabSearch, tabInsights,
+    insightPanes: { overview: paneOverview, titles: titles, compare: compare, watchlist: niche },
+    insightTabs: { overview: subOverview, titles: subTitles, compare: subCompare, watchlist: subWatchlist },
     cmpInput, cmpBtn, cmpStatus, cmpResult,
-    nicheInput, nicheAdd, nicheRefresh, nicheStatus, nicheChips, nicheResults,
+    niche, nicheInput, nicheAdd, nicheRefresh, nicheStatus, nicheChips, nicheResults,
   };
 
-  tabGrid.onclick = () => setView("grid");
-  tabAnalytics.onclick = () => setView("analytics");
-  tabTitles.onclick = () => setView("titles");
-  tabNiche.onclick = () => setView("niche");
+  cmpResult.appendChild(emptyNote("Enter a channel above to line it up against this one."));
+
+  tabSearch.onclick = () => setView("search");
+  tabInsights.onclick = () => setView("insights");
+  subOverview.onclick = () => setInsight("overview");
+  subTitles.onclick = () => setInsight("titles");
+  subCompare.onclick = () => setInsight("compare");
+  subWatchlist.onclick = () => setInsight("watchlist");
+
   cmpBtn.onclick = () => runCompare();
   cmpInput.addEventListener("keydown", (e) => { if (e.key === "Enter") runCompare(); });
 
@@ -283,7 +380,7 @@ function buildUi() {
     if (state.watchlist.indexOf(key) === -1) state.watchlist.push(key);
     await saveWatchlist(state.watchlist);
     nicheInput.value = "";
-    nicheStatus.textContent = state.watchlist.length + " tracked";
+    nicheStatus.textContent = plural(state.watchlist.length, "channel") + " tracked";
     renderNiche();
   };
   nicheRefresh.onclick = () => refreshWatchlist();
@@ -351,11 +448,15 @@ async function persistCatalog(key, cat) {
     if (days > 0.02) {
       for (const v of cat) {
         const before = last.v[v.id];
-        if (typeof before === "number" && v.views >= before) {
-          v.gained = v.views - before;
-          v.sinceDays = days;
-          v.measuredVpd = v.gained / days;
-        }
+        if (typeof before !== "number" || v.views < before) continue;
+        const gained = v.views - before;
+        // Anything that could be explained by the two-significant-figure
+        // rounding in listing counts is not a measurement. Recording it would
+        // hand the outlier maths a fabricated jump.
+        if (!beyondRounding(gained, v.views)) continue;
+        v.gained = gained;
+        v.sinceDays = days;
+        v.measuredVpd = gained / days;
       }
     }
   }
@@ -429,7 +530,10 @@ async function enable() {
   state.active = true;
   if (launcher) launcher.textContent = "Close";
   ui.sort.value = cfg.defaultSort;
-  if (cfg.hideWatched) ui.watched.value = "unfinished";
+  if (cfg.hideWatched) {
+    ui.watched.value = "unfinished";
+    ui.watched.classList.remove("ytcs-dim");
+  }
   state.watchlist = await getWatchlist();
   renderNiche();
   if (!state.catalog.length) await loadCatalog();
@@ -479,7 +583,8 @@ window.addEventListener("yt-navigate-finish", () => {
   state.catalog = [];
   state.newIds = new Set();
   state.cachedAt = 0;
-  state.view = "grid";
+  state.view = "search";
+  state.insight = "overview";
   setTimeout(ensureUi, 300);
 });
 // Keyboard shortcut, relayed from the service worker.

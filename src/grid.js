@@ -9,7 +9,8 @@
 // ---- state ---------------------------------------------------------------
 const state = {
   catalog: [], loading: false, active: false, nativeGrid: null, nativeDisplay: "",
-  medianVpd: 0, medianViews: 0, view: "grid", newIds: new Set(), cachedAt: 0,
+  medianVpd: 0, medianViews: 0, view: "search", insight: "overview",
+  newIds: new Set(), cachedAt: 0,
   watchlist: [], nicheItems: [], gapItems: [], nicheRan: false,
 };
 let ui = null;      // cached refs for the injected UI
@@ -117,10 +118,14 @@ function applyView() {
   if (!ui) return;
   const rows = filterAndSort();
   renderStats(rows);
-  if (state.view === "analytics") renderAnalytics(rows);
-  else if (state.view === "titles") renderTitles(rows);
-  else if (state.view === "niche") renderNiche();
-  else renderGrid(rows);
+  if (state.view === "insights") {
+    if (state.insight === "overview") renderAnalytics(rows);
+    else if (state.insight === "titles") renderTitles(rows);
+    else if (state.insight === "watchlist") renderNiche();
+    // Compare renders when a channel is actually submitted, not on every keystroke.
+  } else {
+    renderGrid(rows);
+  }
   ui.count.textContent = rows.length + " of " + state.catalog.length;
 
   const filtered = !!(ui.kw.value.trim() || ui.duration.value || ui.views.value ||
@@ -136,6 +141,14 @@ function median(nums) {
   return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
 }
 
+// Median absolute deviation. The spread measure that matches a median: unlike a
+// standard deviation it is not dragged upward by the very outlier we are trying
+// to find, so one breakout video cannot raise the bar it has to clear.
+function mad(nums, mid) {
+  if (!nums.length) return 0;
+  return median(nums.map((x) => Math.abs(x - mid)));
+}
+
 function renderStats(rows) {
   const n = rows.length;
   const totalViews = rows.reduce((s, v) => s + v.views, 0);
@@ -143,31 +156,38 @@ function renderStats(rows) {
   const avgDur = n ? Math.round(rows.reduce((s, v) => s + v.seconds, 0) / n) : 0;
   const vpds = rows.filter((v) => v.days).map((v) => v.views / Math.max(v.days, 1));
   const medVpd = median(vpds);
+  // No video count here: the filter row already says "18 of 177", and repeating
+  // it in a tile was one of six identical boxes competing for the same glance.
   const tiles = [
-    ["Videos", String(n)],
-    ["Total views", fmtCompact(totalViews)],
-    ["Median views", fmtCompact(medViews)],
-    ["Avg length", fmtDuration(avgDur) || "–"],
-    ["Median/day", fmtCompact(Math.round(medVpd))],
+    ["total views", fmtCompact(totalViews)],
+    ["median views", fmtCompact(medViews)],
+    ["avg length", fmtDuration(avgDur) || "–"],
+    ["median views/day", fmtCompact(Math.round(medVpd))],
   ];
   // Only meaningful when this account actually has history on the channel.
   if (state.catalog.some((v) => typeof v.progress === "number")) {
-    tiles.push(["Not started", String(rows.filter((v) => watchState(v) === "new").length)]);
+    tiles.push(["not started", String(rows.filter((v) => watchState(v) === "new").length)]);
   }
   ui.stats.innerHTML = "";
-  for (const [label, val] of tiles) {
-    const tile = document.createElement("div");
+  tiles.forEach(([label, val], i) => {
+    if (i) {
+      const dot = document.createElement("span");
+      dot.className = "ytcs-statdot";
+      dot.textContent = "·";
+      ui.stats.appendChild(dot);
+    }
+    const tile = document.createElement("span");
     tile.className = "ytcs-stat";
-    const vEl = document.createElement("div");
+    const vEl = document.createElement("span");
     vEl.className = "ytcs-statval";
     vEl.textContent = val;
-    const lEl = document.createElement("div");
+    const lEl = document.createElement("span");
     lEl.className = "ytcs-statlabel";
     lEl.textContent = label;
     tile.appendChild(vEl);
     tile.appendChild(lEl);
     ui.stats.appendChild(tile);
-  }
+  });
 }
 
 function renderGrid(rows) {

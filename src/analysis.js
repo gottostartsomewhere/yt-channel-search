@@ -80,13 +80,21 @@ function renderCompare(catA, catB, labelB) {
 }
 
 // ---- small layout helpers ------------------------------------------------
-function section(title, node) {
+function section(title, node, note) {
   const wrap = document.createElement("div");
   wrap.className = "ytcs-section";
   const h = document.createElement("div");
   h.className = "ytcs-sectitle";
   h.textContent = title;
   wrap.appendChild(h);
+  // Same reasoning as the chart notes: a heading names the table, this says
+  // what it is for. Optional, so existing callers are unaffected.
+  if (note) {
+    const n = document.createElement("div");
+    n.className = "ytcs-secnote";
+    n.textContent = note;
+    wrap.appendChild(n);
+  }
   wrap.appendChild(node);
   return wrap;
 }

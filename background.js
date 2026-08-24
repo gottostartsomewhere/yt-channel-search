@@ -1,7 +1,10 @@
 /*
- * Relays the keyboard shortcut to the content script. The panel lives in the
- * page, so the command has to be forwarded to whichever tab is in front.
+ * Relays the keyboard shortcut into the content script.
+ *
+ * The panel lives in the page, so the command has to be forwarded to whichever
+ * YouTube tab is in front. That is the only job this file has.
  */
+
 chrome.commands.onCommand.addListener((command) => {
   if (command !== "toggle-panel") return;
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
