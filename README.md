@@ -47,7 +47,7 @@ recalculates as you filter.
 
 ## Insights
 
-Everything analytical, behind one tab, in four sections.
+Everything analytical, behind one tab, in three sections.
 
 **Overview.** Charts drawn from whatever the filters currently select: uploads
 per year, median views by upload year, view and length distributions, and the
