@@ -21,6 +21,13 @@
  * YouTube's sidebar with the hamburger to give the panel its full width, then
  * Ctrl+Shift+P and run "Capture screenshot". That writes a real 1280x800 PNG
  * with no OS window chrome in it.
+ *
+ * WHICH CHANNEL
+ *
+ * Shots 1, 3 and 4 want a channel people recognise with a deep back catalogue.
+ * Shot 2 is different: it shows watch state, so it has to be a channel you have
+ * genuinely watched. On a channel you have never opened, every video reads as
+ * not started, there are no progress bars, and the shot proves nothing.
  */
 
 function shot(n) {
@@ -43,22 +50,24 @@ function shot(n) {
   if (n === 1) {
     // The thumbnail. It has to say "a precise query is running against a big
     // catalogue" with no caption, so: a keyword, two lit pills, and a count
-    // that is visibly a small fraction of the whole.
+    // that is visibly a small fraction of the whole. Change the keyword to
+    // something that actually lands on whatever channel you picked.
     ui.kw.value = "review";
     set(ui.duration, "240-1200");
-    set(ui.watched, "new");
+    set(ui.views, "1000000-10000000");
   } else if (n === 2) {
+    // Watch state, the thing no competitor does. Needs a channel you watch.
+    set(ui.watched, "new");
+    set(ui.fits, "30");
+  } else if (n === 3) {
     set(ui.sort, "starthere");
     ui.sort.classList.remove("ytcs-dim");
-  } else if (n === 3) {
-    setView("insights");
-    setInsight("overview");
   } else if (n === 4) {
     setView("insights");
-    setInsight("titles");
+    setInsight("overview");
   } else if (n === 5) {
     setView("insights");
-    setInsight("watchlist");
+    setInsight("compare");
   }
 
   applyView();

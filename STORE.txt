@@ -145,16 +145,22 @@ Not affiliated with YouTube or Google.
  SCREENSHOTS            1280x800, up to 5, first one is the thumbnail
 -------------------------------------------------------------------------------
 
- 1. Search, with a keyword typed and two filter pills active, summary line
-    visible. This is the thumbnail, so it has to carry the whole pitch on its
-    own: the shot should make it obvious that a specific query is being run
-    against a big catalogue. Get "18 of 177" into frame.
- 2. Search, sorted by Start here, on a channel with a long history
- 3. Insights > Overview, the median-views-by-length peak and the year chart
- 4. Insights > Overview, scrolled to the title-format table
- 5. Insights > Watchlist, cross-channel outliers with multipliers
+ Run docs/shot-setup.js in the console, then shot(1) through shot(5).
 
- Use a channel people recognise so the numbers mean something at a glance.
+ 1. THUMBNAIL. Search, keyword typed, two pills lit, summary line visible.
+    Carries the whole pitch with no caption, so it has to read as a precise
+    query against a big catalogue. Get a count like "12 of 236" into frame.
+ 2. Search with Watched set to not started and a free-time filter on. The one
+    thing no competitor does, so it earns the second slot. Must be a channel
+    you have actually watched, or there are no progress bars and no dimmed
+    finished videos and the shot proves nothing.
+ 3. Search sorted by Start here, on a channel with a deep back catalogue.
+ 4. Insights > Overview, the length curve and the year chart.
+ 5. Insights > Compare, one channel set against another.
+
+ Cutting to four: drop 3. It is the weakest and the most similar to 1.
+
+ Use channels people recognise so the numbers mean something at a glance.
 
  Set the browser window so the panel renders at 1280 wide before capturing.
  Below about 1180 the filter row wraps to two lines and the shot looks cramped.
