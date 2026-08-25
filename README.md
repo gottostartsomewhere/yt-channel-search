@@ -43,8 +43,7 @@ right now.
 
 Sort by views, length, views per day, measured trend, or hidden gems, meaning
 fast relative to the channel but still small in absolute terms. A summary line
-recalculates as you filter, and outliers get a badge showing how far they beat
-the channel's median rate.
+recalculates as you filter.
 
 ## Insights
 
@@ -102,6 +101,11 @@ its launch spike. The honest metric is views in the first thirty days by year,
 and that needs per-video history nobody has retroactively. The chart stays,
 because where a channel's strongest years sit is worth seeing. The verdict on
 top of it does not, and the bias is named on the card so it can be discounted.
+
+Cards carry no outlier badge. It divided a recent upload's launch spike by a
+lifetime average made mostly of old videos, so a badge reading "376x" was
+largely reporting that the video was new. Sorting by views per day ranks the
+same videos without printing a figure that cannot be defended.
 
 Nor is there a title-length chart, which had no mechanism behind it in the
 first place.

@@ -355,20 +355,6 @@
   padding: 3px 5px;
   border-radius: 4px;
 }
-.ytcs-outlier {
-  position: absolute;
-  left: 7px;
-  top: 7px;
-  background: var(--ac-soft);
-  color: var(--ac);
-  font-size: 11px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-  padding: 4px 7px;
-  border-radius: 6px;
-  backdrop-filter: blur(2px);
-}
 .ytcs-new {
   position: absolute;
   left: 7px;
@@ -382,7 +368,6 @@
   padding: 3px 6px;
   border-radius: 5px;
 }
-.ytcs-outlier + .ytcs-new { top: 34px; }
 
 /* watch progress, mirroring YouTube's own resume bar */
 .ytcs-prog {

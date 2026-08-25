@@ -106,7 +106,7 @@
  [ ] Clicking a card opens that video
  [ ] Partly watched videos show a resume bar at the right position
  [ ] Finished videos are dimmed but still present
- [ ] Outlier badges show a multiplier
+ [ ] No outlier badge on any card. The multiplier was removed as indefensible
  [ ] New uploads since last refresh carry a NEW badge
  [ ] Over 600 results shows the truncation note
 

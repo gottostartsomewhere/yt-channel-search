@@ -36,7 +36,6 @@ function loadSettings() {
 const SNAPSHOT_LIMIT = 8; // how many view-count snapshots we keep per channel
 const VELOCITY_FLOOR = 200; // a video needs this much measured growth to be a candidate
 const MIN_MEASURED = 5; // moving videos needed before a channel's median is worth trusting
-const OUTLIER_X = 2; // how far past the channel median earns an outlier badge
 const OUTLIER_RATIO = 1.5; // floor: never call anything slower than this an outlier
 const OUTLIER_MADS = 2; // and it must also sit this many MADs above the channel median
 

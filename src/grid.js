@@ -250,12 +250,15 @@ function renderGrid(rows) {
       measured.textContent = "+" + fmtCompact(Math.round(v.gained)) + " in the last " + span;
       info.appendChild(measured);
     }
-    if (state.medianVpd && vpdVal >= OUTLIER_X * state.medianVpd) {
-      const badge = document.createElement("span");
-      badge.className = "ytcs-outlier";
-      badge.textContent = (vpdVal / state.medianVpd).toFixed(1) + "×";
-      thumb.appendChild(badge);
-    }
+    /*
+     * Cards used to carry an outlier badge here, a multiplier of the video's
+     * views per day against the channel's median. It was removed for the same
+     * reason the rising/fading verdict was: it divided a recent upload's launch
+     * spike by a lifetime average made mostly of old videos, so the number was
+     * inflated by construction and the badges reading "376.1x" were mostly
+     * saying "this video is new". Sorting by views per day still ranks the same
+     * videos, without printing a figure that cannot be defended.
+     */
     if (state.newIds && state.newIds.has(v.id)) {
       const nb = document.createElement("span");
       nb.className = "ytcs-new";
