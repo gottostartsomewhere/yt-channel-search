@@ -231,7 +231,7 @@ function buildUi() {
   const grid = document.createElement("div");
   grid.className = "ytcs-grid";
 
-  // ---- Insights: one pane, four sections behind a secondary nav -----------
+  // ---- Insights: one pane, three sections behind a secondary nav ----------
   const insights = document.createElement("div");
   insights.className = "ytcs-insights";
   insights.style.display = "none";
