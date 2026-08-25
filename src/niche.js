@@ -22,13 +22,41 @@ function channelKeyFromUrl(url) {
   }
 }
 
-// Words the tracked channels rank for that this channel never uses.
-function contentGap(mine, theirs, minCount) {
+/*
+ * Topics the tracked channels cover that this one never has.
+ *
+ * This used to run through keywordStats and rank by lift, which was removed
+ * along with the per-word lift table: ranking hundreds of words by the median
+ * of tiny samples surfaces coincidences, and a word does not cause views, its
+ * subject does.
+ *
+ * The claim here is weaker and survives that. "They have twelve videos about
+ * this and you have none" is a fact about coverage, checkable by looking at
+ * their channel, with no assertion that the word is why anything performed.
+ * So it ranks by how much of their catalogue the topic occupies, not by how
+ * well it did, and the floor is a real share rather than three videos.
+ */
+function contentGap(mine, theirs) {
   const mineWords = new Set();
   mine.forEach((v) => tokenize(v.title).forEach((w) => mineWords.add(w)));
-  return keywordStats(theirs, minCount)
-    .filter((k) => !mineWords.has(k.word))
-    .sort((a, b) => b.medViews - a.medViews);
+
+  const counts = new Map();
+  theirs.forEach((v) => {
+    new Set(tokenize(v.title)).forEach((w) => {
+      if (mineWords.has(w)) return;
+      if (!counts.has(w)) counts.set(w, []);
+      counts.get(w).push(v.views);
+    });
+  });
+
+  const floor = Math.max(4, Math.round(theirs.length * 0.02));
+  const out = [];
+  counts.forEach((views, word) => {
+    if (views.length >= floor) {
+      out.push({ word: word, count: views.length, medViews: median(views) });
+    }
+  });
+  return out.sort((a, b) => b.count - a.count);
 }
 
 // Two bars, and both have to clear. The ratio is a floor so nothing pedestrian
@@ -101,7 +129,7 @@ async function refreshWatchlist() {
   outliers.sort((a, b) => b.ratio - a.ratio);
   state.nicheItems = outliers;
   state.nicheNew = newSeen;
-  state.gapItems = state.catalog.length ? contentGap(state.catalog, theirVideos, 3) : [];
+  state.gapItems = state.catalog.length ? contentGap(state.catalog, theirVideos) : [];
   state.nicheRan = true;
   const mode = liveChannels
     ? liveChannels + " of " + state.watchlist.length + " live"
@@ -227,13 +255,14 @@ function renderNiche() {
   if (state.gapItems.length) {
     ui.nicheResults.appendChild(section(
       "Content gaps: topics they cover and you do not",
-      dataTable(["Topic", "Their videos", "Median views", "Lift"], state.gapItems.slice(0, 20).map((g) => [
+      dataTable(["Topic", "Their videos", "Their median views"], state.gapItems.slice(0, 20).map((g) => [
         g.word,
         String(g.count),
         fmtCompact(Math.round(g.medViews)),
-        (g.lift || 0).toFixed(1) + "x",
       ])),
-      "Lift is measured against these channels' own median, so a high number is a topic that outperforms for them rather than a topic that is merely popular."
+      "Ranked by how much of their catalogue the topic takes up, which is a fact " +
+      "you can check on their channel. It is not a claim that covering it would " +
+      "work for you."
     ));
   }
   if (state.watchlist.length && state.nicheRan && !state.nicheItems.length && !state.gapItems.length) {
@@ -260,8 +289,7 @@ function setView(name) {
   });
   // The filter bar drives the grid and the two panes computed from it. Compare
   // and Watchlist read other channels, so the filters would only mislead there.
-  const filtersBite = name === "search" ||
-    state.insight === "overview" || state.insight === "titles";
+  const filtersBite = name === "search" || state.insight === "overview";
   ui.filters.classList.toggle("ytcs-filters-idle", !filtersBite);
   applyView();
 }

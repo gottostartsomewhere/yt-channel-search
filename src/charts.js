@@ -167,65 +167,36 @@ function uploadsNote(uploads) {
 }
 
 /*
- * Direction of travel, over a recent window rather than a lifetime.
- *
- * Two earlier versions of this were wrong in the same way. Dividing the newest
- * year by the very first reported "114.1x bigger than in '13"; comparing whole
- * halves still gave 41.1x. Both are arithmetically right and both answer a
- * question nobody asked, because a channel's opening years are near zero and
- * any ratio anchored to them comes out enormous and positive no matter what
- * has happened since.
- *
- * The damage was not just an ugly number. On a channel that peaked in '21 and
- * has been below that ever since, the lifetime comparison still said "rising",
- * because six near-empty years from a decade ago outvoted the recent decline.
- * A three-year window against the three before it asks whether the channel is
- * growing now, which is the thing being read off this chart.
- *
- * The current year is excluded from the comparison. It is still filling, and
- * its videos have had the least time to accumulate views, so it always reads
- * low. It stays on the chart, because it is real, but it does not get a vote
- * on the trend.
+ * Years with uploads, excluding the one still in progress. The current year is
+ * always partial and its videos have had the least time to gather views, so it
+ * stays on the chart but is kept out of anything derived from it.
  */
-const TRAJECTORY_WINDOW = 3;
-
 function trajectoryYears(traj, nowYear) {
   return traj.filter((d) => d.value > 0 && (nowYear == null || d.year !== nowYear));
 }
 
-function trajectoryRatio(solid) {
-  if (solid.length < 4) return null;
-  const w = Math.min(TRAJECTORY_WINDOW, Math.floor(solid.length / 2));
-  const recentYears = solid.slice(solid.length - w);
-  const earlierYears = solid.slice(solid.length - w * 2, solid.length - w);
-  const earlier = median(earlierYears.map((d) => d.value));
-  const recent = median(recentYears.map((d) => d.value));
-  if (!earlier) return null;
-  return { x: recent / earlier, recentYears: recentYears, earlierYears: earlierYears };
-}
-
 /*
- * "'21-'25" is only honest when those years run consecutively. A channel that
- * went quiet through '22 and '23 has three data years with a hole in the
- * middle, and a range label claims a span that is not there, so a gapped
- * window gets its years listed instead.
+ * Describes the chart. Deliberately does not judge it.
+ *
+ * Views are cumulative, so a video uploaded in 2020 has had six years to
+ * gather them and one from 2025 has had one. A channel performing identically
+ * every year still slopes downward here, which means a "fading" verdict was
+ * partly measuring how long each video had been up. Views per day only inverts
+ * the problem, because a recent upload is still inside its launch spike. The
+ * metric that would settle it is views in the first thirty days by year, and
+ * that needs per-video history nobody has retroactively.
+ *
+ * So the chart stays, because where a channel's best years sit is worth
+ * seeing, and the verdict goes, because it claimed to know something the
+ * numbers cannot say. The bias gets named instead, so the reader discounts it
+ * themselves rather than trusting a label.
  */
-function yearSpan(years) {
-  if (years.length === 1) return years[0].label;
-  const contiguous = years[years.length - 1].year - years[0].year === years.length - 1;
-  if (contiguous) return years[0].label + "-" + years[years.length - 1].label;
-  return years.map((d) => d.label).join(", ");
-}
-
 function trajectoryNote(traj, nowYear) {
   const solid = trajectoryYears(traj, nowYear);
-  const r = trajectoryRatio(solid);
-  if (!r) return "";
-  const head = "Median views across " + yearSpan(r.recentYears) + " are " +
-    r.x.toFixed(1) + "x " + yearSpan(r.earlierYears) + ". ";
-  if (r.x >= 1.25) return head + "Rising.";
-  if (r.x <= 0.8) return head + "Fading.";
-  return head + "Holding flat.";
+  if (solid.length < 3) return "";
+  const best = solid[peakIndex(solid)];
+  return "Best year by median views: " + best.label + ". Older videos have had " +
+    "longer to gather views, so earlier years are flattered here.";
 }
 
 function shareNote(data, total, noun) {
@@ -271,8 +242,17 @@ function curveNote(curve, base) {
  * trajectory are conclusions, so they are stated as conclusions. The count
  * stays as provenance rather than as a statistic of its own.
  */
-function headlineFinding(count, sweet, arc) {
-  if (!sweet && !arc) return null;
+/*
+ * Only appears when there is something to say.
+ *
+ * It used to always print, carrying a rising/fading verdict beside the sweet
+ * spot. The verdict is gone, so on a channel with no interior peak in its
+ * length curve this returns nothing and the pane opens on the charts. That is
+ * the intended outcome: a summary line that is guaranteed to appear is a
+ * summary line that will invent something on a quiet catalogue.
+ */
+function headlineFinding(count, sweet) {
+  if (!sweet) return null;
   const p = document.createElement("p");
   p.className = "ytcs-finding";
 
@@ -283,16 +263,8 @@ function headlineFinding(count, sweet, arc) {
     p.appendChild(el);
   };
 
-  add("Across " + plural(count, "video") + ", ");
-  if (sweet) {
-    add("the sweet spot is ");
-    add(sweet, true);
-  }
-  if (sweet && arc) add(" and ");
-  if (arc) {
-    add("the typical upload is ");
-    add(arc, true);
-  }
+  add("Across " + plural(count, "video") + ", this channel's median views peak at ");
+  add(sweet, true);
   add(".");
   return p;
 }
@@ -358,10 +330,7 @@ function renderAnalytics(rows) {
       ? curve[peak].label
       : "";
 
-  const ratio = trajectoryRatio(trajectoryYears(trajectory, nowYear));
-  const arc = ratio ? (ratio.x >= 1.25 ? "rising" : ratio.x <= 0.8 ? "fading" : "flat") : "";
-
-  const strip = headlineFinding(rows.length, sweet, arc);
+  const strip = headlineFinding(rows.length, sweet);
   if (strip) ui.charts.appendChild(strip);
 
   /*
@@ -406,4 +375,12 @@ function renderAnalytics(rows) {
     barChart(lenData, (i) => crossFilter(ui.duration, LEN_VALUES[i])),
     shareNote(lenData, rows.length, "range")
   ));
+
+  // Formats used to have a tab of their own alongside a per-word lift table and
+  // a title-length chart. Both of those were removed as unsupportable, and one
+  // table does not make a section, so it lands here with the rest of the
+  // evidence.
+  const formats = renderFormats(rows);
+  formats.className += " ytcs-chart-full";
+  ui.charts.appendChild(formats);
 }

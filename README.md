@@ -51,22 +51,16 @@ the channel's median rate.
 Everything analytical, behind one tab, in four sections.
 
 **Overview.** Charts drawn from whatever the filters currently select: uploads
-per year, median views by upload year (is the channel rising or fading), view
-and length distributions, and the median views for each video length, which
-shows where a channel's sweet spot is. Click any distribution bar to filter the
-grid by it. The pane opens with the conclusion stated in a sentence, and the
-charts sit underneath as the evidence.
+per year, median views by upload year, view and length distributions, and the
+median views for each video length, which shows where a channel's sweet spot
+is. Click any distribution bar to filter the grid by it. Underneath sits a
+title-format table: which framings this channel's audience has responded to,
+across questions, versus, numbered lists, how-to and superlatives. That last
+one is the part YouTube Studio does not do even for your own channel, because
+Studio tells you what performed and never which pattern performed.
 
 ![The Insights overview: the headline finding, then median views by video length
 and by upload year](docs/analytics.jpg)
-
-**Titles.** The part YouTube Studio does not do even for your own channel.
-Studio tells you what performed. This tells you which *patterns* perform: which
-words lift median views and by how much, which title formats land (question,
-versus, numbered, how-to, superlative), and how title length maps to views.
-
-![The Titles section, ranking words by how far they lift median views, alongside
-title length and title format breakdowns](docs/titles.jpg)
 
 **Compare.** Read any other channel's full catalogue and set its median views,
 median views per day, length, and top performers against this one.
@@ -85,6 +79,32 @@ how far each beat that channel's own normal](docs/niche.jpg)
 Alongside that: catalogues cache locally so re-opening is instant, refreshing
 flags uploads added since your last visit, and any filtered set exports to CSV
 or JSON.
+
+## What it will not tell you
+
+Several things that a catalogue like this can be made to say were taken out,
+because they read as findings without being able to support the weight.
+
+There is no per-word lift table. Ranking every word in a catalogue by the
+median views of the videos containing it surfaces whichever words happened to
+land on hits, and no sample-size floor fixes that, because the problem is not
+the sample. A word does not cause views, its subject does, and there is no
+move on the other end: you cannot put "zombies" in a title about phones.
+Title-format analysis survived the same question, since eight categories fixed
+in advance are eight hypotheses rather than a search through the corpus, and
+"try a question" is a change someone can actually make.
+
+There is no rising-or-fading verdict on a channel. Views are cumulative, so a
+video from 2020 has had six years to collect them and one from 2025 has had
+one. A channel performing identically every year still slopes downward on that
+chart. Views per day only inverts the bias, because a recent upload sits inside
+its launch spike. The honest metric is views in the first thirty days by year,
+and that needs per-video history nobody has retroactively. The chart stays,
+because where a channel's strongest years sit is worth seeing. The verdict on
+top of it does not, and the bias is named on the card so it can be discounted.
+
+Nor is there a title-length chart, which had no mechanism behind it in the
+first place.
 
 ## Measured velocity
 
@@ -155,7 +175,7 @@ load-bearing.
 | `src/grid.js` | Runtime state, the filter and sort pipeline, the video grid. |
 | `src/store.js` | IndexedDB cache, view-count snapshots, stats, export. |
 | `src/charts.js` | SVG charts and the Overview section. |
-| `src/analysis.js` | Channel comparison, plus title and format analysis. |
+| `src/analysis.js` | Channel comparison and title-format analysis. |
 | `src/niche.js` | Watchlist, cross-channel outliers, view switching. |
 | `src/panel.js` | Panel construction, grid takeover, startup. |
 

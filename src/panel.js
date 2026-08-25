@@ -249,7 +249,6 @@ function buildUi() {
     return b;
   };
   const subOverview = mkSub("Overview", true);
-  const subTitles = mkSub("Titles");
   const subCompare = mkSub("Compare");
   const subWatchlist = mkSub("Watchlist");
   insights.appendChild(subnav);
@@ -260,11 +259,6 @@ function buildUi() {
   const charts = document.createElement("div");
   charts.className = "ytcs-charts";
   paneOverview.appendChild(charts);
-
-  // Titles
-  const titles = document.createElement("div");
-  titles.className = "ytcs-pane";
-  titles.style.display = "none";
 
   // Compare
   const compare = document.createElement("div");
@@ -331,7 +325,6 @@ function buildUi() {
   niche.appendChild(nicheResults);
 
   insights.appendChild(paneOverview);
-  insights.appendChild(titles);
   insights.appendChild(compare);
   insights.appendChild(niche);
 
@@ -356,10 +349,10 @@ function buildUi() {
   ui = {
     wrap, head, filters, kw, duration, views, uploaded, watched, fits, sort,
     status, count, clear, stats, grid,
-    insights, charts, titles,
+    insights, charts,
     tabSearch, tabInsights,
-    insightPanes: { overview: paneOverview, titles: titles, compare: compare, watchlist: niche },
-    insightTabs: { overview: subOverview, titles: subTitles, compare: subCompare, watchlist: subWatchlist },
+    insightPanes: { overview: paneOverview, compare: compare, watchlist: niche },
+    insightTabs: { overview: subOverview, compare: subCompare, watchlist: subWatchlist },
     cmpInput, cmpBtn, cmpStatus, cmpResult,
     niche, nicheInput, nicheAdd, nicheRefresh, nicheStatus, nicheChips, nicheResults,
   };
@@ -369,7 +362,6 @@ function buildUi() {
   tabSearch.onclick = () => setView("search");
   tabInsights.onclick = () => setView("insights");
   subOverview.onclick = () => setInsight("overview");
-  subTitles.onclick = () => setInsight("titles");
   subCompare.onclick = () => setInsight("compare");
   subWatchlist.onclick = () => setInsight("watchlist");
 

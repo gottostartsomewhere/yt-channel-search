@@ -46,10 +46,10 @@ SEARCH
 - Sort by views per day, which surfaces breakouts rather than just old uploads
 
 INSIGHTS
-- Where a channel's sweet spot is, stated plainly, with the charts underneath
-- Uploads per year, and whether the typical video is growing or shrinking
+- Where a channel's sweet spot is, when the data actually supports one
+- Uploads per year, and which years the channel performed best in
 - View and length distributions, clickable to filter the grid
-- Which words and title formats lift median views, and by how much
+- Which title formats this audience responds to: questions, versus, how-to
 - Compare any two channels side by side
 - Keep a watchlist and see what is outperforming across all of them
 
@@ -150,8 +150,8 @@ Not affiliated with YouTube or Google.
     own: the shot should make it obvious that a specific query is being run
     against a big catalogue. Get "18 of 177" into frame.
  2. Search, sorted by Start here, on a channel with a long history
- 3. Insights > Overview, headline finding plus the median-views-by-length peak
- 4. Insights > Titles, words that lift performance
+ 3. Insights > Overview, the median-views-by-length peak and the year chart
+ 4. Insights > Overview, scrolled to the title-format table
  5. Insights > Watchlist, cross-channel outliers with multipliers
 
  Use a channel people recognise so the numbers mean something at a glance.

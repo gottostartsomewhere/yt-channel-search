@@ -29,12 +29,12 @@
  Navigation, two levels:
 
  [ ] Search and Insights are the only primary tabs, Search is the one on open
- [ ] Insights opens on Overview, and its subnav has Overview, Titles, Compare,
-     Watchlist
+ [ ] Insights opens on Overview, and its subnav has exactly Overview, Compare,
+     Watchlist. There is no Titles tab
  [ ] Switching Insights sections leaves the grid state alone, so going back to
      Search still shows the same filtered set
  [ ] The filter row fades on Compare and Watchlist, where the filters do not
-     apply, and comes back solid on Overview, Titles and Search
+     apply, and comes back solid on Overview and Search
  [ ] Nothing on screen mentions Pro, upgrading, or paying. That code is gone,
      so any surviving reference is a stale build
 
@@ -137,11 +137,10 @@
      unless it holds 5 videos or 3% of the catalogue
  [ ] A curve still climbing at its longest bin says so, and calls itself a
      hint. "Sweet spot" is only for an interior peak
- [ ] The trend compares recent years to the years before them, never to the
-     channel's first year. On a channel that peaked years ago and has declined
-     since, it must read Fading, however big the channel got overall
- [ ] The current year is absent from the trend comparison, present on the chart
- [ ] A gapped window lists its years ("'21, '24, '25"), never a range
+ [ ] The year chart states which year was strongest and says older videos are
+     flattered. It must NOT declare a channel rising or fading: views are
+     cumulative, so that verdict was measuring how long each video had been up
+ [ ] The current year is present on the chart, absent from anything derived
  [ ] Year axis spans first to last with silent years drawn as gaps
  [ ] Value labels never overlap. Above roughly 8 bars only the peak keeps one
  [ ] Uploads per year renders
@@ -155,12 +154,13 @@
  [ ] Bolds the winning value per row
  [ ] A nonsense channel name reports a parse failure, does not hang
 
- TITLES
- [ ] Two columns, filling the width
- [ ] Words that lift performance shows real words, not filler like "gets"
- [ ] No mangled contractions such as "youre"
- [ ] Title format percentages look plausible
- [ ] Median views by title length skips empty bands rather than drawing gaps
+ TITLE FORMATS        now inside Overview, not a tab of its own
+ [ ] A format needs 5 videos or 3% of the catalogue before it gets a row
+ [ ] A channel where nothing clears that shows the explanation, not an
+     empty table
+ [ ] Lift is stated as this channel against itself, never as advice
+ [ ] There is no per-word lift table and no title-length chart anywhere. Both
+     were removed as unsupportable; if either reappears it is a stale build
 
  WATCHLIST
  [ ] Track adds a chip
@@ -221,5 +221,5 @@
  ALREADY EXERCISED against generated data in docs/design-preview.html, so these
  are unlikely to be where it breaks: module load order under the manifest's js
  array, buildUi, both primary tabs, all four Insights sections, the filter and
- sort pipeline, the summary line, and the Titles stopword filter.
+ sort pipeline, the summary line, and the title-format floor.
 ===============================================================================

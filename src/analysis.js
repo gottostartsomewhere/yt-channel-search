@@ -159,26 +159,27 @@ function tokenize(title) {
     .filter((w) => w.length > 2 && !STOPWORDS.has(w) && !/^\d+$/.test(w));
 }
 
-// Median views of the videos containing each word, versus the overall median.
-function keywordStats(rows, minCount) {
-  const buckets = new Map();
-  rows.forEach((v) => {
-    new Set(tokenize(v.title)).forEach((w) => {
-      if (!buckets.has(w)) buckets.set(w, []);
-      buckets.get(w).push(v.views);
-    });
-  });
-  const base = median(rows.map((v) => v.views)) || 1;
-  const out = [];
-  buckets.forEach((views, word) => {
-    if (views.length >= minCount) {
-      const m = median(views);
-      out.push({ word: word, count: views.length, medViews: m, lift: m / base });
-    }
-  });
-  return out.sort((a, b) => b.lift - a.lift);
-}
-
+/*
+ * There used to be a "words that lift performance" table here, ranking every
+ * word in the catalogue by the median views of the videos containing it.
+ *
+ * It was removed rather than tuned, because no threshold saves it. Ranking
+ * hundreds of words by three-video samples guarantees that whichever words
+ * happened to land on hits float to the top, and raising the floor only trades
+ * that for a shorter list of the same coincidences. The deeper problem is that
+ * a word does not cause views, its subject does: "zombies" was not lifting
+ * anything, it was marking the videos about zombies, which that audience
+ * already wanted. There is no move on the other end of the finding, because
+ * you cannot put "zombies" in a title about phones.
+ *
+ * Formats survived the same audit. Eight categories fixed in advance is eight
+ * hypotheses, not a dredge through the corpus, and "does a question in the
+ * title help" is a change someone can actually make and test.
+ *
+ * tokenize and STOPWORDS stay: the watchlist still uses them for content gaps,
+ * which only claims a topic is present in one catalogue and absent from
+ * another. That is an observation about coverage, not a causal claim.
+ */
 const TITLE_PATTERNS = [
   ["Question", (t) => /\?/.test(t)],
   ["Versus / comparison", (t) => /\bvs\.?\b|\bversus\b/i.test(t)],
@@ -190,62 +191,41 @@ const TITLE_PATTERNS = [
   ["How to", (t) => /\bhow to\b/i.test(t)],
 ];
 
+/*
+ * A format has to cover a real share of the catalogue before it is allowed a
+ * row. Two videos was enough before, which is how "Question, 4 videos, 1.88x"
+ * became a line item on a 236-video channel.
+ */
 function patternStats(rows) {
   const base = median(rows.map((v) => v.views)) || 1;
+  const floor = Math.max(5, Math.round(rows.length * 0.03));
   return TITLE_PATTERNS
     .map((p) => {
       const hit = rows.filter((v) => p[1](v.title));
       const m = hit.length ? median(hit.map((v) => v.views)) : 0;
       return { name: p[0], count: hit.length, medViews: m, lift: hit.length ? m / base : 0 };
     })
-    .filter((r) => r.count >= 2)
+    .filter((r) => r.count >= floor)
     .sort((a, b) => b.lift - a.lift);
 }
 
-function titleLengthStats(rows) {
-  const buckets = [["<30", 0, 30], ["30-45", 30, 45], ["45-60", 45, 60], ["60-75", 60, 75], ["75+", 75, Infinity]];
-  return buckets
-    .map((b) => {
-      const hit = rows.filter((v) => v.title.length >= b[1] && v.title.length < b[2]);
-      return { label: b[0], value: hit.length >= 2 ? Math.round(median(hit.map((v) => v.views))) : null };
-    })
-    .filter((d) => d.value != null);
-}
-
-function renderTitles(rows) {
-  ui.titles.innerHTML = "";
-  if (rows.length < 4) {
-    ui.titles.appendChild(chartEmpty());
-    return;
-  }
-  // Require a word to appear in a small share of the catalog, so big channels
-  // do not surface three-video coincidences.
-  const minCount = Math.max(3, Math.round(rows.length * 0.01));
-  const lenData = titleLengthStats(rows);
-  const kw = keywordStats(rows, minCount).slice(0, 18);
+function renderFormats(rows) {
+  const floor = Math.max(5, Math.round(rows.length * 0.03));
   const pat = patternStats(rows);
-
-  const wordsTable = kw.length
-    ? dataTable(["Word", "Videos", "Median views", "Lift"], kw.map((k) => [
-        k.word, String(k.count), fmtCompact(Math.round(k.medViews)), k.lift.toFixed(2) + "x",
-      ]))
-    : chartEmpty();
-  const formatsTable = pat.length
-    ? dataTable(["Format", "Videos", "Median views", "Lift"], pat.map((p) => [
-        p.name, String(p.count), fmtCompact(Math.round(p.medViews)), p.lift.toFixed(2) + "x",
-      ]))
-    : chartEmpty();
-
-  const cols = document.createElement("div");
-  cols.className = "ytcs-tcols";
-  const left = document.createElement("div");
-  left.className = "ytcs-tcol";
-  left.appendChild(section("Words that lift performance", wordsTable));
-  const right = document.createElement("div");
-  right.className = "ytcs-tcol";
-  right.appendChild(section("Median views by title length", lenData.length ? barChart(lenData) : chartEmpty()));
-  right.appendChild(section("Title formats", formatsTable));
-  cols.appendChild(left);
-  cols.appendChild(right);
-  ui.titles.appendChild(cols);
+  if (!pat.length) {
+    return section(
+      "Title formats",
+      emptyNote("No title format appears in enough of this catalogue to compare. " +
+        "A format needs " + floor + " videos before it gets a row.")
+    );
+  }
+  return section(
+    "Title formats",
+    dataTable(["Format", "Videos", "Median views", "Lift"], pat.map((p) => [
+      p.name, String(p.count), fmtCompact(Math.round(p.medViews)), p.lift.toFixed(2) + "x",
+    ])),
+    "Lift is each format's median against the channel's own median, so it " +
+    "compares this channel to itself rather than to anyone else. It shows which " +
+    "framings this audience has responded to, not which ones caused the response."
+  );
 }

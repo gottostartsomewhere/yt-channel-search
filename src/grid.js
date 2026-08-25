@@ -121,7 +121,6 @@ function applyView() {
   renderStats(rows);
   if (state.view === "insights") {
     if (state.insight === "overview") renderAnalytics(rows);
-    else if (state.insight === "titles") renderTitles(rows);
     else if (state.insight === "watchlist") renderNiche();
     // Compare renders when a channel is actually submitted, not on every keystroke.
   } else {
