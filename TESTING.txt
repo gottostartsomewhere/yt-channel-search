@@ -129,6 +129,21 @@
  [ ] The headline finding reads as a sentence and names a real sweet spot
  [ ] It degrades gracefully: a channel with no clear peak, or under three years
      of history, drops that clause rather than printing an empty one
+
+ Claims the analytics are not allowed to make. Each of these shipped once:
+
+ [ ] No sweet spot is claimed off a near-empty length bin. On a channel
+     averaging under 7 minutes, the 20-30m bin must not produce a finding
+     unless it holds 5 videos or 3% of the catalogue
+ [ ] A curve still climbing at its longest bin says so, and calls itself a
+     hint. "Sweet spot" is only for an interior peak
+ [ ] The trend compares recent years to the years before them, never to the
+     channel's first year. On a channel that peaked years ago and has declined
+     since, it must read Fading, however big the channel got overall
+ [ ] The current year is absent from the trend comparison, present on the chart
+ [ ] A gapped window lists its years ("'21, '24, '25"), never a range
+ [ ] Year axis spans first to last with silent years drawn as gaps
+ [ ] Value labels never overlap. Above roughly 8 bars only the peak keeps one
  [ ] Uploads per year renders
  [ ] Median views by year renders
  [ ] Views and length distributions render
