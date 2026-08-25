@@ -365,13 +365,6 @@ function channelVideosUrl() {
   return base ? location.origin + base + "/videos" : null;
 }
 
-// The shorts tab is a separate richGridRenderer with its own continuations, so
-// fetchCatalogFrom walks it with no changes. Only the item mapper differs.
-function channelShortsUrl() {
-  const base = channelBasePath();
-  return base ? location.origin + base + "/shorts" : null;
-}
-
 // ---- catalog fetcher (the core primitive) --------------------------------
 async function fetchContinuation(apiKey, clientVersion, token) {
   const res = await fetch(

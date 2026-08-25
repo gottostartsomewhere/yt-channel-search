@@ -188,6 +188,25 @@ load-bearing.
 panel against generated data, so the design can be checked without hunting for
 a channel with the right shape of history.
 
+`server/` is **not part of the extension** and never ships. `build.js` copies
+only the paths in its `SHARED` list, and that directory is not among them, so
+nothing in it reaches `dist/` or either store package. It holds a local Node
+experiment into whether a scheduled poller could measure what the extension
+structurally cannot, since the extension only observes while a tab is open. Its
+findings fed back into the shipped rounding floor. See
+[server/README.md](server/README.md).
+
+One permission note worth knowing before anyone trims the manifest. The
+extension asks for `host_permissions` on `www.youtube.com`, which looks
+redundant given every fetch is same-origin from a YouTube page. It is not.
+`chrome.tabs.query` leaves `url` undefined unless the extension holds either
+the `tabs` permission or a host permission matching that tab, and both
+`background.js` and `popup.js` read `tab.url` to tell whether the active tab is
+a channel. Dropping the host permission would silently break the keyboard
+shortcut and the popup, with no error to explain it. The `tabs` permission
+would also work and is broader, showing a browsing-history warning at install,
+so the narrower of the two is the one requested.
+
 ## Notes and limits
 
 - Public view counts are all anyone gets for a channel they do not own, so this

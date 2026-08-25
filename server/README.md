@@ -1,12 +1,24 @@
 # Monitor
 
-A prototype of the one thing worth charging for: polling channels while nobody's
-browser is open, and saying when something breaks out.
+**This is not part of the extension. It has never shipped and nothing in it
+runs on your machine.**
 
-The extension can't do this. It only runs when a tab is open and someone clicks
-refresh, which means measured velocity depends on the user remembering to visit.
-A server doesn't have that problem, and a server is also the only part that
-can't be forked out of an MIT repo, because the value is the machine doing work.
+`build.js` copies only the paths in its `SHARED` list, and this directory is
+not one of them, so no file here reaches `dist/` or either store package. The
+extension itself has no server, sends nothing anywhere, and keeps every
+catalogue and snapshot in your own browser. See [PRIVACY.md](../PRIVACY.md).
+
+What this is: a local Node experiment into whether the one thing the extension
+structurally cannot do could be done at all. Measured velocity needs repeated
+observations, but the extension only observes while a tab is open and someone
+clicks refresh, so a channel nobody visits is never measured. A machine polling
+on a schedule does not have that problem.
+
+It was originally written as groundwork for a paid tier. That is no longer the
+plan, since the extension is free with nothing held back, so what remains here
+is the research rather than a roadmap. Two findings from it are recorded below
+and both fed back into the shipped code, particularly the rounding floor on
+measured growth.
 
 ## Status
 

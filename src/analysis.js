@@ -12,7 +12,11 @@ function normalizeChannelInput(input) {
   if (!input) return null;
   const m = input.match(/youtube\.com\/(@[\w.-]+|channel\/[\w-]+|c\/[\w.-]+|user\/[\w.-]+)/i);
   if (m) return "https://www.youtube.com/" + m[1] + "/videos";
-  if (input.charAt(0) === "@") return "https://www.youtube.com/" + input + "/videos";
+  // Anchored like the branches below it. The host is a literal either way, so
+  // a stray character could never have redirected the fetch off youtube.com,
+  // but this was the one branch pasting raw input into a URL and it should not
+  // be the odd one out.
+  if (/^@[\w.-]+$/.test(input)) return "https://www.youtube.com/" + input + "/videos";
   if (/^UC[\w-]{20,}$/.test(input)) return "https://www.youtube.com/channel/" + input + "/videos";
   if (/^[\w.-]+$/.test(input)) return "https://www.youtube.com/@" + input + "/videos";
   return null;

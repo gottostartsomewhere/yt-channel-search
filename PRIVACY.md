@@ -23,9 +23,16 @@ All of it is local to your browser. Nothing leaves your machine.
 | Stored | Where | Why |
 | --- | --- | --- |
 | Video catalogues for channels you open | IndexedDB | So reopening a channel is instant |
+| How far you watched those videos | IndexedDB, inside the catalogue above | So the watch filters can hide what you have finished |
 | View-count snapshots with timestamps | IndexedDB | So growth can be measured between visits |
 | The channels you add to your watchlist | IndexedDB | So the list survives a restart |
 | Your settings | `chrome.storage.sync` | So they persist |
+
+Watch progress is the most personal of these, so to be exact about it: YouTube
+already includes it in the listing payload the page itself requests, the
+extension reads it from there rather than tracking you, and it is written to
+the same local cache as the rest of the catalogue. It is never transmitted, and
+unlike your settings it never syncs between devices.
 
 Settings use the browser's own sync storage, so if you have browser sync turned
 on they travel between your devices through your browser account. That is the
