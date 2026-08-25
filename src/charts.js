@@ -34,6 +34,15 @@ function barChart(data, onBar) {
   const slot = iw / (data.length || 1);
   const bw = Math.min(slot * 0.68, 46);
   const top = peakIndex(data);
+  /*
+   * A value label per bar runs them into each other once there are enough
+   * bars: twelve years in a 340-unit viewBox leaves 27 units a slot, and
+   * "254.0K" needs closer to 40, so the row renders as "64.0K47.0K68.0K".
+   * When they will not fit, only the peak keeps its label. The peak is the
+   * finding; the others were texture.
+   */
+  const widest = data.reduce((w, d) => Math.max(w, d.value ? fmtCompact(d.value).length : 0), 0);
+  const valuesFit = widest * 10.5 * 0.58 <= slot - 2;
   const root = svg("svg", { viewBox: "0 0 " + W + " " + H, class: "ytcs-svg", preserveAspectRatio: "xMidYMid meet" });
   data.forEach((d, i) => {
     const isTop = i === top && d.value > 0;
@@ -44,10 +53,14 @@ function barChart(data, onBar) {
       x: x, y: y, width: bw, height: Math.max(h, 1), rx: 3,
       class: "ytcs-bar" + (isTop ? " ytcs-bar-peak" : ""),
     }));
-    if (d.value) {
+    if (d.value && (valuesFit || isTop)) {
       root.appendChild(svgText(x + bw / 2, y - 5, fmtCompact(d.value), "ytcs-barval" + (isTop ? " ytcs-barval-peak" : "")));
     }
-    root.appendChild(svgText(x + bw / 2, H - 9, d.label, "ytcs-barlab" + (isTop ? " ytcs-barlab-peak" : "")));
+    // Same crowding problem on the axis once the year count climbs. Every
+    // other tick still carries the shape without the labels touching.
+    if (slot >= 22 || i % 2 === 0 || isTop) {
+      root.appendChild(svgText(x + bw / 2, H - 9, d.label, "ytcs-barlab" + (isTop ? " ytcs-barlab-peak" : "")));
+    }
     if (onBar) {
       const hit = svg("rect", { x: pad.l + i * slot, y: pad.t, width: slot, height: ih, class: "ytcs-hit" });
       hit.addEventListener("click", () => onBar(i));
@@ -153,14 +166,35 @@ function uploadsNote(uploads) {
   return "Output peaked in " + settled[peak].label + " and is down " + drop + "% by " + last.label + ".";
 }
 
+/*
+ * Direction of travel, as recent-half against earlier-half.
+ *
+ * This used to divide the newest year by the very first one, which on a
+ * channel that started in 2013 at 64K and now sits at 7.3M reported "114.1x
+ * bigger than in '13". True, and useless: every channel that survived a decade
+ * is enormously bigger than its first year, so the number said nothing about
+ * the channel and everything about how long it had existed. Comparing halves
+ * asks the question people actually mean, which is whether it is growing now.
+ */
+function trajectoryYears(traj) {
+  return traj.filter((d) => d.value > 0);
+}
+
+function trajectoryRatio(solid) {
+  if (solid.length < 4) return null;
+  const half = Math.floor(solid.length / 2);
+  const earlier = median(solid.slice(0, half).map((d) => d.value));
+  const recent = median(solid.slice(solid.length - half).map((d) => d.value));
+  if (!earlier) return null;
+  return { x: recent / earlier, from: solid[solid.length - half].label };
+}
+
 function trajectoryNote(traj) {
-  const solid = traj.filter((d) => d.value > 0);
-  if (solid.length < 3) return "";
-  const first = solid[0], last = solid[solid.length - 1];
-  const x = last.value / first.value;
-  if (x >= 1.25) return "The typical video is " + x.toFixed(1) + "x bigger than in " + first.label + ". Rising.";
-  if (x <= 0.8) return "The typical video is at " + Math.round(x * 100) + "% of its " + first.label + " median. Fading.";
-  return "The typical video has held roughly flat since " + first.label + ".";
+  const r = trajectoryRatio(trajectoryYears(traj));
+  if (!r) return "";
+  if (r.x >= 1.25) return "The typical video is " + r.x.toFixed(1) + "x bigger than it was in the first half of this channel's life. Rising.";
+  if (r.x <= 0.8) return "The typical video is at " + Math.round(r.x * 100) + "% of what it managed in the channel's earlier years. Fading.";
+  return "The typical video has held roughly flat across the channel's life.";
 }
 
 function shareNote(data, total, noun) {
@@ -171,11 +205,27 @@ function shareNote(data, total, noun) {
   return pct + "% of the catalogue sits in the " + data[top].label + " " + noun + ".";
 }
 
+/*
+ * What the length curve is allowed to claim.
+ *
+ * A "sweet spot" means an interior peak: performance climbs to some runtime
+ * and falls away after it. When the best bin is the longest one the curve is
+ * still rising where the data runs out, and the honest reading is not that
+ * long videos are better but that long videos are rare and self-selected. A
+ * channel averaging under seven minutes only makes a twenty-five minute video
+ * when it is a big production, so of course those few overperform. Saying
+ * "20-30m is the sweet spot, at 29.5x the channel median" off the back of that
+ * is a confident claim built on a handful of videos.
+ */
 function curveNote(curve, base) {
   if (curve.length < 2 || !base) return "";
   const best = peakIndex(curve);
   const lift = curve[best].value / base;
   if (lift < 1.15) return "No length clearly outperforms. Runtime is not what decides this channel.";
+  if (best === curve.length - 1) {
+    return "Performance is still climbing at " + curve[best].label + ", the longest runtime with enough " +
+      "uploads to measure. Long videos are rare here, so treat this as a hint rather than a finding.";
+  }
   return curve[best].label + " is the sweet spot, at " + lift.toFixed(1) + "x the channel median.";
 }
 
@@ -227,8 +277,20 @@ function renderAnalytics(rows) {
       byYear[y] = (byYear[y] || 0) + 1;
     }
   });
-  const years = Object.keys(byYear).map(Number).sort((a, b) => a - b);
-  const uploads = years.map((y) => ({ label: "'" + String(y).slice(2), value: byYear[y] }));
+  /*
+   * Every year from first to last, including the silent ones.
+   *
+   * Listing only the years that have uploads drops the gaps, so a channel that
+   * posted nothing in '23 and '24 drew '22 flush against '25 and the trend
+   * read as continuous. On a time series that is not a cosmetic problem: the
+   * gap is often the most interesting thing on the chart.
+   */
+  const present = Object.keys(byYear).map(Number);
+  const years = [];
+  if (present.length) {
+    for (let y = Math.min.apply(null, present); y <= Math.max.apply(null, present); y++) years.push(y);
+  }
+  const uploads = years.map((y) => ({ label: "'" + String(y).slice(2), value: byYear[y] || 0 }));
 
   // Trajectory: is the channel's typical video getting bigger or smaller?
   const trajectory = years.map((y) => {
@@ -239,29 +301,35 @@ function renderAnalytics(rows) {
   const viewsData = bucketCounts(rows, VIEW_BUCKETS, (v) => v.views);
   const lenData = bucketCounts(rows, LEN_BUCKETS, (v) => v.seconds);
 
-  // Where the channel's sweet spot actually is. Bins with fewer than two
-  // videos are dropped so one outlier cannot invent a peak.
+  /*
+   * Two videos used to be enough for a bin to count, which is how a channel
+   * averaging 6:46 ended up being told its sweet spot was 20-30m at 29.5x the
+   * median: a couple of long, heavily produced uploads landed in an otherwise
+   * empty bin and their median became a "finding". A bin now has to hold a
+   * real share of the catalogue before it is allowed to say anything.
+   */
+  const minBin = Math.max(5, Math.round(rows.length * 0.03));
   const curve = LENGTH_CURVE
     .map((b) => {
       const hit = rows.filter((v) => v.seconds >= b[1] && v.seconds < b[2]);
-      return { label: b[0], value: hit.length >= 2 ? Math.round(median(hit.map((v) => v.views))) : null };
+      return { label: b[0], value: hit.length >= minBin ? Math.round(median(hit.map((v) => v.views))) : null };
     })
     .filter((d) => d.value != null);
 
   const medViews = median(rows.map((v) => v.views));
-  const sweet = curve.length > 1 ? curve[peakIndex(curve)] : null;
-  const solidTraj = trajectory.filter((d) => d.value > 0);
-  let arc = "";
-  if (solidTraj.length >= 3) {
-    const x = solidTraj[solidTraj.length - 1].value / solidTraj[0].value;
-    arc = x >= 1.25 ? "rising" : x <= 0.8 ? "fading" : "flat";
-  }
+  const peak = curve.length > 1 ? peakIndex(curve) : -1;
+  // Only an interior peak earns the phrase "sweet spot". A curve still rising
+  // at its last bin has not found one, it has run out of data, and the note
+  // under the chart says so at more length.
+  const sweet =
+    peak > -1 && peak < curve.length - 1 && curve[peak].value > medViews * 1.15
+      ? curve[peak].label
+      : "";
 
-  const strip = headlineFinding(
-    rows.length,
-    sweet && sweet.value > medViews * 1.15 ? sweet.label : "",
-    arc
-  );
+  const ratio = trajectoryRatio(trajectoryYears(trajectory));
+  const arc = ratio ? (ratio.x >= 1.25 ? "rising" : ratio.x <= 0.8 ? "fading" : "flat") : "";
+
+  const strip = headlineFinding(rows.length, sweet, arc);
   if (strip) ui.charts.appendChild(strip);
 
   /*

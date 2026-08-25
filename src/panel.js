@@ -215,12 +215,15 @@ function buildUi() {
   filters.appendChild(uploaded);
   filters.appendChild(watched);
   filters.appendChild(fits);
+  // Sort belongs with the pills, not across the spacer with the result state.
+  // Sitting on the far side it was the first thing to wrap, so it dropped onto
+  // a line of its own and read as though it had fallen off.
+  filters.appendChild(sort);
   const fspacer = document.createElement("span");
   fspacer.className = "ytcs-spacer";
   filters.appendChild(fspacer);
   filters.appendChild(count);
   filters.appendChild(clear);
-  filters.appendChild(sort);
 
   const stats = document.createElement("div");
   stats.className = "ytcs-stats";

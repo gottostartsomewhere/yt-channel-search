@@ -47,12 +47,21 @@
   });
 </script>
 <script>
-// A plausible mid-size channel: ramped up, tailed off, best in 10-20 minutes.
+/*
+ * Modelled on a real channel that broke the analytics: mostly short uploads
+ * averaging under seven minutes, a two-year silence, and a handful of long,
+ * heavily produced videos that massively outperformed. That combination used
+ * to yield "the sweet spot is 20-30m, at 29.5x the channel median" off two
+ * videos, and "114.1x bigger than in '13" from dividing by the first year.
+ * Keep this shape: it is the case the notes have to stay honest about.
+ */
 function makeCatalog() {
-  const perYear = { 6: 40, 5: 120, 4: 300, 3: 240, 2: 150, 1: 90, 0: 30 };
+  // Years 3 and 4 back are empty on purpose, to check the axis draws the gap.
+  const perYear = { 13: 8, 12: 14, 11: 20, 10: 22, 9: 26, 8: 30, 7: 28, 6: 24, 5: 22, 4: 0, 3: 0, 2: 18, 1: 14, 0: 10 };
   const bands = [
-    [60, 240, 0.5], [240, 600, 0.8], [600, 1200, 1.9],
-    [1200, 2400, 1.4], [2400, 4200, 0.7],
+    [60, 240, 0.6], [240, 600, 1.0], [600, 900, 1.3],
+    // Long uploads are rare and self-selected, so they look spectacular.
+    [1200, 1800, 14.0],
   ];
   const words = ["build", "survive", "review", "why", "the", "truth", "about", "cheap",
                  "best", "worst", "tested", "hours", "days", "actually", "works", "broke"];
@@ -61,7 +70,8 @@ function makeCatalog() {
   const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
   Object.keys(perYear).forEach((ago) => {
     for (let i = 0; i < perYear[ago]; i++) {
-      const b = bands[Math.floor(rnd() * bands.length)];
+      // Long videos stay rare: roughly one upload in fifteen.
+      const b = rnd() < 0.07 ? bands[3] : bands[Math.floor(rnd() * 3)];
       const n = 3 + Math.floor(rnd() * 4);
       const title = [];
       for (let w = 0; w < n; w++) title.push(words[Math.floor(rnd() * words.length)]);
@@ -69,7 +79,10 @@ function makeCatalog() {
       rows.push({
         id: "v" + rows.length,
         title: title.join(" ").replace(/^./, (c) => c.toUpperCase()),
-        views: Math.max(400, Math.round(120000 * b[2] * (1 - Number(ago) * 0.09) * (0.25 + rnd() * 2.4))),
+        // Decay geometrically, not linearly: over fourteen years a linear
+        // taper goes negative and clamps every early year to the floor, which
+        // makes the trajectory ratio look far more dramatic than the data is.
+        views: Math.max(400, Math.round(120000 * b[2] * Math.pow(0.88, Number(ago)) * (0.25 + rnd() * 2.4))),
         seconds: Math.round(b[0] + rnd() * (b[1] - b[0])),
         days: days,
         when: Math.round(days / 30) + " months ago",
