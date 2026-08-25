@@ -175,7 +175,11 @@
  [ ] Track adds a chip
  [ ] Chip remove button works and survives a reopen
  [ ] Refresh all reports progress per channel
- [ ] What is working right now lists videos with a multiplier
+ [ ] Measured rows carry a multiple and "normal pace". Rows falling back to
+     lifetime pace carry a view count instead, never a multiple
+ [ ] Every measured row sorts above every inferred one. The two are different
+     quantities and must not be interleaved
+ [ ] A fallback row does not print its view count twice on one line
  [ ] Content gaps lists topics absent from the current channel
  [ ] An unreachable channel is counted in the status, not swallowed
  [ ] Nothing outperforming shows the empty state

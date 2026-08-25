@@ -69,8 +69,13 @@ two things: what is working right now, and content gaps, the topics they rank
 for that this channel never has. Once a tracked channel has been refreshed
 twice, "what is working" ranks by measured velocity, how fast each video is
 moving relative to how fast that channel normally moves, so a small channel's
-breakout can outrank a big channel's average upload. Until then it falls back to
-the lifetime average.
+breakout can outrank a big channel's average upload.
+
+Channels without two snapshots yet fall back to lifetime pace, and those rows
+are kept separate rather than mixed in. They sort below every measured row and
+show a view count instead of a multiple, because dividing a recent upload's
+rate by a median full of much older videos produces a number that mostly
+reports how new the video is.
 
 ![The Watchlist section, tracking a competitor channel and ranking its videos by
 how far each beat that channel's own normal](docs/niche.jpg)

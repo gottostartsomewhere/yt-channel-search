@@ -142,7 +142,16 @@ async function refreshWatchlist() {
       console.error("[Channel Search+] watchlist", key, e);
     }
   }
-  outliers.sort((a, b) => b.ratio - a.ratio);
+  /*
+   * Measured rows first, then inferred, each sorted within its own group.
+   *
+   * Sorting the whole list on `ratio` treated two different quantities as one
+   * number. A measured ratio compares observed growth against other observed
+   * growth; a lifetime ratio is inflated for anything recent, because a new
+   * upload's rate is measured against a median full of much older videos. Mixed
+   * together, the inflated ones crowded out the evidence worth trusting.
+   */
+  outliers.sort((a, b) => (b.measured ? 1 : 0) - (a.measured ? 1 : 0) || b.ratio - a.ratio);
   state.nicheItems = outliers;
   state.nicheNew = newSeen;
   state.gapItems = state.catalog.length ? contentGap(state.catalog, theirVideos) : [];
@@ -195,24 +204,43 @@ function nicheList(items) {
         ? Math.max(1, Math.round(it.sinceDays * 24)) + "h"
         : Math.round(it.sinceDays) + "d";
       parts.push("+" + fmtCompact(Math.round(it.gained)) + " in " + span);
-    } else {
-      parts.push(fmtCompact(it.v.views) + " views");
+    } else if (it.v.publishedText) {
+      // The view count moved into the metric column for these rows, so
+      // repeating it here would say the same thing twice on one line.
+      parts.push(it.v.publishedText);
     }
     sub.textContent = parts.join("  ·  ");
     meta.appendChild(t);
     meta.appendChild(sub);
 
-    // The multiple is the whole reason the row is in the list, so it comes out
-    // of the dot-separated subline and into its own column. Down a list of 24
-    // that turns "read every row" into "scan one column".
+    /*
+     * The measured rows get a multiple, the inferred ones do not.
+     *
+     * A measured multiple compares one observed rate against the median of
+     * other observed rates over the same window, so it means what it says. The
+     * lifetime version divides a video's views per day by the channel's
+     * lifetime median, and a recent upload is still inside its launch spike
+     * while that median is dominated by videos years past theirs. It printed
+     * things like "43.0x", which mostly reported that the video was new. The
+     * same arithmetic was already removed from the grid badges.
+     *
+     * The ordering is still useful even when the number is not, so those rows
+     * keep their place and show the view count instead. The rank column
+     * carries the position either way.
+     */
     const metric = document.createElement("div");
     metric.className = "ytcs-nmetric";
     const mval = document.createElement("div");
     mval.className = "ytcs-nmval";
-    mval.textContent = it.ratio.toFixed(1) + "x";
     const mlab = document.createElement("div");
     mlab.className = "ytcs-nmlab";
-    mlab.textContent = it.measured ? "normal pace" : "lifetime median";
+    if (it.measured) {
+      mval.textContent = it.ratio.toFixed(1) + "x";
+      mlab.textContent = "normal pace";
+    } else {
+      mval.textContent = fmtCompact(it.v.views);
+      mlab.textContent = "views";
+    }
     metric.appendChild(mval);
     metric.appendChild(mlab);
 
@@ -264,11 +292,14 @@ function renderNiche() {
     const measured = state.nicheItems.filter((it) => it.measured).length;
     let basis;
     if (!measured) {
-      basis = "Ranked on lifetime pace. Refresh again in half an hour and this becomes growth measured between your visits.";
+      basis = "Ordered on lifetime pace, which flatters recent uploads, so treat this as a rough " +
+        "shortlist. Refresh again in half an hour and it becomes growth measured between your visits.";
     } else if (measured === total) {
       basis = "Ranked on growth measured between your own visits, not inferred from upload dates.";
     } else {
-      basis = measured + " of " + total + " ranked on measured growth, the rest on lifetime pace.";
+      basis = "The first " + measured + " of " + total + " are ranked on growth measured between " +
+        "your visits. The rest follow on lifetime pace, which is why they carry a view count " +
+        "rather than a multiple.";
     }
     ui.nicheResults.appendChild(section("What is working right now", nicheList(state.nicheItems), basis));
   }
