@@ -7,7 +7,7 @@
  */
 const fs = require("fs");
 const path = require("path");
-const { execFileSync } = require("child_process");
+const zlib = require("zlib");
 
 const ROOT = __dirname;
 const DIST = path.join(ROOT, "dist");
@@ -27,6 +27,124 @@ function copy(src, dest) {
   }
 }
 
+// ---- zip ------------------------------------------------------------------
+/*
+ * Written by hand rather than shelled out to.
+ *
+ * PowerShell's Compress-Archive is the only zip tool guaranteed to exist on a
+ * Windows box, and it writes entry names with backslashes: "icons\icon16.png".
+ * The ZIP spec says forward slashes, always. Chrome happens to tolerate it,
+ * Firefox's AMO validator does not, so the store that is meant to be the quick
+ * free one is exactly the store it breaks. Node ships zlib and nothing else
+ * here needs a dependency, so the format is written out directly.
+ */
+const CRC_TABLE = (() => {
+  const t = new Int32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    t[n] = c;
+  }
+  return t;
+})();
+
+function crc32(buf) {
+  let crc = -1;
+  for (let i = 0; i < buf.length; i++) crc = (crc >>> 8) ^ CRC_TABLE[(crc ^ buf[i]) & 0xff];
+  return (crc ^ -1) >>> 0;
+}
+
+function dosTime(d) {
+  return ((d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1)) & 0xffff;
+}
+function dosDate(d) {
+  return (((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate()) & 0xffff;
+}
+
+// Every file under dir, as { name, body }, with names relative and
+// forward-slashed. Sorted so a rebuild of unchanged sources is byte-identical.
+function collect(dir, prefix, out) {
+  prefix = prefix || "";
+  out = out || [];
+  for (const entry of fs.readdirSync(dir).sort()) {
+    const full = path.join(dir, entry);
+    const name = prefix + entry;
+    if (fs.statSync(full).isDirectory()) collect(full, name + "/", out);
+    else out.push({ name: name, body: fs.readFileSync(full) });
+  }
+  return out;
+}
+
+function writeZip(dir, zipPath) {
+  const when = new Date();
+  const time = dosTime(when);
+  const date = dosDate(when);
+  const locals = [];
+  const centrals = [];
+  let offset = 0;
+
+  for (const file of collect(dir)) {
+    const name = Buffer.from(file.name, "utf8");
+    const crc = crc32(file.body);
+    const deflated = zlib.deflateRawSync(file.body, { level: 9 });
+    // Storing beats deflating when deflating made it bigger, which happens on
+    // tiny files such as the 379-byte icon.
+    const stored = deflated.length >= file.body.length;
+    const body = stored ? file.body : deflated;
+    const method = stored ? 0 : 8;
+
+    const local = Buffer.alloc(30);
+    local.writeUInt32LE(0x04034b50, 0);
+    local.writeUInt16LE(20, 4); // version needed
+    local.writeUInt16LE(0, 6); // flags
+    local.writeUInt16LE(method, 8);
+    local.writeUInt16LE(time, 10);
+    local.writeUInt16LE(date, 12);
+    local.writeUInt32LE(crc, 14);
+    local.writeUInt32LE(body.length, 18);
+    local.writeUInt32LE(file.body.length, 22);
+    local.writeUInt16LE(name.length, 26);
+    local.writeUInt16LE(0, 28); // extra length
+    locals.push(local, name, body);
+
+    const central = Buffer.alloc(46);
+    central.writeUInt32LE(0x02014b50, 0);
+    central.writeUInt16LE(20, 4); // version made by
+    central.writeUInt16LE(20, 6); // version needed
+    central.writeUInt16LE(0, 8); // flags
+    central.writeUInt16LE(method, 10);
+    central.writeUInt16LE(time, 12);
+    central.writeUInt16LE(date, 14);
+    central.writeUInt32LE(crc, 16);
+    central.writeUInt32LE(body.length, 20);
+    central.writeUInt32LE(file.body.length, 24);
+    central.writeUInt16LE(name.length, 28);
+    central.writeUInt16LE(0, 30); // extra length
+    central.writeUInt16LE(0, 32); // comment length
+    central.writeUInt16LE(0, 34); // disk number
+    central.writeUInt16LE(0, 36); // internal attrs
+    central.writeUInt32LE(0, 38); // external attrs
+    central.writeUInt32LE(offset, 42);
+    centrals.push(central, name);
+
+    offset += local.length + name.length + body.length;
+  }
+
+  const directory = Buffer.concat(centrals);
+  const end = Buffer.alloc(22);
+  end.writeUInt32LE(0x06054b50, 0);
+  end.writeUInt16LE(0, 4); // this disk
+  end.writeUInt16LE(0, 6); // disk with directory
+  end.writeUInt16LE(centrals.length / 2, 8);
+  end.writeUInt16LE(centrals.length / 2, 10);
+  end.writeUInt32LE(directory.length, 12);
+  end.writeUInt32LE(offset, 16);
+  end.writeUInt16LE(0, 20); // comment length
+
+  fs.writeFileSync(zipPath, Buffer.concat([Buffer.concat(locals), directory, end]));
+}
+
+// ---- build ----------------------------------------------------------------
 fs.rmSync(DIST, { recursive: true, force: true });
 
 for (const target of TARGETS) {
@@ -53,20 +171,7 @@ for (const target of TARGETS) {
 
   fs.writeFileSync(path.join(out, "manifest.json"), JSON.stringify(manifest, null, 2) + "\n");
 
-  // Both stores take a zip of the extension directory. Shell out rather than
-  // take a dependency: PowerShell ships with Windows, zip with everything else.
   const zip = path.join(DIST, target.name + "-" + manifest.version + ".zip");
-  try {
-    if (process.platform === "win32") {
-      execFileSync("powershell", [
-        "-NoProfile", "-Command",
-        "Compress-Archive -Path '" + out + "\\*' -DestinationPath '" + zip + "' -Force",
-      ], { stdio: "ignore" });
-    } else {
-      execFileSync("zip", ["-qr", zip, "."], { cwd: out });
-    }
-    console.log(target.name + ": " + manifest.version + " -> dist/" + target.name + " and " + path.basename(zip));
-  } catch (e) {
-    console.log(target.name + ": " + manifest.version + " -> dist/" + target.name + " (zip skipped: " + e.message.split("\n")[0] + ")");
-  }
+  writeZip(out, zip);
+  console.log(target.name + ": " + manifest.version + " -> dist/" + target.name + " and " + path.basename(zip));
 }
