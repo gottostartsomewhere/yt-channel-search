@@ -167,34 +167,65 @@ function uploadsNote(uploads) {
 }
 
 /*
- * Direction of travel, as recent-half against earlier-half.
+ * Direction of travel, over a recent window rather than a lifetime.
  *
- * This used to divide the newest year by the very first one, which on a
- * channel that started in 2013 at 64K and now sits at 7.3M reported "114.1x
- * bigger than in '13". True, and useless: every channel that survived a decade
- * is enormously bigger than its first year, so the number said nothing about
- * the channel and everything about how long it had existed. Comparing halves
- * asks the question people actually mean, which is whether it is growing now.
+ * Two earlier versions of this were wrong in the same way. Dividing the newest
+ * year by the very first reported "114.1x bigger than in '13"; comparing whole
+ * halves still gave 41.1x. Both are arithmetically right and both answer a
+ * question nobody asked, because a channel's opening years are near zero and
+ * any ratio anchored to them comes out enormous and positive no matter what
+ * has happened since.
+ *
+ * The damage was not just an ugly number. On a channel that peaked in '21 and
+ * has been below that ever since, the lifetime comparison still said "rising",
+ * because six near-empty years from a decade ago outvoted the recent decline.
+ * A three-year window against the three before it asks whether the channel is
+ * growing now, which is the thing being read off this chart.
+ *
+ * The current year is excluded from the comparison. It is still filling, and
+ * its videos have had the least time to accumulate views, so it always reads
+ * low. It stays on the chart, because it is real, but it does not get a vote
+ * on the trend.
  */
-function trajectoryYears(traj) {
-  return traj.filter((d) => d.value > 0);
+const TRAJECTORY_WINDOW = 3;
+
+function trajectoryYears(traj, nowYear) {
+  return traj.filter((d) => d.value > 0 && (nowYear == null || d.year !== nowYear));
 }
 
 function trajectoryRatio(solid) {
   if (solid.length < 4) return null;
-  const half = Math.floor(solid.length / 2);
-  const earlier = median(solid.slice(0, half).map((d) => d.value));
-  const recent = median(solid.slice(solid.length - half).map((d) => d.value));
+  const w = Math.min(TRAJECTORY_WINDOW, Math.floor(solid.length / 2));
+  const recentYears = solid.slice(solid.length - w);
+  const earlierYears = solid.slice(solid.length - w * 2, solid.length - w);
+  const earlier = median(earlierYears.map((d) => d.value));
+  const recent = median(recentYears.map((d) => d.value));
   if (!earlier) return null;
-  return { x: recent / earlier, from: solid[solid.length - half].label };
+  return { x: recent / earlier, recentYears: recentYears, earlierYears: earlierYears };
 }
 
-function trajectoryNote(traj) {
-  const r = trajectoryRatio(trajectoryYears(traj));
+/*
+ * "'21-'25" is only honest when those years run consecutively. A channel that
+ * went quiet through '22 and '23 has three data years with a hole in the
+ * middle, and a range label claims a span that is not there, so a gapped
+ * window gets its years listed instead.
+ */
+function yearSpan(years) {
+  if (years.length === 1) return years[0].label;
+  const contiguous = years[years.length - 1].year - years[0].year === years.length - 1;
+  if (contiguous) return years[0].label + "-" + years[years.length - 1].label;
+  return years.map((d) => d.label).join(", ");
+}
+
+function trajectoryNote(traj, nowYear) {
+  const solid = trajectoryYears(traj, nowYear);
+  const r = trajectoryRatio(solid);
   if (!r) return "";
-  if (r.x >= 1.25) return "The typical video is " + r.x.toFixed(1) + "x bigger than it was in the first half of this channel's life. Rising.";
-  if (r.x <= 0.8) return "The typical video is at " + Math.round(r.x * 100) + "% of what it managed in the channel's earlier years. Fading.";
-  return "The typical video has held roughly flat across the channel's life.";
+  const head = "Median views across " + yearSpan(r.recentYears) + " are " +
+    r.x.toFixed(1) + "x " + yearSpan(r.earlierYears) + ". ";
+  if (r.x >= 1.25) return head + "Rising.";
+  if (r.x <= 0.8) return head + "Fading.";
+  return head + "Holding flat.";
 }
 
 function shareNote(data, total, noun) {
@@ -293,9 +324,10 @@ function renderAnalytics(rows) {
   const uploads = years.map((y) => ({ label: "'" + String(y).slice(2), value: byYear[y] || 0 }));
 
   // Trajectory: is the channel's typical video getting bigger or smaller?
+  // Carries the year itself, so the trend can exclude the one still filling.
   const trajectory = years.map((y) => {
     const cohort = rows.filter((v) => v.days != null && nowYear - Math.floor(v.days / 365) === y);
-    return { label: "'" + String(y).slice(2), value: Math.round(median(cohort.map((v) => v.views))) };
+    return { label: "'" + String(y).slice(2), year: y, value: Math.round(median(cohort.map((v) => v.views))) };
   });
 
   const viewsData = bucketCounts(rows, VIEW_BUCKETS, (v) => v.views);
@@ -326,7 +358,7 @@ function renderAnalytics(rows) {
       ? curve[peak].label
       : "";
 
-  const ratio = trajectoryRatio(trajectoryYears(trajectory));
+  const ratio = trajectoryRatio(trajectoryYears(trajectory, nowYear));
   const arc = ratio ? (ratio.x >= 1.25 ? "rising" : ratio.x <= 0.8 ? "fading" : "flat") : "";
 
   const strip = headlineFinding(rows.length, sweet, arc);
@@ -348,7 +380,7 @@ function renderAnalytics(rows) {
   ui.charts.appendChild(chartCard(
     "Median views by upload year",
     trajectory.length ? barChart(trajectory) : chartEmpty(),
-    trajectoryNote(trajectory),
+    trajectoryNote(trajectory, nowYear),
     true
   ));
   ui.charts.appendChild(chartCard(

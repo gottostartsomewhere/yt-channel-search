@@ -58,6 +58,13 @@
 function makeCatalog() {
   // Years 3 and 4 back are empty on purpose, to check the axis draws the gap.
   const perYear = { 13: 8, 12: 14, 11: 20, 10: 22, 9: 26, 8: 30, 7: 28, 6: 24, 5: 22, 4: 0, 3: 0, 2: 18, 1: 14, 0: 10 };
+  /*
+   * Per-year multiplier. Near zero for the opening years, peaking five years
+   * back, declining since. This is the shape that broke the trend note: a
+   * lifetime comparison called it "rising" because the near-empty early years
+   * outvoted a peak the channel has been below ever since.
+   */
+  const arcByYear = { 13: 0.01, 12: 0.02, 11: 0.03, 10: 0.05, 9: 0.08, 8: 0.15, 7: 0.4, 6: 0.8, 5: 1.0, 4: 0, 3: 0, 2: 0.55, 1: 0.3, 0: 0.6 };
   const bands = [
     [60, 240, 0.6], [240, 600, 1.0], [600, 900, 1.3],
     // Long uploads are rare and self-selected, so they look spectacular.
@@ -79,10 +86,7 @@ function makeCatalog() {
       rows.push({
         id: "v" + rows.length,
         title: title.join(" ").replace(/^./, (c) => c.toUpperCase()),
-        // Decay geometrically, not linearly: over fourteen years a linear
-        // taper goes negative and clamps every early year to the floor, which
-        // makes the trajectory ratio look far more dramatic than the data is.
-        views: Math.max(400, Math.round(120000 * b[2] * Math.pow(0.88, Number(ago)) * (0.25 + rnd() * 2.4))),
+        views: Math.max(400, Math.round(4000000 * b[2] * arcByYear[ago] * (0.25 + rnd() * 2.4))),
         seconds: Math.round(b[0] + rnd() * (b[1] - b[0])),
         days: days,
         when: Math.round(days / 30) + " months ago",
