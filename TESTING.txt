@@ -199,7 +199,12 @@
  [ ] Signed out: watch filters are inert, nothing crashes
  [ ] Narrow window: both chrome rows wrap without overlapping, and the summary
      line stays clear of the sticky bar
- [ ] Light theme: text stays legible
+ [ ] Light theme: switch YouTube to light in its appearance settings. The pill
+     chevrons must stay visible, the native dropdown list must be light, and
+     nothing may keep a hardcoded dark colour
+ [ ] Keyboard: Tab through the panel. Every control takes a visible accent
+     focus ring, buttons included, and a mouse click never triggers one
+ [ ] A title that is one long unbroken string does not widen its grid column
  [ ] Reopening the panel repeatedly does not stack duplicates
 
 

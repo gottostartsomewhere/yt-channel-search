@@ -1,6 +1,6 @@
 /*
  * YouTube Channel Search+
- * Configuration, parsers, and the InnerTube catalog reader.
+ * Configuration, parsers, and the InnerTube catalogue reader.
  * No DOM here: this half only knows how to turn a channel into video records.
  *
  * Loaded as an ordered content script, so every module shares one scope.
@@ -289,7 +289,7 @@ function mapLockup(lvm) {
  * So everything downstream that depends on age (views per day, the per-year
  * charts, recency filters) or on length has nothing to work with. Those fields
  * are left empty rather than zero-filled with plausible-looking numbers, and
- * `isShort` marks the row so shorts can be kept off the main catalog. Merging
+ * `isShort` marks the row so shorts can be kept off the main catalogue. Merging
  * them in would quietly move every median in the product, since shorts and
  * long-form have completely different view dynamics.
  *
@@ -365,7 +365,7 @@ function channelVideosUrl() {
   return base ? location.origin + base + "/videos" : null;
 }
 
-// ---- catalog fetcher (the core primitive) --------------------------------
+// ---- catalogue fetcher (the core primitive) --------------------------------
 async function fetchContinuation(apiKey, clientVersion, token) {
   const res = await fetch(
     location.origin + "/youtubei/v1/browse?key=" + apiKey + "&prettyPrint=false",
@@ -390,7 +390,7 @@ async function fetchCatalog(onProgress) {
   return fetchCatalogFrom(channelVideosUrl(), onProgress);
 }
 
-// Fetch the full uploads catalog for any channel's /videos URL (used by compare too).
+// Fetch the full uploads catalogue for any channel's /videos URL (used by compare too).
 async function fetchCatalogFrom(url, onProgress) {
   if (!url) throw new Error("Not on a channel page.");
 

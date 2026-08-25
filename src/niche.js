@@ -213,7 +213,7 @@ function renderNiche() {
   if (!state.watchlist.length) {
     const hint = document.createElement("div");
     hint.className = "ytcs-status";
-    hint.textContent = "No channels tracked yet. Add a few competitors, then refresh to see what is working across the niche.";
+    hint.textContent = "No channels tracked yet. Add a few, then refresh to see what is beating its own channel's normal pace right now.";
     ui.nicheChips.appendChild(hint);
   }
   state.watchlist.forEach((key) => {

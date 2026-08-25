@@ -430,7 +430,7 @@ async function loadCatalog() {
 }
 
 /*
- * Store the catalog and keep a rolling set of view-count snapshots. Diffing
+ * Store the catalogue and keep a rolling set of view-count snapshots. Diffing
  * the newest fetch against the previous snapshot gives measured velocity,
  * which is real rather than inferred from YouTube's relative dates. Videos
  * are annotated in place so the numbers survive in the cache.
@@ -599,7 +599,7 @@ function buildLauncher() {
   const btn = document.createElement("button");
   btn.className = "ytcs-launcher";
   btn.textContent = "Search+";
-  btn.title = "Filter this channel's videos by duration, views, and more";
+  btn.title = "Search this channel's whole back catalogue, and filter it by length, views, date and what you have watched";
   btn.onclick = async () => {
     if (state.active) disable();
     else await enable();

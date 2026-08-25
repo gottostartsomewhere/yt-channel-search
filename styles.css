@@ -39,6 +39,23 @@
 .ytcs-wrap { width: 100%; color: var(--txt); }
 
 /*
+ * One focus ring for everything interactive.
+ *
+ * The buttons here carry custom backgrounds and no border, so the browser's
+ * default ring sat awkwardly against them, and the inputs suppress it outright
+ * with outline:none in exchange for a border colour change. That left keyboard
+ * users with an indicator that varied by control and vanished on some. This is
+ * the same ring everywhere, drawn outside the element so it never shifts
+ * layout, and :focus-visible means a mouse click does not trigger it.
+ */
+.ytcs-wrap :focus-visible,
+.ytcs-launcher:focus-visible {
+  outline: 2px solid var(--ac);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/*
  * Header and filter line.
  *
  * One sticky block, two rows: identity and navigation on top, the controls that
@@ -179,7 +196,18 @@
   background-repeat: no-repeat;
   background-position: right 11px center;
   background-size: 9px;
-  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23f1f1f1' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
+  /*
+   * A select cannot carry a pseudo-element, so the chevron has to be a
+   * background image, and a data URL cannot read a CSS variable. It was
+   * hardcoded near-white, which is invisible against a light pill once YouTube
+   * is in its light theme.
+   *
+   * YouTube marks dark mode with a `dark` attribute on <html>, which is the
+   * same signal its own stylesheet uses, so the two variants key off that
+   * rather than prefers-color-scheme. The OS preference is the wrong question:
+   * YouTube's appearance setting overrides it.
+   */
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23606060' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
   color: var(--txt);
   font: 500 13px/1 inherit;
   cursor: pointer;
@@ -187,13 +215,26 @@
   text-overflow: ellipsis;
   transition: border-color 0.14s ease, color 0.14s ease, background-color 0.14s ease;
 }
-.ytcs-pill:hover { border-color: #3f3f3f; }
+html[dark] .ytcs-pill {
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23f1f1f1' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+.ytcs-pill:hover { border-color: var(--dim); }
 .ytcs-pill:focus-visible { border-color: var(--ac); }
-.ytcs-pill option { background: #1c1c1c; color: #f1f1f1; }
+/* The native dropdown list is painted by the OS, so it needs real values
+   rather than tokens, and it has to follow the theme like everything else. */
+.ytcs-pill option { background: #fff; color: #0f0f0f; }
+html[dark] .ytcs-pill option { background: #1c1c1c; color: #f1f1f1; }
+/* An untouched pill also dims its chevron. Both themes need spelling out:
+   html[dark] .ytcs-pill scores a class, an attribute and a type, which beats
+   two classes, so without the second rule a dim pill in dark mode would keep
+   the bright arrow meant for a set one. */
 .ytcs-pill.ytcs-dim {
   color: var(--dim);
   font-weight: 400;
   background-color: transparent;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23909090' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+html[dark] .ytcs-pill.ytcs-dim {
   background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23a0a0a0' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
 }
 /* Set filters are the panel's whole point, so they carry the accent. */
@@ -226,7 +267,7 @@
   cursor: pointer;
   transition: border-color 0.14s ease, color 0.14s ease;
 }
-.ytcs-restore:hover { color: var(--txt); border-color: #3f3f3f; }
+.ytcs-restore:hover { color: var(--txt); border-color: var(--dim); }
 
 .ytcs-iconbtn {
   display: inline-flex;
@@ -394,6 +435,10 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  /* Clamping only helps text that can wrap. A title that is one unbroken
+     200-character run, which people do post, would otherwise push the card
+     wider than its grid column and drag the whole row out of alignment. */
+  overflow-wrap: anywhere;
 }
 .ytcs-cmeta {
   margin-top: 6px;
