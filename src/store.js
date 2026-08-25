@@ -7,11 +7,25 @@
  */
 
 // ---- IndexedDB cache -----------------------------------------------------
+/*
+ * One connection, reused. Every read and write used to open its own, which is
+ * wasteful per call and became the difference between one open and forty once
+ * the cache started pruning. The handle is dropped if the connection closes,
+ * so the next call reopens rather than using a dead one.
+ */
+let idbConn = null;
 function idbOpen() {
+  if (idbConn) return Promise.resolve(idbConn);
   return new Promise((resolve, reject) => {
     const req = indexedDB.open("ytcs", 1);
     req.onupgradeneeded = () => req.result.createObjectStore("catalogs");
-    req.onsuccess = () => resolve(req.result);
+    req.onsuccess = () => {
+      idbConn = req.result;
+      idbConn.onclose = () => { idbConn = null; };
+      // Another tab upgrading the schema needs this one to let go.
+      idbConn.onversionchange = () => { idbConn.close(); idbConn = null; };
+      resolve(idbConn);
+    };
     req.onerror = () => reject(req.error);
   });
 }
@@ -76,16 +90,39 @@ async function idbDelete(keys) {
   } catch (e) { /* best-effort, same as the writes */ }
 }
 
+/*
+ * Timestamps live in their own small record rather than being read back out of
+ * the catalogues.
+ *
+ * The first version of this walked every key and called idbGet on each one to
+ * look at fetchedAt. That opened a database connection per key and deserialised
+ * the whole record behind it, video array included, so past the limit every
+ * refresh was reading tens of megabytes to collect forty numbers. The index is
+ * a single object of key to timestamp, read in one get.
+ *
+ * A key with no index entry sorts oldest and is evicted first. That only
+ * happens to caches written before this index existed, and a dropped cache
+ * costs one re-fetch, which is what a cache is for.
+ */
+const INDEX_KEY = "__index";
+const META_KEYS = ["__watchlist", INDEX_KEY];
+
+async function touchIndex(key, at) {
+  const idx = (await idbGet(INDEX_KEY)) || {};
+  idx[key] = at;
+  await idbPut(INDEX_KEY, idx);
+}
+
 async function pruneCache() {
-  const keys = (await idbKeys()).filter((k) => k !== "__watchlist");
+  const keys = (await idbKeys()).filter((k) => META_KEYS.indexOf(k) === -1);
   if (keys.length <= CACHE_LIMIT) return;
-  const entries = [];
-  for (const k of keys) {
-    const v = await idbGet(k);
-    entries.push({ key: k, at: (v && v.fetchedAt) || 0 });
-  }
+  const idx = (await idbGet(INDEX_KEY)) || {};
+  const entries = keys.map((k) => ({ key: k, at: idx[k] || 0 }));
   entries.sort((a, b) => b.at - a.at);
-  await idbDelete(entries.slice(CACHE_LIMIT).map((e) => e.key));
+  const drop = entries.slice(CACHE_LIMIT).map((e) => e.key);
+  await idbDelete(drop);
+  drop.forEach((k) => delete idx[k]);
+  await idbPut(INDEX_KEY, idx);
 }
 
 // Everything this extension has cached, cleared. Settings are kept: they live

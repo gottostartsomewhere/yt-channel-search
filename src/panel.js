@@ -487,8 +487,10 @@ async function persistCatalog(key, cat) {
     ids: cat.map((v) => v.id),
     history: nextHistory,
   });
-  // Drop the least recently fetched channels once the cache is oversized.
-  // After the write, so the channel just visited is never the one evicted.
+  // Record when this channel was last read, then drop the least recently
+  // fetched once the cache is oversized. Both after the write, so the channel
+  // just visited is never the one evicted.
+  await touchIndex(key, now);
   await pruneCache();
   return { newIds: newIds, snapshots: nextHistory.length, at: now };
 }
