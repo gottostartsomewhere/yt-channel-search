@@ -174,8 +174,17 @@ Not affiliated with YouTube or Google.
                                    layout and must be retaken
  [ ] Small promo tile, 440x280     (optional, but listings without it look
                                    unfinished in search results)
- [ ] Chrome developer account, 5 USD one-off
+ [x] Chrome developer account      johnkevin0742, registered
+ [ ] Publisher display name        defaults to the account name, and a listing
+                                   published by "johnkevin0742" reads like a
+                                   throwaway. Set it in the dashboard's account
+                                   settings before publishing, not after: it is
+                                   the name shown under the extension title
+ [ ] Verified contact email        Chrome will not let a listing go live until
+                                   the account has one confirmed. Silent
+                                   blocker, worth clearing early
  [ ] Firefox developer account, free
+ [ ] Edge developer account, free
 
 
 -------------------------------------------------------------------------------
