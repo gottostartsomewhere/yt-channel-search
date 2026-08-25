@@ -149,6 +149,43 @@ function mad(nums, mid) {
   return median(nums.map((x) => Math.abs(x - mid)));
 }
 
+/*
+ * The wait on a cold channel is the product working, so it says so.
+ *
+ * Reading a full catalogue takes ten to twenty seconds, longer on a big
+ * channel. The busy class only fades cards that already exist, so on a first
+ * visit it dimmed an empty box and the whole panel sat blank with a small
+ * counter in the header. That reads as broken, which for a lot of people on
+ * their first run is where it ends.
+ *
+ * Naming what is happening turns the same wait into an explanation: the reason
+ * this is slower than YouTube's own search is the reason it can answer
+ * questions YouTube's cannot.
+ */
+function renderLoading(n) {
+  ui.grid.innerHTML = "";
+  const box = document.createElement("div");
+  box.className = "ytcs-loading";
+
+  const spinner = document.createElement("div");
+  spinner.className = "ytcs-spinner";
+
+  const head = document.createElement("div");
+  head.className = "ytcs-loadhead";
+  head.textContent = "Reading this channel's full catalogue";
+
+  const sub = document.createElement("div");
+  sub.className = "ytcs-loadsub";
+  sub.textContent = n
+    ? plural(n, "video") + " so far"
+    : "This happens once, then it is cached";
+
+  box.appendChild(spinner);
+  box.appendChild(head);
+  box.appendChild(sub);
+  ui.grid.appendChild(box);
+}
+
 function renderStats(rows) {
   const n = rows.length;
   const totalViews = rows.reduce((s, v) => s + v.views, 0);

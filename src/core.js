@@ -367,7 +367,17 @@ function channelVideosUrl() {
   return base ? location.origin + base + "/videos" : null;
 }
 
-// ---- catalogue fetcher (the core primitive) --------------------------------
+/*
+ * ---- catalogue fetcher (the core primitive) --------------------------------
+ *
+ * The messages thrown below are shown to people, not logged, so they say what
+ * to do rather than what broke. "Could not parse ytInitialData" was accurate
+ * and useless: it named an internal YouTube field to someone who has no idea
+ * what that is and no way to act on it. The real cause is almost always a
+ * stale page or a YouTube change, and reloading fixes the first and rules out
+ * the second. The underlying error still reaches the console for anyone
+ * debugging.
+ */
 async function fetchContinuation(apiKey, clientVersion, token) {
   const res = await fetch(
     location.origin + "/youtubei/v1/browse?key=" + apiKey + "&prettyPrint=false",
@@ -394,20 +404,20 @@ async function fetchCatalog(onProgress) {
 
 // Fetch the full uploads catalogue for any channel's /videos URL (used by compare too).
 async function fetchCatalogFrom(url, onProgress) {
-  if (!url) throw new Error("Not on a channel page.");
+  if (!url) throw new Error("That is not a channel page.");
 
   const html = await (await fetch(url, { credentials: "same-origin" })).text();
   const apiKey = (html.match(/"INNERTUBE_API_KEY":"([^"]+)"/) || [])[1];
-  if (!apiKey) throw new Error("Could not read YouTube's API key from the page.");
+  if (!apiKey) throw new Error("Could not read this channel. Try reloading the page.");
   const clientVersion =
     (html.match(/"INNERTUBE_CONTEXT_CLIENT_VERSION":"([^"]+)"/) || [])[1] ||
     (html.match(/"clientVersion":"([^"]+)"/) || [])[1] ||
     FALLBACK_VER;
 
   const data = findJson(html, "ytInitialData");
-  if (!data) throw new Error("Could not parse ytInitialData.");
+  if (!data) throw new Error("Could not read this channel. Try reloading the page.");
   const grid = deepFind(data, "richGridRenderer");
-  if (!grid || !grid.contents) throw new Error("No videos grid found (channel may have no uploads tab).");
+  if (!grid || !grid.contents) throw new Error("This channel has no videos tab to read.");
 
   let { videos, token } = parseItemArray(grid.contents);
   const all = videos.slice();

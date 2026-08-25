@@ -498,11 +498,18 @@ async function persistCatalog(key, cat) {
 async function refreshCatalog() {
   if (state.loading) return;
   state.loading = true;
-  ui.grid.classList.add("ytcs-busy");
+  // A refresh has cards to fade, which reads as "updating". A first visit has
+  // nothing, so it gets the panel that explains the wait instead.
+  const cold = !state.catalog.length;
+  if (cold) { setView("search"); renderLoading(0); }
+  else ui.grid.classList.add("ytcs-busy");
   ui.status.textContent = "loading… 0";
   const key = channelBasePath();
   try {
-    const cat = await fetchCatalog((n) => (ui.status.textContent = "loading… " + n));
+    const cat = await fetchCatalog((n) => {
+      ui.status.textContent = "loading… " + n;
+      if (cold) renderLoading(n);
+    });
     state.catalog = cat;
     state.cachedAt = Date.now();
     let info = { newIds: [], snapshots: 1 };

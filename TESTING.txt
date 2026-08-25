@@ -20,7 +20,16 @@
  [ ] Panel opens on a channel Videos tab from the Search+ button
  [ ] Console is clean. A ReferenceError here means the content scripts loaded
      out of order. Check the js array in manifest.json
- [ ] Catalog loads, count climbs, ends near the channel's real video count
+ [ ] Catalogue loads, count climbs, ends near the channel's real video count
+ [ ] FIRST VISIT to a channel shows the loading panel, not a blank grid: a
+     spinner, "Reading this channel's full catalogue", and a climbing count.
+     This is the whole first impression, so check it on a big channel where
+     the wait is longest
+ [ ] A refresh on an already-loaded channel fades the existing cards instead,
+     since there is something to fade
+ [ ] Errors say what to do. Nothing shown to a user may name an internal
+     YouTube field: "Could not parse ytInitialData" is the wording that was
+     removed. The console still gets the real error
  [ ] Alt+Y opens and closes the panel
  [ ] Toolbar icon opens the popup
  [ ] Restore YouTube brings the native grid back untouched
