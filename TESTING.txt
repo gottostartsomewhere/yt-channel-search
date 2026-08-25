@@ -167,6 +167,11 @@
      were removed as unsupportable; if either reappears it is a stale build
 
  WATCHLIST
+ [ ] Removing a channel clears the results. Its videos must not stay ranked
+     on screen, and emptying the list must not leave a full set of results
+     for channels no longer tracked
+ [ ] Adding a channel also clears them, since the results predate it
+ [ ] Adding one already tracked says so and does not duplicate the chip
  [ ] Track adds a chip
  [ ] Chip remove button works and survives a reopen
  [ ] Refresh all reports progress per channel

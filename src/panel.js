@@ -372,10 +372,16 @@ function buildUi() {
     const url = normalizeChannelInput(nicheInput.value);
     const key = url && channelKeyFromUrl(url);
     if (!key) { nicheStatus.textContent = "couldn't parse that channel"; return; }
-    if (state.watchlist.indexOf(key) === -1) state.watchlist.push(key);
+    const already = state.watchlist.indexOf(key) !== -1;
+    if (!already) state.watchlist.push(key);
     await saveWatchlist(state.watchlist);
     nicheInput.value = "";
-    nicheStatus.textContent = plural(state.watchlist.length, "channel") + " tracked";
+    // Existing results predate this channel, so they no longer describe the
+    // list they claim to. Same reasoning as removal.
+    if (!already) clearNicheResults();
+    nicheStatus.textContent = already
+      ? "already tracking that one"
+      : plural(state.watchlist.length, "channel") + " tracked, refresh to update";
     renderNiche();
   };
   nicheRefresh.onclick = () => refreshWatchlist();

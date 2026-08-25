@@ -69,9 +69,25 @@ function isOutlier(rate, base, spread, ratio) {
   return rate >= base + OUTLIER_MADS * spread;
 }
 
+/*
+ * Results are derived from the watchlist, so any edit to the list invalidates
+ * them. Without this, removing a channel left its videos ranked on screen
+ * until the next refresh, and emptying the list entirely left a full set of
+ * results for channels no longer tracked. Clearing on every edit costs a
+ * refresh after adding one, which is the cheaper of the two wrongs.
+ */
+function clearNicheResults() {
+  state.nicheItems = [];
+  state.gapItems = [];
+  state.nicheNew = null;
+  state.nicheRan = false;
+}
+
 async function refreshWatchlist() {
   if (!state.watchlist.length) {
+    clearNicheResults();
     ui.nicheStatus.textContent = "add a channel first";
+    renderNiche();
     return;
   }
   ui.nicheRefresh.disabled = true;
@@ -228,6 +244,10 @@ function renderNiche() {
     x.onclick = async () => {
       state.watchlist = state.watchlist.filter((k) => k !== key);
       await saveWatchlist(state.watchlist);
+      clearNicheResults();
+      ui.nicheStatus.textContent = state.watchlist.length
+        ? plural(state.watchlist.length, "channel") + " tracked, refresh to update"
+        : "";
       renderNiche();
     };
     chip.appendChild(label);
