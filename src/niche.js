@@ -126,15 +126,23 @@ async function refreshWatchlist() {
             outliers.push({ v: v, channel: key, ratio: ratio, measured: true, gained: v.gained, sinceDays: v.sinceDays });
           });
       } else {
-        const rates = cat.filter((v) => v.days).map((v) => v.views / Math.max(v.days, 1));
-        const base = median(rates) || 1;
-        const spread = mad(rates, base);
-        cat.forEach((v) => {
-          const rate = v.days ? v.views / Math.max(v.days, 1) : 0;
-          const ratio = rate / base;
-          if (!isOutlier(rate, base, spread, ratio)) return;
-          outliers.push({ v: v, channel: key, ratio: ratio, measured: false });
-        });
+        /*
+         * Before there are snapshots, this used to rank on lifetime pace:
+         * views divided by days since upload. On a real channel that produced
+         * a list ordered purely by recency and inversely by views, because a
+         * day-old video divides by one. MKBHD's top five came out 21 hours,
+         * 3 days, 13 days, 3 weeks, 1 month, at 1.6M rising to 5.8M views. It
+         * called 599 of 1892 videos outliers, which is a third of a catalogue
+         * and therefore not an outlier at all.
+         *
+         * So it no longer pretends to detect anything. It answers the question
+         * one fetch can actually answer about a competitor: what have they put
+         * out lately, biggest first. Once two snapshots exist the channel
+         * switches to measured velocity above and this stops being used.
+         */
+        cat
+          .filter((v) => v.days != null && v.days <= RECENT_DAYS)
+          .forEach((v) => outliers.push({ v: v, channel: key, measured: false }));
       }
       theirVideos.push.apply(theirVideos, cat);
     } catch (e) {
@@ -143,28 +151,33 @@ async function refreshWatchlist() {
     }
   }
   /*
-   * Measured rows first, then inferred, each sorted within its own group.
-   *
-   * Sorting the whole list on `ratio` treated two different quantities as one
-   * number. A measured ratio compares observed growth against other observed
-   * growth; a lifetime ratio is inflated for anything recent, because a new
-   * upload's rate is measured against a median full of much older videos. Mixed
-   * together, the inflated ones crowded out the evidence worth trusting.
+   * Measured rows first, ranked on how far each beat its own channel's pace.
+   * The rest are recent uploads ranked on plain view count. Two different
+   * questions, so they are never interleaved: sorting them together once let
+   * the weaker measure crowd out the stronger one.
    */
-  outliers.sort((a, b) => (b.measured ? 1 : 0) - (a.measured ? 1 : 0) || b.ratio - a.ratio);
+  outliers.sort((a, b) => {
+    if (a.measured !== b.measured) return a.measured ? -1 : 1;
+    return a.measured ? b.ratio - a.ratio : b.v.views - a.v.views;
+  });
   state.nicheItems = outliers;
   state.nicheNew = newSeen;
   state.gapItems = state.catalog.length ? contentGap(state.catalog, theirVideos) : [];
   state.nicheRan = true;
-  const mode = liveChannels
-    ? liveChannels + " of " + state.watchlist.length + " live"
-    : "baseline set, refresh again later for live velocity";
+  // Only the measured entries are outliers. Counting recent uploads as
+  // outliers was how "599 outliers" out of 1892 videos got printed.
+  const measuredCount = outliers.filter((o) => o.measured).length;
   const bits = [
     plural(state.watchlist.length, "channel"),
     plural(theirVideos.length, "video"),
-    plural(outliers.length, "outlier"),
-    mode,
   ];
+  if (liveChannels) {
+    bits.push(plural(measuredCount, "outlier"));
+    bits.push(liveChannels + " of " + state.watchlist.length + " live");
+  } else {
+    bits.push(plural(outliers.length, "recent upload"));
+    bits.push("baseline set, refresh again later for measured velocity");
+  }
   if (fails) bits.push(fails + " couldn't be read");
   ui.nicheStatus.textContent = bits.join(" · ");
   ui.nicheRefresh.disabled = false;
@@ -291,17 +304,26 @@ function renderNiche() {
     const total = state.nicheItems.length;
     const measured = state.nicheItems.filter((it) => it.measured).length;
     let basis;
+    /*
+     * The heading has to match what the list is actually ranked on. With no
+     * snapshots yet there is no velocity to speak of, so it says so rather
+     * than promising a finding it cannot make.
+     */
+    let title;
     if (!measured) {
-      basis = "Ordered on lifetime pace, which flatters recent uploads, so treat this as a rough " +
-        "shortlist. Refresh again in half an hour and it becomes growth measured between your visits.";
+      title = "Their biggest uploads of the last " + RECENT_DAYS + " days";
+      basis = "Ranked on plain view count, because one visit cannot measure how fast anything is " +
+        "moving. Refresh again after a gap and this becomes growth measured between your visits.";
     } else if (measured === total) {
+      title = "What is working right now";
       basis = "Ranked on growth measured between your own visits, not inferred from upload dates.";
     } else {
+      title = "What is working right now";
       basis = "The first " + measured + " of " + total + " are ranked on growth measured between " +
-        "your visits. The rest follow on lifetime pace, which is why they carry a view count " +
-        "rather than a multiple.";
+        "your visits. The rest are recent uploads from channels without a second reading yet, " +
+        "ranked on view count, which is why they carry no multiple.";
     }
-    ui.nicheResults.appendChild(section("What is working right now", nicheList(state.nicheItems), basis));
+    ui.nicheResults.appendChild(section(title, nicheList(state.nicheItems), basis));
   }
   if (state.gapItems.length) {
     ui.nicheResults.appendChild(section(

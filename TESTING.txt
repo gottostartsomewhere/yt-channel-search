@@ -175,8 +175,14 @@
  [ ] Track adds a chip
  [ ] Chip remove button works and survives a reopen
  [ ] Refresh all reports progress per channel
- [ ] Measured rows carry a multiple and "normal pace". Rows falling back to
-     lifetime pace carry a view count instead, never a multiple
+ [ ] Measured rows carry a multiple and "normal pace"
+ [ ] A channel with no second reading yet is headed "Their biggest uploads of
+     the last 90 days" and ranked by view count, descending. It must NOT come
+     out ordered by recency, which is what lifetime pace produced
+ [ ] The status counts "recent uploads", not "outliers", until something is
+     actually measured
+ [ ] Compare warns when either side hit the video limit. Newest are read
+     first, so a capped catalogue's medians run high
  [ ] Every measured row sorts above every inferred one. The two are different
      quantities and must not be interleaved
  [ ] A fallback row does not print its view count twice on one line

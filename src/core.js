@@ -36,6 +36,8 @@ function loadSettings() {
 const SNAPSHOT_LIMIT = 8; // how many view-count snapshots we keep per channel
 const VELOCITY_FLOOR = 200; // a video needs this much measured growth to be a candidate
 const MIN_MEASURED = 5; // moving videos needed before a channel's median is worth trusting
+// How far back "recent" reaches for a channel with no second reading yet.
+const RECENT_DAYS = 90;
 const OUTLIER_RATIO = 1.5; // floor: never call anything slower than this an outlier
 const OUTLIER_MADS = 2; // and it must also sit this many MADs above the channel median
 
@@ -447,6 +449,17 @@ async function fetchCatalogFrom(url, onProgress) {
     onProgress(all.length);
     if (added === 0) break;
   }
+  /*
+   * Flag a catalogue that stopped at the cap rather than at the end.
+   *
+   * This matters most in Compare. The walk runs newest first, so a truncated
+   * read is not a random sample of a channel, it is its recent half, and the
+   * medians drawn from it sit higher than the channel's real ones. Setting a
+   * capped 1800 beside a complete 448 and printing both as though they
+   * described whole catalogues would be quietly wrong, so the panes that use
+   * this say when it happened.
+   */
+  all.truncated = !!token && pages >= maxPages;
   return all;
 }
 

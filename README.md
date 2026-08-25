@@ -71,11 +71,12 @@ twice, "what is working" ranks by measured velocity, how fast each video is
 moving relative to how fast that channel normally moves, so a small channel's
 breakout can outrank a big channel's average upload.
 
-Channels without two snapshots yet fall back to lifetime pace, and those rows
-are kept separate rather than mixed in. They sort below every measured row and
-show a view count instead of a multiple, because dividing a recent upload's
-rate by a median full of much older videos produces a number that mostly
-reports how new the video is.
+A channel with no second reading yet cannot be measured at all, so it is not
+pretended otherwise: those entries are simply that channel's biggest uploads of
+the last 90 days, ranked by view count, sorted below every measured row. They
+used to be ranked on lifetime pace, views over days since upload, which on a
+real channel returned a list ordered purely by recency and inversely by views,
+because a day-old video divides by one.
 
 ![The Watchlist section, tracking a competitor channel and ranking its videos by
 how far each beat that channel's own normal](docs/niche.jpg)

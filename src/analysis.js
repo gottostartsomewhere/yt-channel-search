@@ -30,7 +30,7 @@ async function runCompare() {
   ui.cmpStatus.textContent = "loading… 0";
   try {
     const cat = await fetchCatalogFrom(url, (n) => (ui.cmpStatus.textContent = "loading… " + n));
-    ui.cmpStatus.textContent = plural(cat.length, "video");
+    ui.cmpStatus.textContent = plural(cat.length, "video") + (cat.truncated ? " (capped)" : "");
     const label = raw.replace(/^https?:\/\/(www\.)?youtube\.com\//i, "").replace(/\/.*$/, "");
     renderCompare(state.catalog, cat, label);
   } catch (e) {
@@ -41,6 +41,16 @@ async function runCompare() {
 }
 function renderCompare(catA, catB, labelB) {
   const a = statsOf(catA), b = statsOf(catB);
+  /*
+   * Either side can have stopped at the video limit rather than at the end of
+   * the channel. Because the walk runs newest first, a capped read is that
+   * channel's recent half, and its medians sit above the channel's real ones.
+   * Comparing that against a complete catalogue without saying so would put a
+   * thumb on the scale, so the table carries the caveat.
+   */
+  const capped = [];
+  if (catA.truncated) capped.push("this channel");
+  if (catB.truncated) capped.push(labelB);
   const metrics = [
     ["Videos", a.n, b.n, String(a.n), String(b.n)],
     ["Total views", a.total, b.total, fmtCompact(a.total), fmtCompact(b.total)],
@@ -81,6 +91,14 @@ function renderCompare(catA, catB, labelB) {
   tbl.appendChild(tb);
   ui.cmpResult.innerHTML = "";
   ui.cmpResult.appendChild(tbl);
+  if (capped.length) {
+    const warn = document.createElement("div");
+    warn.className = "ytcs-secnote";
+    warn.textContent = capped.join(" and ") + " hit the video limit, so only the most recent " +
+      cfg.maxVideos + " uploads are counted. Newest videos are read first, so those medians run " +
+      "high. Raise the limit in the toolbar popup for a fair comparison.";
+    ui.cmpResult.appendChild(warn);
+  }
 }
 
 // ---- small layout helpers ------------------------------------------------
