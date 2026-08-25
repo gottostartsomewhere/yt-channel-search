@@ -396,8 +396,11 @@ function findNativeGrid() {
   return document.querySelector("ytd-rich-grid-renderer");
 }
 
+// A tab that has just been brought to the front has to mount ytd-browse from
+// scratch, which takes longer than a normal in-page navigation, so the budget
+// is wider than the 2.4s that was enough when this only ran on a visible tab.
 async function findGridWithRetry(tries) {
-  tries = tries || 12;
+  tries = tries || 25;
   for (let i = 0; i < tries; i++) {
     const g = findNativeGrid();
     if (g && g.parentElement) return g;
@@ -509,8 +512,46 @@ async function refreshCatalog() {
   }
 }
 
+/*
+ * YouTube does not mount ytd-browse at all while the tab is in the background.
+ * There is no grid, no #primary, nothing to take over, and findGridWithRetry
+ * spends its whole budget against a page that has not rendered. It then falls
+ * through to document.body, so the panel lands somewhere useless and the native
+ * grid is never hidden. Switch to the tab afterwards and you have both.
+ *
+ * Clicking the launcher cannot hit this, since you have to be looking at the
+ * tab to click it. Auto-open can: it fires 800ms after load, which for a
+ * channel opened in a background tab is long before anything exists.
+ */
+function whenVisible() {
+  if (document.visibilityState !== "hidden") return Promise.resolve();
+  return new Promise((resolve) => {
+    const onChange = () => {
+      if (document.visibilityState === "hidden") return;
+      document.removeEventListener("visibilitychange", onChange);
+      resolve();
+    };
+    document.addEventListener("visibilitychange", onChange);
+  });
+}
+
 async function enable() {
+  if (state.active || state.enabling) return;
+  state.enabling = true;
+  try {
+    await enableNow();
+  } finally {
+    state.enabling = false;
+  }
+}
+
+async function enableNow() {
   if (!ui) buildUi();
+  await whenVisible();
+  // The tab may have been left on a different page while it sat in the
+  // background, so the channel it was opened for is not necessarily the one
+  // being looked at now.
+  if (!isChannelPage()) return;
   const native = await findGridWithRetry();
   const host =
     (native && native.parentElement) ||

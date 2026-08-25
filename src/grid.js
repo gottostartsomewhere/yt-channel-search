@@ -8,7 +8,8 @@
 
 // ---- state ---------------------------------------------------------------
 const state = {
-  catalog: [], loading: false, active: false, nativeGrid: null, nativeDisplay: "",
+  catalog: [], loading: false, active: false, enabling: false,
+  nativeGrid: null, nativeDisplay: "",
   medianVpd: 0, medianViews: 0, view: "search", insight: "overview",
   newIds: new Set(), cachedAt: 0,
   watchlist: [], nicheItems: [], gapItems: [], nicheRan: false,
