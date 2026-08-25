@@ -459,7 +459,12 @@ async function persistCatalog(key, cat) {
     }
   }
 
-  const snapshot = {};
+  // Prototype-less: video ids come out of a parsed payload and become object
+  // keys here, and a key like "__proto__" or "constructor" on a normal object
+  // does not behave like data. Nothing can currently produce one, since
+  // YouTube assigns the ids, but this is the only place parsed strings are
+  // used as keys and the guard costs nothing.
+  const snapshot = Object.create(null);
   for (const v of cat) snapshot[v.id] = v.views;
   // Only lay down a fresh snapshot once enough time has passed, otherwise a
   // burst of refreshes would collapse the measurement window to minutes.
@@ -476,6 +481,9 @@ async function persistCatalog(key, cat) {
     ids: cat.map((v) => v.id),
     history: nextHistory,
   });
+  // Drop the least recently fetched channels once the cache is oversized.
+  // After the write, so the channel just visited is never the one evicted.
+  await pruneCache();
   return { newIds: newIds, snapshots: nextHistory.length, at: now };
 }
 
@@ -625,10 +633,28 @@ window.addEventListener("yt-navigate-finish", () => {
 });
 // Keyboard shortcut, relayed from the service worker.
 try {
-  chrome.runtime.onMessage.addListener((msg) => {
-    if (msg && msg.type === "ytcs-toggle" && isChannelPage()) {
+  chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    if (!msg) return;
+    if (msg.type === "ytcs-toggle" && isChannelPage()) {
       if (state.active) disable();
       else enable();
+      return;
+    }
+    /*
+     * The popup cannot clear the cache itself. IndexedDB is opened from the
+     * content script, so the database belongs to the youtube.com origin, and
+     * the popup runs on the extension's own. It has to ask the page.
+     */
+    if (msg.type === "ytcs-clear") {
+      clearCache().then(() => {
+        state.catalog = [];
+        state.newIds = new Set();
+        state.cachedAt = 0;
+        state.watchlist = [];
+        if (state.active) disable();
+        sendResponse({ ok: true });
+      }, () => sendResponse({ ok: false }));
+      return true; // async reply
     }
   });
 } catch (e) { /* no extension context, nothing to relay */ }

@@ -48,6 +48,10 @@
  [ ] On a stale YouTube tab it says to reload, rather than failing silently
  [ ] Every setting persists across close and reopen
  [ ] Reset restores defaults
+ [ ] Clear cached data asks once, then wipes catalogues, snapshots and
+     watchlist. Reopening a channel re-fetches from scratch
+ [ ] Clear is disabled with an explanation when the tab is not YouTube
+ [ ] Settings survive a Clear. It is a cache control, not a reset
  [ ] Change shortcut opens the browser shortcut page
 
  Settings must actually reach the panel:

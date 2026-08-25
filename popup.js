@@ -61,21 +61,54 @@ $("shortcuts").addEventListener("click", (e) => {
 
 // The panel lives in the page, so opening it means messaging the active tab.
 const CHANNEL = /^https:\/\/www\.youtube\.com\/(@[^/]+|channel\/|c\/|user\/)/;
+const YOUTUBE = /^https:\/\/www\.youtube\.com\//;
+
 chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
   const tab = tabs && tabs[0];
-  const ok = tab && CHANNEL.test(tab.url || "");
-  if (!ok) {
+  const url = (tab && tab.url) || "";
+
+  if (CHANNEL.test(url)) {
+    $("open").addEventListener("click", () => {
+      chrome.tabs.sendMessage(tab.id, { type: "ytcs-toggle" }, () => {
+        if (chrome.runtime.lastError) {
+          $("hint").textContent = "Reload the YouTube tab, then try again.";
+          return;
+        }
+        window.close();
+      });
+    });
+  } else {
     $("open").disabled = true;
     $("hint").textContent = "Open a YouTube channel to use the panel.";
+  }
+
+  /*
+   * Cached catalogues live in IndexedDB on the youtube.com origin, because the
+   * content script is what opens the database. This popup runs on the
+   * extension's own origin and cannot reach it, so clearing has to be asked of
+   * a YouTube tab. Any YouTube page will do, not just a channel.
+   */
+  const clear = $("clear");
+  if (!YOUTUBE.test(url)) {
+    clear.disabled = true;
+    clear.title = "Open a YouTube tab to clear cached data";
     return;
   }
-  $("open").addEventListener("click", () => {
-    chrome.tabs.sendMessage(tab.id, { type: "ytcs-toggle" }, () => {
-      if (chrome.runtime.lastError) {
-        $("hint").textContent = "Reload the YouTube tab, then try again.";
+  clear.addEventListener("click", () => {
+    if (clear.dataset.armed !== "1") {
+      clear.dataset.armed = "1";
+      clear.textContent = "Clear? This cannot be undone";
+      flash("Cached catalogues, snapshots and watchlist");
+      return;
+    }
+    chrome.tabs.sendMessage(tab.id, { type: "ytcs-clear" }, (res) => {
+      clear.dataset.armed = "";
+      clear.textContent = "Clear cached data";
+      if (chrome.runtime.lastError || !res || !res.ok) {
+        flash("Reload the YouTube tab first");
         return;
       }
-      window.close();
+      flash("Cleared");
     });
   });
 });

@@ -48,10 +48,16 @@ snapshots, and watchlists never sync and never leave the device.
 
 ## Deleting your data
 
-Removing the extension deletes everything it stored. To clear it while keeping
-the extension, remove the site data for youtube.com in your browser settings,
-which drops the cached catalogues and snapshots, and use Reset in the popup to
-restore default settings.
+Open the popup on any YouTube tab and use **Clear cached data**. That deletes
+every cached catalogue, every snapshot, and your watchlist. It asks once before
+doing it, and it cannot be undone. Settings are left alone; Reset next to it
+restores those.
+
+Removing the extension also deletes everything it stored.
+
+Cached catalogues are capped at the 40 most recently read channels, so the
+cache does not grow without limit as you browse. Your watchlist is exempt from
+that, since it is a choice you made rather than a cache.
 
 ## Permissions, and why each is needed
 

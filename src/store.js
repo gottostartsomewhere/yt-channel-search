@@ -36,6 +36,64 @@ async function idbPut(key, val) {
     });
   } catch (e) { /* cache is best-effort */ }
 }
+
+/*
+ * ---- keeping the cache from growing forever ------------------------------
+ *
+ * Every channel opened used to be kept indefinitely. A large catalogue plus
+ * its snapshots runs to a few hundred kilobytes, so browsing a lot of channels
+ * quietly accumulated tens of megabytes of somebody's watch history with no
+ * way to see it or clear it short of wiping youtube.com site data.
+ *
+ * So: keep the most recently fetched CACHE_LIMIT channels and drop the rest.
+ * The watchlist key is exempt, since it is a preference rather than a cache
+ * and it is tiny.
+ */
+const CACHE_LIMIT = 40;
+
+async function idbKeys() {
+  try {
+    const db = await idbOpen();
+    return await new Promise((res, rej) => {
+      const rq = db.transaction("catalogs", "readonly").objectStore("catalogs").getAllKeys();
+      rq.onsuccess = () => res(rq.result || []);
+      rq.onerror = () => rej(rq.error);
+    });
+  } catch (e) { return []; }
+}
+
+async function idbDelete(keys) {
+  if (!keys.length) return;
+  try {
+    const db = await idbOpen();
+    await new Promise((res, rej) => {
+      const tx = db.transaction("catalogs", "readwrite");
+      const store = tx.objectStore("catalogs");
+      keys.forEach((k) => store.delete(k));
+      tx.oncomplete = () => res();
+      tx.onerror = () => rej(tx.error);
+    });
+  } catch (e) { /* best-effort, same as the writes */ }
+}
+
+async function pruneCache() {
+  const keys = (await idbKeys()).filter((k) => k !== "__watchlist");
+  if (keys.length <= CACHE_LIMIT) return;
+  const entries = [];
+  for (const k of keys) {
+    const v = await idbGet(k);
+    entries.push({ key: k, at: (v && v.fetchedAt) || 0 });
+  }
+  entries.sort((a, b) => b.at - a.at);
+  await idbDelete(entries.slice(CACHE_LIMIT).map((e) => e.key));
+}
+
+// Everything this extension has cached, cleared. Settings are kept: they live
+// in chrome.storage and are not what anyone means by "clear my data" here.
+async function clearCache() {
+  const keys = await idbKeys();
+  await idbDelete(keys);
+}
 function fmtAgo(ms) {
   if (!ms) return "";
   const s = Math.max(1, Math.floor((Date.now() - ms) / 1000));

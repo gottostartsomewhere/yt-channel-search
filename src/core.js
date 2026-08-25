@@ -411,6 +411,18 @@ async function fetchCatalogFrom(url, onProgress) {
   const all = videos.slice();
   onProgress(all.length);
 
+  /*
+   * The walk is bounded three ways: a page cap from the user's video limit, a
+   * break when a page yields nothing, and a break when the payload stops
+   * offering a continuation.
+   *
+   * Ids are tracked as well, because a repeated continuation token would
+   * otherwise re-add the same page. That cannot run forever, since the page
+   * cap still holds, but duplicates would land in the catalogue and quietly
+   * skew every median and count computed from it. Cheaper to refuse them than
+   * to explain the numbers later.
+   */
+  const seen = new Set(all.map((v) => v.id));
   let pages = 0;
   const maxPages = Math.max(1, Math.ceil(cfg.maxVideos / 30));
   while (token && pages < maxPages) {
@@ -424,10 +436,16 @@ async function fetchCatalogFrom(url, onProgress) {
     const arr = deepFind(json, "continuationItems");
     if (!arr) break;
     const res = parseItemArray(arr);
-    all.push(...res.videos);
+    let added = 0;
+    for (const v of res.videos) {
+      if (seen.has(v.id)) continue;
+      seen.add(v.id);
+      all.push(v);
+      added++;
+    }
     token = res.token;
     onProgress(all.length);
-    if (res.videos.length === 0) break;
+    if (added === 0) break;
   }
   return all;
 }
