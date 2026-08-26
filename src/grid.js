@@ -128,10 +128,20 @@ function applyView() {
   }
   ui.count.textContent = rows.length + " of " + state.catalog.length;
 
-  const filtered = !!(ui.kw.value.trim() || ui.duration.value || ui.views.value ||
+  /*
+  * Two different questions, which used to share one answer.
+  *
+  * Clear appears whenever anything is off default, sort included, because
+  * resetting the sort is part of what it does. The count only goes accent when
+  * the set was actually narrowed. Changing sort order alone used to paint
+  * "22 of 22" in the filtered colour, which claims a filter ran when nothing
+  * was removed.
+  */
+  const narrowed = rows.length !== state.catalog.length;
+  const touched = !!(ui.kw.value.trim() || ui.duration.value || ui.views.value ||
     ui.uploaded.value || ui.watched.value || ui.fits.value || ui.sort.value !== "newest");
-  ui.clear.style.display = filtered ? "" : "none";
-  ui.count.classList.toggle("ytcs-filtered", filtered);
+  ui.clear.style.display = touched ? "" : "none";
+  ui.count.classList.toggle("ytcs-filtered", narrowed);
 }
 
 function median(nums) {
@@ -199,7 +209,7 @@ function renderStats(rows) {
     ["total views", fmtCompact(totalViews)],
     ["median views", fmtCompact(medViews)],
     ["avg length", fmtDuration(avgDur) || "–"],
-    ["median views/day", fmtCompact(Math.round(medVpd))],
+    ["median views/day", fmtRate(medVpd)],
   ];
   // Only meaningful when this account actually has history on the channel.
   if (state.catalog.some((v) => typeof v.progress === "number")) {
@@ -275,7 +285,7 @@ function renderGrid(rows) {
     if (v.days) {
       const vpd = document.createElement("div");
       vpd.className = "ytcs-cvpd";
-      vpd.textContent = "≈ " + fmtCompact(Math.round(vpdVal)) + " views/day";
+      vpd.textContent = "≈ " + rateText(vpdVal, "day");
       info.appendChild(vpd);
     }
     if (v.gained > 0 && v.sinceDays) {

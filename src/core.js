@@ -68,6 +68,29 @@ function plural(n, word) {
   return n + " " + word + (n === 1 ? "" : "s");
 }
 
+/*
+ * A rate, which unlike a view count is routinely below one.
+ *
+ * Rounding these to whole numbers printed "0 median views/day" on a small
+ * older channel and "0 views/day" on individual cards, which reads as missing
+ * data rather than as the true answer. A video with 451 views over six years
+ * really is doing a fifth of a view a day, and saying so is more use than
+ * saying nothing. Anything under a tenth is reported as a bound, since another
+ * decimal there is noise.
+ */
+function fmtRate(v) {
+  if (!v || v < 0) return "0";
+  if (v >= 1) return fmtCompact(Math.round(v));
+  if (v >= 0.05) return v.toFixed(1);
+  return "<0.1";
+}
+
+// "1 views/day" is the same bug as "1 channels", one decimal further along.
+function rateText(v, unit) {
+  const s = fmtRate(v);
+  return s + " view" + (s === "1" ? "" : "s") + "/" + unit;
+}
+
 // Kept in step with the filter dropdowns so a chart bar can drive the grid.
 const VIEW_BUCKETS = [
   ["<10K", 0, 1e4], ["10-100K", 1e4, 1e5], ["100K-1M", 1e5, 1e6],
