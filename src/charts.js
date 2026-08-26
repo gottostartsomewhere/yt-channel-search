@@ -28,7 +28,14 @@ function svgText(x, y, s, cls) {
  * without going to the note underneath.
  */
 function barChart(data, onBar) {
-  const W = 340, H = 128, pad = { t: 14, r: 8, b: 26, l: 8 };
+  /*
+   * Top padding has to clear the value label sitting above the tallest bar,
+   * not just the bar itself. The peak lands at y = pad.t and its label is
+   * drawn above that, so anything less than the label's own height put the
+   * glyph tops outside the viewBox and clipped them. Height grows with the
+   * padding so the plot area keeps its shape.
+   */
+  const W = 340, H = 132, pad = { t: 18, r: 8, b: 26, l: 8 };
   const max = Math.max(1, Math.max.apply(null, data.map((d) => d.value)));
   const iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
   const slot = iw / (data.length || 1);
@@ -71,7 +78,10 @@ function barChart(data, onBar) {
 }
 // Line chart for a value that has a shape across ordered bins.
 function lineChart(data) {
-  const W = 340, H = 128, pad = { t: 16, r: 14, b: 26, l: 14 };
+  // Same clearance problem as barChart, and worse here: the peak label sits a
+  // further 10 above the point, so at pad.t 16 it was drawn off the top of the
+  // viewBox entirely and rendered as a half-cut row of digits.
+  const W = 340, H = 140, pad = { t: 28, r: 14, b: 26, l: 14 };
   const max = Math.max(1, Math.max.apply(null, data.map((d) => d.value)));
   const iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
   const step = data.length > 1 ? iw / (data.length - 1) : 0;
