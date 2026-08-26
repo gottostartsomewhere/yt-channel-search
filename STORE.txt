@@ -109,10 +109,24 @@ Not affiliated with YouTube or Google.
 
 
 -------------------------------------------------------------------------------
- PRIVACY POLICY URL
+ URLS
 -------------------------------------------------------------------------------
 
- https://github.com/gottostartsomewhere/yt-channel-search/blob/main/PRIVACY.md
+ Privacy policy   https://github.com/gottostartsomewhere/yt-channel-search/blob/main/PRIVACY.md
+ Homepage         https://github.com/gottostartsomewhere/yt-channel-search
+ Support          https://github.com/gottostartsomewhere/yt-channel-search/issues
+
+ Official URL: leave as None. It only accepts a domain verified as yours in
+ Google Search Console, and there is no domain here.
+
+ Homepage and Support are worth filling even though both are optional. Support
+ especially: without it, somebody who hits a problem has nowhere to go except
+ the review box, and a one-star review is permanent in a way a closed issue is
+ not. Homepage carries its own weight for an extension that reads watch
+ history, because it is the one link a suspicious user can follow to check that
+ the privacy policy matches the code.
+
+ Mature content: off.
 
 
 -------------------------------------------------------------------------------
