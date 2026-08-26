@@ -79,7 +79,10 @@ real channel returned a list ordered purely by recency and inversely by views,
 because a day-old video divides by one.
 
 ![The Watchlist section, tracking competitor channels and listing their
-biggest recent uploads alongside content gaps](docs/watchlist.png)
+biggest recent uploads](docs/watchlist.png)
+
+![Content gaps: topics a tracked channel covers that this one never has, ranked
+by how much of their catalogue each takes up](docs/gaps.png)
 
 Alongside that: catalogues cache locally so re-opening is instant, refreshing
 flags uploads added since your last visit, and any filtered set exports to CSV
