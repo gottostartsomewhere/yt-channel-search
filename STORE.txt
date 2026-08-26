@@ -23,7 +23,7 @@
  YouTube's channel search only matches text. This searches the whole back
  catalogue by length, views, date and what you've watched.
 
- (129 characters. Must match the manifest description exactly.)
+ (130 characters. Must match the manifest description exactly.)
 
 
 -------------------------------------------------------------------------------
