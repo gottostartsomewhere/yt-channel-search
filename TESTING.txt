@@ -156,6 +156,12 @@
  [ ] The current year is present on the chart, absent from anything derived
  [ ] Year axis spans first to last with silent years drawn as gaps
  [ ] Value labels never overlap. Above roughly 8 bars only the peak keeps one
+ [ ] The peak's value label is never clipped by the top of a chart. Check the
+     length curve in particular, where the label sits furthest above its mark
+ [ ] Filter hard enough to leave a handful of videos. Every note must either
+     stay silent or describe that selection honestly. Nothing may report a
+     fall to zero as "down 100%", and no note may read as a verdict on the
+     channel when it only describes what the filters left
  [ ] Uploads per year renders
  [ ] Median views by year renders
  [ ] Views and length distributions render

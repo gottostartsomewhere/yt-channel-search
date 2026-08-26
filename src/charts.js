@@ -160,8 +160,23 @@ function peakIndex(data) {
   return best;
 }
 
+/*
+ * Every chart here is drawn from the filtered rows, not the whole channel, but
+ * the notes underneath are written as sentences about the channel. That is
+ * fine at full catalogue and wrong once a filter cuts deep: six matching
+ * videos spread across a decade produced "Output peaked in '19 and is down
+ * 100% by '20", which is true of those six and reads as an obituary.
+ *
+ * So nothing is claimed below a sample that could support it, and a year with
+ * no uploads is described rather than expressed as a percentage fall. "Down
+ * 100%" is arithmetic for "there were none", and the words are clearer.
+ */
+const MIN_FOR_TREND = 20;
+
 function uploadsNote(uploads) {
   if (uploads.length < 3) return "";
+  const total = uploads.reduce((sum, u) => sum + u.value, 0);
+  if (total < MIN_FOR_TREND) return "";
   // The newest bin is the current year and is still filling, so comparing to it
   // would report every channel as collapsing every January.
   const settled = uploads.slice(0, -1);
@@ -170,6 +185,9 @@ function uploadsNote(uploads) {
   if (!settled[peak].value) return "";
   if (peak === settled.length - 1) {
     return "Output is at its highest in " + last.label + ", " + plural(last.value, "upload") + ".";
+  }
+  if (!last.value) {
+    return "Output peaked in " + settled[peak].label + ", with nothing in " + last.label + ".";
   }
   const drop = Math.round((1 - last.value / settled[peak].value) * 100);
   if (drop < 15) return "Output has held roughly steady since " + settled[peak].label + ".";
