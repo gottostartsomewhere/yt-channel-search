@@ -24,10 +24,16 @@
  *
  * WHICH CHANNEL
  *
- * Shots 1, 3 and 4 want a channel people recognise with a deep back catalogue.
- * Shot 2 is different: it shows watch state, so it has to be a channel you have
- * genuinely watched. On a channel you have never opened, every video reads as
- * not started, there are no progress bars, and the shot proves nothing.
+ * Shots 1 and 3 want a channel people recognise with a deep back catalogue.
+ *
+ * Shot 2 shows watch state, so it has to be a channel you have genuinely
+ * watched. On a channel you have never opened every video reads as not
+ * started, there are no progress bars, nothing is dimmed, and the shot proves
+ * nothing.
+ *
+ * Shots 4 and 5 need setup before they will show anything: the watchlist wants
+ * two or three tracked channels already refreshed, and Compare wants a channel
+ * entered and fetched. Do that first, then call shot().
  */
 
 function shot(n) {
@@ -60,11 +66,11 @@ function shot(n) {
     set(ui.watched, "new");
     set(ui.fits, "30");
   } else if (n === 3) {
-    set(ui.sort, "starthere");
-    ui.sort.classList.remove("ytcs-dim");
-  } else if (n === 4) {
     setView("insights");
     setInsight("overview");
+  } else if (n === 4) {
+    setView("insights");
+    setInsight("watchlist");
   } else if (n === 5) {
     setView("insights");
     setInsight("compare");

@@ -8,8 +8,8 @@ upload history first and then letting you query it.
 Free, with no paid tier. It runs entirely in your browser: no account, no API
 key, no server, nothing sent anywhere.
 
-![The grid, filtered to 18 of 177 videos matching a keyword, with a live stats
-strip and views per day on every card](docs/grid.jpg)
+![The Search view, a keyword and two filters narrowing a channel's full
+catalogue down to a handful of videos](docs/search.png)
 
 ## The idea
 
@@ -58,8 +58,8 @@ across questions, versus, numbered lists, how-to and superlatives. That last
 one is the part YouTube Studio does not do even for your own channel, because
 Studio tells you what performed and never which pattern performed.
 
-![The Insights overview: the headline finding, then median views by video length
-and by upload year](docs/analytics.jpg)
+![The Insights overview: the headline finding, then median views by video
+length and by upload year](docs/insights.png)
 
 **Compare.** Read any other channel's full catalogue and set its median views,
 median views per day, length, and top performers against this one.
@@ -78,8 +78,8 @@ used to be ranked on lifetime pace, views over days since upload, which on a
 real channel returned a list ordered purely by recency and inversely by views,
 because a day-old video divides by one.
 
-![The Watchlist section, tracking a competitor channel and ranking its videos by
-how far each beat that channel's own normal](docs/niche.jpg)
+![The Watchlist section, tracking competitor channels and listing their
+biggest recent uploads alongside content gaps](docs/watchlist.png)
 
 Alongside that: catalogues cache locally so re-opening is instant, refreshing
 flags uploads added since your last visit, and any filtered set exports to CSV
@@ -169,7 +169,7 @@ sort to open on, and whether to hide watched videos or open automatically.
 Changes save as you make them. The shortcut can be rebound at
 `chrome://extensions/shortcuts`.
 
-<img src="docs/popup.jpg" alt="The toolbar popup, with a button to open the panel
+<img src="docs/popup.png" alt="The toolbar popup, with a button to open the panel
 and the settings beneath it" width="330">
 
 ## Layout
