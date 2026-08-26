@@ -157,11 +157,21 @@ Not affiliated with YouTube or Google.
 
  Run docs/shot-setup.js in the console, then shot(1) through shot(5).
 
- docs/search.png     1. THUMBNAIL, and README hero. Search view, keyword typed,
-                        two pills lit red, the summary line visible, and a count
-                        that is plainly a small slice of the whole. It has to
-                        carry the pitch with no caption: a precise query running
-                        against a big catalogue. Aim for "12 of 236".
+ docs/search.png     1. THUMBNAIL, and README hero. DONE. Composed rather than
+                        a raw capture: a raw one goes unreadable at listing
+                        size, where every pill and card title becomes a grey
+                        smudge. Headline "Find that video you know they made"
+                        over a crop of the filter row and one card row, in the
+                        extension's own palette so it does not read as somebody
+                        else's screenshot.
+
+                        Headline leads with the feeling, not the feature.
+                        Everyone has hunted for a video they knew a channel had
+                        and given up; recognition beats description in a grid of
+                        listings, and a short line sets bigger.
+
+                        Rebuild it with scratchpad/thumb.js, which renders every
+                        headline variant so they can be compared at size.
 
  (not in README)     2. Search with Watched set to not started and a free-time
                         filter on. The thing no competitor does, so it earns a
