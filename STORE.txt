@@ -67,7 +67,20 @@ Not affiliated with YouTube or Google.
  CATEGORY
 -------------------------------------------------------------------------------
 
- Chrome:  Productivity     (Tools is the alternative, Productivity fits better)
+ Chrome:  Productivity  >  Tools
+
+ The picker is two levels now. Productivity's subcategories are Communication,
+ Developer Tools, Education, Tools, and Workflow & Planning, so Tools is the
+ only one that fits.
+
+ Not Developer Tools: that is for things developers use to build software, and
+ this is used by anyone watching YouTube. A reviewer seeing the mismatch has a
+ reason to look harder at everything else.
+
+ The category is checked against the single purpose statement below, and
+ "searching and filtering the videos of a YouTube channel" is a tool. It can be
+ changed later from the dashboard without another review.
+
  Firefox: Search Tools
  Edge:    Productivity
 
