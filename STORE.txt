@@ -212,8 +212,16 @@ Not affiliated with YouTube or Google.
 
  [ ] 5 screenshots at 1280x800     the four in docs/ are from the old four-tab
                                    layout and must be retaken
- [ ] Small promo tile, 440x280     (optional, but listings without it look
-                                   unfinished in search results)
+ [x] Small promo tile, 440x280     docs/promo-440x280.png. Drawn, not cropped:
+                                   at listing size a screenshot is a grey
+                                   rectangle, so it is the wordmark plus the
+                                   product's own search field and lit filter
+                                   pill, which stay crisp at any scale. Rebuild
+                                   with scratchpad/promo.js.
+ [ ] Marquee promo tile, 1400x560  Only ever shown if Google features you, so
+                                   there is no reason to make it up front.
+ [ ] Promo video                   Optional. Skip it: effort spent on a listing
+                                   with no installs yet.
  [x] Chrome developer account      johnkevin0742, registered
  [ ] Publisher display name        defaults to the account name, and a listing
                                    published by "johnkevin0742" reads like a
