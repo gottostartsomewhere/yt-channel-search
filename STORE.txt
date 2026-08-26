@@ -112,6 +112,13 @@ Not affiliated with YouTube or Google.
  URLS
 -------------------------------------------------------------------------------
 
+ PUBLISHED 26 August 2026, first review, same day, nothing queried.
+ Listing   https://chromewebstore.google.com/detail/channel-search+-for-youtu/magofcbhfhpfabphcldhodhgehhclokc
+
+ Share the URL WITHOUT the ?authuser= parameter the dashboard appends. That
+ is your own account context and it sends anyone signed into a different
+ Google account somewhere unexpected.
+
  Privacy policy   https://github.com/gottostartsomewhere/yt-channel-search/blob/main/PRIVACY.md
  Homepage         https://github.com/gottostartsomewhere/yt-channel-search
  Support          https://github.com/gottostartsomewhere/yt-channel-search/issues

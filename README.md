@@ -8,6 +8,8 @@ upload history first and then letting you query it.
 Free, with no paid tier. It runs entirely in your browser: no account, no API
 key, no server, nothing sent anywhere.
 
+**[Install it here](https://chromewebstore.google.com/detail/channel-search+-for-youtu/magofcbhfhpfabphcldhodhgehhclokc)**
+
 ![The Search view, a keyword and two filters narrowing a channel's full
 catalogue down to a handful of videos](docs/search.png)
 
@@ -151,7 +153,11 @@ session and needs no API key of your own.
 
 ## Install
 
-Once it is on the stores, install links go here. Until then, from source:
+**[Install from the Chrome Web Store](https://chromewebstore.google.com/detail/channel-search+-for-youtu/magofcbhfhpfabphcldhodhgehhclokc)**
+
+Works in Edge and other Chromium browsers from the same listing.
+
+To run it from source instead:
 
 Run `node build.js` first. It has no dependencies and writes `dist/chrome` and
 `dist/firefox`, which differ only in the manifest, plus a zip of each for store
