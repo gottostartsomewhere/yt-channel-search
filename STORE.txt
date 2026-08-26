@@ -30,6 +30,15 @@
  DETAILED DESCRIPTION
 -------------------------------------------------------------------------------
 
+ DO NOT PASTE FROM THIS FILE. Paste from docs/store-description.txt.
+
+ The copy below is hard-wrapped at 72 characters so it reads as a plain text
+ file. The store preserves newlines, so pasting it verbatim produces short
+ ragged lines with a wide empty margin down the right. docs/store-description.txt
+ holds the same words with each paragraph on a single unbroken line, which lets
+ the store flow the text to its own column width. Bullets stay one per line in
+ both, because those breaks are wanted.
+
 YouTube's in-channel search only matches words in titles. You cannot ask it for
 videos under twenty minutes, or the ones you started and never finished, or a
 big channel's best work. This adds all of that.
