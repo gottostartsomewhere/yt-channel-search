@@ -1742,7 +1742,29 @@ function buildLauncher() {
   return btn;
 }
 
+/*
+ * YouTube's own filters change its list in place. A chip on search results
+ * (Videos, Unwatched, Recently uploaded...) swaps new results into the same
+ * element with no navigation at all, and with the panel open that element is
+ * hidden, so the click looked dead or left a black page until Close. Any click
+ * on one of those controls now hands the page back to YouTube first, and says
+ * how to get the panel back. Channel chips sit inside the grid the panel
+ * hides, so they never reach this; Watch Later's sort and chips do.
+ */
+const YT_FILTER_CONTROLS = "ytd-search-header-renderer, yt-chip-cloud-chip-renderer, chip-view-model, yt-chip-view-model, ytd-feed-filter-chip-bar-renderer, yt-sort-filter-sub-menu-renderer";
+document.addEventListener("click", (e) => {
+  if (!state.active || !ui) return;
+  const t = e.target;
+  if (!t || !t.closest || ui.wrap.contains(t) || !t.closest(YT_FILTER_CONTROLS)) return;
+  disable();
+  if (typeof toast === "function") toast("Showing YouTube's filter. Needle is closed", "Open Needle", () => enable());
+}, true);
+
 function ensureUi() {
+  // The panel is mounted beside YouTube's list. If YouTube re-renders that part
+  // of the page the panel goes with it, and carrying on would keep YouTube's
+  // list hidden under nothing: a black page. Give the page back instead.
+  if (state.active && ui && !ui.wrap.isConnected) disable();
   const onChannel = canRunHere();
   if (onChannel && !launcher) {
     launcher = buildLauncher();
