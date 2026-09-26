@@ -1,24 +1,27 @@
-YouTube's in-channel search only matches words in titles. You cannot ask it for videos under twenty minutes, or the ones you started and never finished, or a big channel's best work. This adds all of that.
+Previously it only made channel searching easier. Now it makes all of YouTube search and your history a much more personal experience.
 
-Open any channel's Videos tab and press the Search+ button. The extension reads the channel's entire upload history, then replaces the grid with one you can actually query. Free, with no paid tier and nothing held back.
+YouTube's search doesn't know what you've watched, can't filter by length or views, and channel search only matches titles. Needle fixes that, right inside YouTube's search bar.
 
-SEARCH
-- Length, view count, upload date, and keyword, combined freely
-- Watch state: hide what you have finished, or find what you abandoned
-- Free time: pick the minutes you have, see only what fits
-- Start here: a spread of a channel's best work for when you arrive cold
-- Sort by views per day, which surfaces breakouts rather than just old uploads
+IN THE SEARCH BAR
+- Your Watch Later, likes and history show up as you type
+- Type filters: <20m, >100k, unwatched, date:week, @channel
+- is:fresh hides what you've already been shown
+- Follow a search, mute a channel, see what you've watched on every thumbnail
+
+SEARCH A CHANNEL
+Press the needle button on any channel's Videos tab. It reads every upload, not just what's loaded.
+- Filter by length, views, date and keyword
+- Hide what you finished, or find what you abandoned
+- Pick the minutes you have and see only what fits
+
+YOUR HISTORY AND WATCH LATER
+- Everything you started and never finished
+- Filter by channel, length, views or when you watched it
+- Find that video you know you watched, without scrolling
 
 INSIGHTS
-- Where a channel's sweet spot is, when the data actually supports one
-- Uploads per year, and which years the channel performed best in
-- View and length distributions, clickable to filter the grid
-- Which title formats this audience responds to: questions, versus, how-to
-- Compare any two channels side by side
-- Keep a watchlist and see what is outperforming across all of them
-
-Most in-page filter tools only touch the video cards already loaded on screen. This reads the channel's complete catalogue first, so every sort, statistic and chart covers all of it rather than just what you scrolled past.
-
-Everything runs in your browser. No account, no API key, no server, and nothing is ever sent anywhere. Full source is published.
+- A channel's best-performing video lengths and years
+- Compare two channels side by side
+- A watchlist that spots videos beating their channel's usual views
 
 Not affiliated with YouTube or Google.

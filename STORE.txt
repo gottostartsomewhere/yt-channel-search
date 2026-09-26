@@ -10,20 +10,39 @@
  NAME
 -------------------------------------------------------------------------------
 
- Channel Search+ for YouTube
+ Needle for YouTube: Channel Search, History & Filters
 
- Not "YouTube Channel Search+". Google's branding rules do not allow a product
- name that begins with YouTube. The "X for YouTube" form is the accepted one.
+ Renamed at 2.0.0 from "Channel Search+ for YouTube", once the search bar made
+ the extension about all of YouTube rather than one channel. The words
+ "Channel Search" stay in the title on purpose: the old listing ranked #7 for
+ that query, and AI assistants will keep sending people who search the store
+ for the old name. Both still land here. The extension ID, installs and
+ reviews carry over; only the name changes. The Firefox add-on ID stays
+ channel-search-plus@johnkevin.dev, because changing it makes a new add-on.
+
+ Not "YouTube Needle". Google's branding rules do not allow a product name
+ that begins with YouTube. The "X for YouTube" form is the accepted one.
 
 
 -------------------------------------------------------------------------------
  SHORT DESCRIPTION            132 char limit
 -------------------------------------------------------------------------------
 
- YouTube's channel search only matches text. This searches the whole back
- catalogue by length, views, date and what you've watched.
+ The YouTube search that knows what you've watched. Channel search, history
+ and Watch Later, filtered by length, views and date.
 
- (130 characters. Must match the manifest description exactly.)
+ (127 characters. Must match the manifest description exactly, and it is one
+ line in the dashboard: wrapped here only to fit this file.)
+
+ Changed at 2.0.0. Leads with the one thing neither competitor does: YouTube
+ Search Plus searches YouTube without knowing what you watched, and Recall for
+ YouTube knows your history but cannot search YouTube. "Channel search" is
+ still in it verbatim, for the reason below.
+
+ Changed at 1.1.0, when watch history shipped. "channel search" is kept
+ verbatim because the listing ranks #7 on that query in store search and the
+ phrase is load-bearing. "watch history" is added rather than traded for it, so
+ a new term is gained without risking the one that already works.
 
 
 -------------------------------------------------------------------------------
@@ -39,20 +58,29 @@
  the store flow the text to its own column width. Bullets stay one per line in
  both, because those breaks are wanted.
 
-YouTube's in-channel search only matches words in titles. You cannot ask it for
-videos under twenty minutes, or the ones you started and never finished, or a
-big channel's best work. This adds all of that.
+YouTube's in-channel search only matches words in titles. You cannot ask it
+for videos under twenty minutes, or the ones you started and never finished,
+or a big channel's best work. This adds all of that.
 
-Open any channel's Videos tab and press the Search+ button. The extension reads
-the channel's entire upload history, then replaces the grid with one you can
-actually query. Free, with no paid tier and nothing held back.
+Open any channel's Videos tab and press the Search+ button. The extension
+reads the channel's entire upload history, then replaces the grid with one you
+can actually query. Free, with no paid tier and nothing held back.
 
-SEARCH
+SEARCH A CHANNEL
 - Length, view count, upload date, and keyword, combined freely
 - Watch state: hide what you have finished, or find what you abandoned
 - Free time: pick the minutes you have, see only what fits
 - Start here: a spread of a channel's best work for when you arrive cold
 - Sort by views per day, which surfaces breakouts rather than just old uploads
+
+SEARCH YOUR WATCH HISTORY
+The same panel opens on your Watch history page, where YouTube gives you a
+title search and nothing else. No way to sort it, no way to narrow it, no way
+to find the one you want.
+- Everything you started and never finished, which nothing else will show you
+- Filter your history by channel, length, views or when you watched it
+- Sort by most recently watched, or work backwards from the oldest
+- Find that video you know you watched, without scrolling for it
 
 INSIGHTS
 - Where a channel's sweet spot is, when the data actually supports one
@@ -63,13 +91,91 @@ INSIGHTS
 - Keep a watchlist and see what is outperforming across all of them
 
 Most in-page filter tools only touch the video cards already loaded on screen.
-This reads the channel's complete catalogue first, so every sort, statistic and
-chart covers all of it rather than just what you scrolled past.
+This reads the whole list first, whether that is a channel's complete
+catalogue or your history, so every sort, statistic and chart covers all of it
+rather than just what you scrolled past.
 
-Everything runs in your browser. No account, no API key, no server, and nothing
-is ever sent anywhere. Full source is published.
+Everything runs in your browser. No account, no API key, no server, and
+nothing is ever sent anywhere. Full source is published, so every claim here
+can be checked against the code.
+
+Reading your history beyond its first page is off by default and stays off
+unless you turn it on. It is explained in full in the privacy policy before
+you decide.
 
 Not affiliated with YouTube or Google.
+
+
+-------------------------------------------------------------------------------
+ LOCALISATION            four languages, added at 1.1.0
+-------------------------------------------------------------------------------
+
+ Store search is locale-aware, so a listing carrying Portuguese text can match
+ Portuguese queries in a way an English-only one cannot. The problem is
+ universal too: YouTube's channel search is equally weak in every language.
+
+ Four rather than one. The earlier plan was one language, measured, then
+ expand. That was too cautious: a language costs an hour of listing work with
+ no package change and no review risk, a weak Spanish listing cannot damage the
+ English one, and the dashboard reports installs BY COUNTRY, so each language
+ can be attributed on its own without staggering them.
+
+ NAME       Channel Search+ for YouTube      unchanged in every locale
+
+ Not translated anywhere. It is a brand, Google's rule against a name beginning
+ with YouTube still applies, and around 36% of traffic arrives from AI
+ assistants having been told the English name. Somebody searching the store for
+ what ChatGPT called it has to find it.
+
+ SHORT DESCRIPTIONS       all within the 132 limit, one line in the dashboard
+
+ pt-BR  116  A busca do YouTube só olha os títulos. Filtre um canal inteiro, ou
+             seu histórico, por duração, visualizações e data.
+ es     124  La búsqueda de YouTube solo mira los títulos. Filtra un canal
+             entero, o tu historial, por duración, visualizaciones y fecha.
+ id     124  Pencarian YouTube hanya melihat judul. Saring seluruh channel, atau
+             riwayat Anda, berdasarkan durasi, tayangan, dan tanggal.
+ ru     112  Поиск YouTube смотрит только на заголовки. Фильтруйте весь канал
+             или историю по длительности, просмотрам и дате.
+
+ DETAILED DESCRIPTIONS
+
+ docs/store-description-pt-BR.txt      docs/store-description-id.txt
+ docs/store-description-es.txt         docs/store-description-ru.txt
+
+ Same rule as the English one: paragraphs are single unbroken lines so the
+ store flows them to its own column width. Paste from those files, never from
+ this one.
+
+ WHY THESE FOUR
+
+ pt-BR  Brazil is a top-three YouTube market and a large Chrome market, and
+        pt-BR is one locale where Spanish fragments across es, es-419, es-ES.
+ es     Largest non-English speaker base by a distance.
+ id     Indonesia is an enormous YouTube market with very little competition in
+        the extension store, because almost nobody localises into it.
+ ru     Large, technical, and heavy extension users.
+
+ EVERY ONE SAYS THE INTERFACE IS IN ENGLISH, and that line stays until the UI
+ itself is localised. A translated listing in front of an English panel is the
+ one way this backfires, because it converts installs into uninstalls. Being
+ honest up front costs a few installs and protects the uninstall rate, which is
+ the number currently being watched.
+
+ STILL TO DO
+   [ ] Get a native speaker to read each one before publishing. These were
+       written to be idiomatic rather than translated literally, but nobody who
+       speaks them has read them. Store copy that reads like machine
+       translation costs more credibility than the reach earns. Indonesian and
+       Russian are the two worth checking hardest.
+   [ ] Screenshots stay English everywhere. Localising those is only worth it
+       for a locale that proves it converts.
+   [ ] Watch installs by country in the dashboard. That is the per-language
+       scoreboard and it needs no extra instrumentation.
+   [ ] If a locale converts and holds, localise the UI with chrome.i18n and
+       _locales/. Roughly 120-150 strings, and the real work is unpicking the
+       string concatenation in plural(), rateText() and fmtAgo() rather than
+       the translating. Do NOT start before a listing has proved the demand.
 
 
 -------------------------------------------------------------------------------
@@ -263,8 +369,21 @@ Not affiliated with YouTube or Google.
                                    with scratchpad/promo.js.
  [ ] Marquee promo tile, 1400x560  Only ever shown if Google features you, so
                                    there is no reason to make it up front.
- [ ] Promo video                   Optional. Skip it: effort spent on a listing
-                                   with no installs yet.
+ [x] Promo video                   Channel_Search.mp4, 1920x1040, 60fps, 70s.
+                                   The dashboard field takes a YouTube URL and
+                                   nothing else, so it has to be uploaded there
+                                   first. Unlisted is enough and keeps it off
+                                   the channel proper.
+ [x] Video thumbnail, 1280x720     docs/video-thumbnail.png. The same headline
+                                   and crop as docs/search.png so the poster
+                                   frame and the listing hero read as one
+                                   thing, recomposed for 16:9: bigger type, the
+                                   panel header bar dropped since it is a smear
+                                   at this size, and the filter row kept
+                                   because "6 of 448" in red states the whole
+                                   product in three words. Rebuild with
+                                   scratchpad/thumb-yt.js, which also renders
+                                   docs/video-thumbnail-alt.png.
  [x] Chrome developer account      johnkevin0742, registered
  [ ] Publisher display name        defaults to the account name, and a listing
                                    published by "johnkevin0742" reads like a

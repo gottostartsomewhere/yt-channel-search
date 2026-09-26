@@ -11,7 +11,7 @@
  * The panel is a content script, so it lives in an isolated world and the page
  * console cannot see `ui` or `setView`. In DevTools, open the Console, find the
  * context dropdown in its toolbar (it says "top" by default) and switch it to
- * "Channel Search+ for YouTube". Everything below is then in scope.
+ * "Needle for YouTube: Channel Search, History & Filters". Everything below is then in scope.
  *
  * Paste this whole file once, then call shot(1) through shot(5).
  *

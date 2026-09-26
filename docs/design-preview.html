@@ -10,7 +10,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Channel Search+ design preview</title>
+<title>Needle design preview</title>
 <!-- Cache-busted on every load. Without this the browser keeps serving the
      stylesheet and modules from the last edit, which silently shows you the
      previous design and wastes a lot of time working out why. -->
@@ -34,7 +34,13 @@
 <script>
   window.chrome = {
     runtime: { id: "preview", onMessage: { addListener: function () {} }, sendMessage: function () {} },
-    storage: { sync: { get: function (d, cb) { cb({}); }, set: function () {} } },
+    storage: {
+      sync: { get: function (d, cb) { cb({}); }, set: function () {} },
+      // local holds the rating-ask counter. Stubbed so the modules load; the
+      // preview reveals the ask directly at the bottom rather than opening the
+      // panel five times to earn it.
+      local: { get: function (d, cb) { cb({}); }, set: function () {} },
+    },
   };
   // panel.js self-starts unless this is already set. The preview drives
   // buildUi() itself, so keep bootstrap out of it.
@@ -105,6 +111,10 @@ state.medianViews = median(state.catalog.map((v) => v.views));
 state.medianVpd = median(state.catalog.filter((v) => v.days).map((v) => v.views / v.days));
 ui.status.textContent = state.catalog.length + " cached · 7m ago";
 applyView();
+
+// Normally earned on the fifth open. Forced on here so the row can be checked
+// at both widths without clearing storage and reopening the panel five times.
+ui.rate.hidden = false;
 
 // A second copy further down, showing Insights with a filter set, so both
 // states can be compared in one screenshot pass.

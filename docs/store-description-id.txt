@@ -1,0 +1,29 @@
+Sebelumnya hanya mempermudah pencarian di dalam channel. Sekarang seluruh pencarian dan riwayat YouTube Anda terasa jauh lebih personal.
+
+Pencarian YouTube tidak tahu video apa yang sudah Anda tonton, tidak bisa memfilter berdasarkan durasi atau jumlah tayangan, dan pencarian di dalam channel hanya mencocokkan judul. Needle memperbaikinya, langsung di kolom pencarian YouTube.
+
+DI KOLOM PENCARIAN
+- Video di Tonton Nanti, video yang disukai, dan riwayat Anda muncul saat Anda mengetik
+- Ketik filter: <20m, >100k, unwatched, date:week, @channel
+- is:fresh menyembunyikan video yang sudah pernah ditampilkan ke Anda
+- Ikuti pencarian, bisukan channel, dan lihat video yang sudah Anda tonton di setiap thumbnail
+
+CARI DI DALAM CHANNEL
+Klik tombol jarum di tab Video channel mana pun. Ekstensi membaca semua unggahan, bukan hanya yang sudah termuat.
+- Filter berdasarkan durasi, tayangan, tanggal, dan kata kunci
+- Sembunyikan yang sudah selesai, atau temukan yang Anda tinggalkan di tengah
+- Sebutkan berapa menit yang Anda punya, hanya video yang muat akan tampil
+
+RIWAYAT DAN TONTON NANTI ANDA
+- Semua yang Anda mulai tapi tidak pernah selesai
+- Filter berdasarkan channel, durasi, tayangan, atau kapan Anda menontonnya
+- Temukan video yang Anda yakin pernah tonton, tanpa harus menggulir
+
+ANALISIS
+- Durasi video dan tahun terbaik sebuah channel
+- Bandingkan dua channel berdampingan
+- Daftar pantauan yang menemukan video dengan tayangan jauh di atas biasanya untuk channel tersebut
+
+Antarmuka ekstensi ini berbahasa Inggris.
+
+Tidak berafiliasi dengan YouTube maupun Google.

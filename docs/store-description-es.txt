@@ -1,0 +1,29 @@
+Antes solo facilitaba buscar dentro de un canal. Ahora convierte toda tu búsqueda y tu historial de YouTube en una experiencia mucho más personal.
+
+La búsqueda de YouTube no sabe lo que ya viste, no filtra por duración ni por vistas, y la búsqueda dentro de un canal solo mira los títulos. Needle lo resuelve, directamente en la barra de búsqueda de YouTube.
+
+EN LA BARRA DE BÚSQUEDA
+- Tus vídeos de Ver más tarde, los que te gustaron y tu historial aparecen mientras escribes
+- Escribe filtros: <20m, >100k, unwatched, date:week, @canal
+- is:fresh oculta lo que ya se te mostró antes
+- Sigue una búsqueda, silencia un canal y ve lo que ya viste en cada miniatura
+
+BUSCAR EN UN CANAL
+Pulsa el botón de la aguja en la pestaña Vídeos de cualquier canal. Lee todas las subidas, no solo las que ya cargaron.
+- Filtra por duración, vistas, fecha y palabra clave
+- Oculta lo que terminaste, o encuentra lo que dejaste a medias
+- Di cuántos minutos tienes y verás solo lo que cabe
+
+TU HISTORIAL Y VER MÁS TARDE
+- Todo lo que empezaste y nunca terminaste
+- Filtra por canal, duración, vistas o por cuándo lo viste
+- Encuentra ese vídeo que sabes que viste, sin tener que desplazarte
+
+ANÁLISIS
+- Las duraciones y los años en los que mejor le va a un canal
+- Compara dos canales uno al lado del otro
+- Una lista de canales que detecta los vídeos que superan las vistas habituales de su canal
+
+La interfaz de la extensión está en inglés.
+
+No está afiliada a YouTube ni a Google.
