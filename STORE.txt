@@ -10,7 +10,7 @@
  NAME
 -------------------------------------------------------------------------------
 
- Needle for YouTube: Channel Search, History & Filters
+ Needle for YouTube: Channel Search, Watch History & Search Filters
 
  Renamed at 2.0.0 from "Channel Search+ for YouTube", once the search bar made
  the extension about all of YouTube rather than one channel. The words
@@ -107,7 +107,15 @@ Not affiliated with YouTube or Google.
 
 
 -------------------------------------------------------------------------------
- LOCALISATION            four languages, added at 1.1.0
+ LOCALISATION            PARKED at 2.0.0, English only for now
+
+ 2.0.0 shipped English alone, by choice. The translated long descriptions
+ (docs/store-description-*.txt) are current with the 2.0.0 copy and ready to
+ paste. The translated short descriptions were taken out of _locales/; to bring
+ them back, regenerate the four locale folders with the same extDesc lines
+ (git history has them at a90e97d) and keep extName English in all of them.
+
+ What follows is the reasoning from 1.1.0, still valid for when they return.
 -------------------------------------------------------------------------------
 
  Store search is locale-aware, so a listing carrying Portuguese text can match
@@ -120,7 +128,8 @@ Not affiliated with YouTube or Google.
  English one, and the dashboard reports installs BY COUNTRY, so each language
  can be attributed on its own without staggering them.
 
- NAME       Channel Search+ for YouTube      unchanged in every locale
+ NAME       Needle for YouTube: Channel Search, Watch History & Search Filters
+            unchanged in every locale
 
  Not translated anywhere. It is a brand, Google's rule against a name beginning
  with YouTube still applies, and around 36% of traffic arrives from AI
