@@ -11,7 +11,7 @@ const zlib = require("zlib");
 
 const ROOT = __dirname;
 const DIST = path.join(ROOT, "dist");
-const SHARED = ["src", "styles.css", "background.js", "popup.html", "popup.css", "popup.js", "icons"];
+const SHARED = ["src", "styles.css", "background.js", "popup.html", "popup.css", "popup.js", "icons", "_locales"];
 const TARGETS = [
   { name: "chrome", manifest: "manifest.json" },
   { name: "firefox", manifest: "manifest.firefox.json" },
@@ -144,6 +144,39 @@ function writeZip(dir, zipPath) {
   fs.writeFileSync(zipPath, Buffer.concat([Buffer.concat(locals), directory, end]));
 }
 
+/*
+ * Chrome refuses to load a content script that is not "UTF-8" by its own,
+ * stricter definition: valid encoding is not enough, it also rejects
+ * noncharacters such as U+FFFF and lone surrogates, and then refuses the whole
+ * extension with "Could not load manifest". A literal U+FFFF in a regex range
+ * did exactly that once, and nothing short of loading the extension showed it.
+ * So every text file in the build is held to Chrome's rule here, and the build
+ * fails with the file and line instead of the browser failing without either.
+ */
+function assertChromeReadable(dir) {
+  const strict = new TextDecoder("utf-8", { fatal: true });
+  const walk = (d) => fs.readdirSync(d, { withFileTypes: true })
+    .flatMap((e) => (e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)]));
+  for (const file of walk(dir).filter((f) => /\.(js|css|html|json)$/.test(f))) {
+    let text;
+    try {
+      text = strict.decode(fs.readFileSync(file));
+    } catch (e) {
+      throw new Error(path.relative(dir, file) + " is not valid UTF-8");
+    }
+    for (let i = 0; i < text.length; i++) {
+      const c = text.codePointAt(i);
+      const bad = (c >= 0xd800 && c <= 0xdfff) || (c >= 0xfdd0 && c <= 0xfdef) || (c & 0xfffe) === 0xfffe;
+      if (bad) {
+        const line = text.slice(0, i).split("\n").length;
+        throw new Error(path.relative(dir, file) + " line " + line + " contains U+" +
+          c.toString(16).toUpperCase() + ", which Chrome refuses to load. Write it as an escape instead.");
+      }
+      if (c > 0xffff) i++;
+    }
+  }
+}
+
 // ---- build ----------------------------------------------------------------
 fs.rmSync(DIST, { recursive: true, force: true });
 
@@ -170,6 +203,7 @@ for (const target of TARGETS) {
   }
 
   fs.writeFileSync(path.join(out, "manifest.json"), JSON.stringify(manifest, null, 2) + "\n");
+  assertChromeReadable(out);
 
   const zip = path.join(DIST, target.name + "-" + manifest.version + ".zip");
   writeZip(out, zip);

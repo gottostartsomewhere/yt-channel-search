@@ -1,0 +1,10 @@
+{
+  "extName": {
+    "message": "Needle for YouTube: Channel Search, History & Filters",
+    "description": "Store and toolbar name. English in every locale on purpose: one title for store search everywhere, and it matches what people are told to search for."
+  },
+  "extDesc": {
+    "message": "A busca do YouTube que sabe o que você já viu. Canais, histórico e Assistir mais tarde, filtrados por duração, visualizações e data.",
+    "description": "Store short description, 132 characters at most."
+  }
+}

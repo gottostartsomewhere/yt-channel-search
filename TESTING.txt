@@ -17,7 +17,7 @@
  1. SMOKE          the first two decide whether the rest is worth running
 -------------------------------------------------------------------------------
 
- [ ] Panel opens on a channel Videos tab from the Search+ button
+ [ ] Panel opens on a channel Videos tab from the needle button
  [ ] Console is clean. A ReferenceError here means the content scripts loaded
      out of order. Check the js array in manifest.json
  [ ] Catalogue loads, count climbs, ends near the channel's real video count

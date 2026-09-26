@@ -20,6 +20,20 @@
  * site is the narrower of the two, so it is the one asked for.
  */
 
+/*
+ * Its second job: the number on the toolbar icon, which is how many new videos
+ * are waiting in searches you follow. The content script counts; this only
+ * paints it, since a page cannot touch the icon itself. No permission needed.
+ */
+chrome.runtime.onMessage.addListener((msg) => {
+  if (!msg || msg.type !== "ytcs-badge") return;
+  const action = chrome.action || chrome.browserAction;
+  if (!action) return;
+  const n = Math.max(0, msg.n | 0);
+  action.setBadgeText({ text: n ? (n > 99 ? "99+" : String(n)) : "" });
+  action.setBadgeBackgroundColor({ color: "#e5484d" });
+});
+
 chrome.commands.onCommand.addListener((command) => {
   if (command !== "toggle-panel") return;
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {

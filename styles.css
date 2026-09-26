@@ -1,5 +1,5 @@
 /*
- * YouTube Channel Search+
+ * Needle for YouTube
  * A restrained, monochrome UI with a single accent. Surfaces and text follow
  * YouTube's own theme tokens so it sits naturally in light and dark.
  */
@@ -22,12 +22,13 @@
   right: 20px;
   bottom: 20px;
   z-index: 6000;
-  padding: 9px 16px;
+  height: 54px;
+  padding: 0 20px;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: 14px;
   background: var(--surface);
   color: var(--txt);
-  font-size: 12.5px;
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.2px;
   cursor: pointer;
@@ -35,6 +36,14 @@
   transition: border-color 0.14s ease, color 0.14s ease;
 }
 .ytcs-launcher:hover { border-color: var(--ac); color: var(--ac); }
+/* Closed: a square holding the drawn needle, no word. */
+.ytcs-launcher.ytcs-launcher-mark {
+  width: 54px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+}
+.ytcs-launcher-mark svg { display: block; }
 
 .ytcs-wrap { width: 100%; color: var(--txt); }
 
@@ -52,8 +61,15 @@
 .ytcs-launcher:focus-visible {
   outline: 2px solid var(--ac);
   outline-offset: 2px;
-  border-radius: 6px;
 }
+/*
+ * Text boxes are the exception. A box counts as focused the moment it is
+ * clicked, so the ring above drew a hard red rectangle inside the rounded
+ * search field on every click. The field itself shows focus instead: its
+ * rim takes the accent, the way YouTube's own search bar lights up.
+ */
+.ytcs-query .ytcs-search:focus-visible,
+.ytcs-customin:focus-visible { outline: none; }
 
 /*
  * Header and filter line.
@@ -92,20 +108,10 @@
 .ytcs-brand {
   display: inline-flex;
   align-items: center;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
+  flex: none;
   color: var(--txt);
 }
-.ytcs-brand::before {
-  content: "";
-  width: 7px;
-  height: 7px;
-  margin-right: 9px;
-  border-radius: 2px;
-  background: var(--ac);
-}
+.ytcs-brand svg { display: block; }
 
 /* segmented view control */
 .ytcs-tabs {
@@ -119,7 +125,10 @@
   border: 0;
   background: none;
   color: var(--dim);
-  font: 600 12px/1 inherit;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1;
+  font-family: inherit;
   padding: 6px 13px;
   border-radius: 7px;
   cursor: pointer;
@@ -143,7 +152,10 @@
   background: none;
   padding: 0 0 11px;
   color: var(--dim);
-  font: 500 13px/1 inherit;
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1;
+  font-family: inherit;
   cursor: pointer;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
@@ -152,97 +164,207 @@
 .ytcs-sub:hover { color: var(--txt); }
 .ytcs-sub.ytcs-subon { color: var(--txt); font-weight: 600; border-bottom-color: var(--ac); }
 
-/* The search field, the one control that gets to look like a first-class input.
-   Everything else in the row is a pill, so the hierarchy is unambiguous. */
-.ytcs-searchbox {
-  display: inline-flex;
+/*
+ * The query. One field that holds what you asked for: the words you typed and,
+ * as tokens beside them, every filter that is set. It is shaped like YouTube's
+ * own search bar on purpose, because it now speaks the same language as it:
+ * "<20m" typed here does what it does up there.
+ */
+.ytcs-query {
+  position: relative;
+  display: flex;
   align-items: center;
-  gap: 8px;
-  flex: 0 1 300px;
-  min-width: 210px;
-  padding: 0 12px;
-  height: 34px;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 44px;
+  padding: 6px 14px 6px 16px;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 17px;
+  border-radius: 22px;
   transition: border-color 0.14s ease;
 }
-.ytcs-searchbox:focus-within { border-color: var(--ac); }
-.ytcs-searchbox svg { color: var(--dim); flex: none; }
-.ytcs-searchbox:focus-within svg { color: var(--ac); }
+.ytcs-query:focus-within { border-color: rgba(229, 72, 77, 0.6); }
+.ytcs-query > svg { color: var(--dim); flex: none; margin-right: 2px; }
+.ytcs-tokens { display: contents; }
 .ytcs-search {
-  flex: 1 1 auto;
-  min-width: 0;
+  flex: 1 1 140px;
+  min-width: 120px;
+  height: 30px;
   border: 0;
   background: none;
   outline: none;
   color: var(--txt);
-  font: 400 13.5px/1 inherit;
-  padding: 0;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1;
+  font-family: inherit;
+  padding: 0 4px;
 }
 .ytcs-search::placeholder { color: var(--dim); }
 
-/* Filter pills. Each option names its own dimension, so no caption is needed
-   above; an untouched pill sits back, a set one comes forward in the accent. */
-.ytcs-pill {
+/*
+ * The meter. The field's own underline, filled to the share of the list still
+ * showing. Untouched it is a faint full line; the moment a filter bites it
+ * shortens and takes the accent, so narrowing is something you see happen
+ * rather than a number you have to read.
+ */
+.ytcs-meter {
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 1px;
+  overflow: hidden;
+  pointer-events: none;
+}
+.ytcs-meterfill {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: var(--line);
+  transition: width 0.28s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.2s ease;
+}
+.ytcs-narrowed .ytcs-meterfill { background: var(--ac); }
+@media (prefers-reduced-motion: reduce) { .ytcs-meterfill { transition: none; } }
+
+/* A filter, as a token in the query or as "+ Length" in the row below it. */
+.ytcs-f {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  border-radius: 15px;
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1;
+  font-family: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+/* The native menu, laid invisibly over the label so both forms open it. */
+.ytcs-fsel {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
-  height: 34px;
-  max-width: 190px;
-  padding: 0 28px 0 13px;
-  border: 1px solid var(--line);
-  border-radius: 17px;
-  background-color: var(--surface);
-  background-repeat: no-repeat;
-  background-position: right 11px center;
-  background-size: 9px;
-  /*
-   * A select cannot carry a pseudo-element, so the chevron has to be a
-   * background image, and a data URL cannot read a CSS variable. It was
-   * hardcoded near-white, which is invisible against a light pill once YouTube
-   * is in its light theme.
-   *
-   * YouTube marks dark mode with a `dark` attribute on <html>, which is the
-   * same signal its own stylesheet uses, so the two variants key off that
-   * rather than prefers-color-scheme. The OS preference is the wrong question:
-   * YouTube's appearance setting overrides it.
-   */
-  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23606060' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
-  color: var(--txt);
-  font: 500 13px/1 inherit;
+  border: 0;
+  font: inherit;
+}
+.ytcs-fsel option { background: #fff; color: #0f0f0f; }
+html[dark] .ytcs-fsel option { background: #1c1c1c; color: #f1f1f1; }
+.ytcs-f:focus-within { outline: 2px solid var(--ac); outline-offset: 2px; }
+.ytcs-fx {
+  position: relative;
+  z-index: 1;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin: 0 4px 0 2px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: inherit;
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 1;
+  font-family: inherit;
+  opacity: 0.7;
   cursor: pointer;
-  outline: none;
-  text-overflow: ellipsis;
-  transition: border-color 0.14s ease, color 0.14s ease, background-color 0.14s ease;
 }
-html[dark] .ytcs-pill {
-  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23f1f1f1' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
+.ytcs-fx:hover { opacity: 1; background: rgba(229, 72, 77, 0.22); }
+
+/* Set: inside the query, in the accent's soft tint. */
+.ytcs-f.ytcs-token {
+  padding-left: 12px;
+  background: var(--ac-soft);
+  color: var(--txt);
 }
-.ytcs-pill:hover { border-color: var(--dim); }
-.ytcs-pill:focus-visible { border-color: var(--ac); }
-/* The native dropdown list is painted by the OS, so it needs real values
-   rather than tokens, and it has to follow the theme like everything else. */
-.ytcs-pill option { background: #fff; color: #0f0f0f; }
-html[dark] .ytcs-pill option { background: #1c1c1c; color: #f1f1f1; }
-/* An untouched pill also dims its chevron. Both themes need spelling out:
-   html[dark] .ytcs-pill scores a class, an attribute and a type, which beats
-   two classes, so without the second rule a dim pill in dark mode would keep
-   the bright arrow meant for a set one. */
-.ytcs-pill.ytcs-dim {
+.ytcs-f.ytcs-token .ytcs-fx { display: inline-flex; }
+.ytcs-xtoken { cursor: default; }
+
+/* Unset: a quiet offer in the row underneath. */
+.ytcs-addrow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 8px 6px 0;
+}
+.ytcs-addrow .ytcs-f:not(.ytcs-token) {
+  padding: 0 11px;
   color: var(--dim);
   font-weight: 400;
-  background-color: transparent;
-  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23909090' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
+  transition: color 0.14s ease, background 0.14s ease;
 }
-html[dark] .ytcs-pill.ytcs-dim {
-  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23a0a0a0' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
+.ytcs-addrow .ytcs-f:not(.ytcs-token):not(.ytcs-sortslot) .ytcs-flabel::before {
+  content: "+";
+  margin-right: 5px;
+  font-weight: 500;
+  opacity: 0.8;
 }
-/* Set filters are the panel's whole point, so they carry the accent. */
-.ytcs-pill:not(.ytcs-dim):not(.ytcs-sort) {
-  border-color: rgba(229, 72, 77, 0.45);
-  background-color: var(--ac-soft);
+.ytcs-addrow .ytcs-f:not(.ytcs-token):hover { color: var(--txt); background: var(--surface); }
+/* Sort is not a filter, so it never becomes a token and never gets an x. */
+/* A dim "Sort" and a real gap, not a dot: the label is a flex box, which
+   silently dropped the trailing space the dot version relied on. */
+.ytcs-sortslot .ytcs-flabel::before {
+  content: "Sort";
+  margin-right: 7px;
+  color: var(--dim);
+  font-weight: 400;
 }
+.ytcs-sortslot { color: var(--txt) !important; }
+.ytcs-sortslot .ytcs-fx { display: none !important; }
+
 .ytcs-sort { color: var(--dim); font-weight: 400; }
+/*
+ * The frame around it. The bordered box is gone: with the query field carrying
+ * the weight, a second outline around everything only made two boxes compete.
+ * What remains is a sticky band in the page colour, so the query stays in reach
+ * while the grid scrolls under it.
+ */
+.ytcs-chrome {
+  border: 0;
+  border-radius: 0;
+  padding: 4px 0 12px;
+  box-shadow: 0 1px 0 var(--line);
+}
+.ytcs-head { padding: 6px 4px 12px; gap: 10px; }
+.ytcs-filters { display: block; padding: 0; border-top: 0; }
+.ytcs-source {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--txt);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 40ch;
+}
+/* One line: the status gives way before the actions do. */
+.ytcs-head { flex-wrap: nowrap; }
+.ytcs-head .ytcs-status { flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.ytcs-head > :not(.ytcs-status):not(.ytcs-spacer):not(.ytcs-source) { flex: none; }
+@media (max-width: 720px) {
+  .ytcs-head { flex-wrap: wrap; }
+}
+
+.ytcs-query .ytcs-count {
+  margin-left: auto;
+  padding: 0 6px 0 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--dim);
+}
+.ytcs-query.ytcs-narrowed .ytcs-count { color: var(--ac); font-weight: 600; }
+.ytcs-query .ytcs-clear { padding: 6px 8px; font-size: 12.5px; }
+
+
 
 .ytcs-status { font-size: 12px; color: var(--dim); white-space: nowrap; }
 .ytcs-count {
@@ -263,7 +385,10 @@ html[dark] .ytcs-pill.ytcs-dim {
   border-radius: 17px;
   padding: 0 15px;
   height: 34px;
-  font: 600 12.5px/1 inherit;
+  font-weight: 600;
+  font-size: 12.5px;
+  line-height: 1;
+  font-family: inherit;
   cursor: pointer;
   transition: border-color 0.14s ease, color 0.14s ease;
 }
@@ -288,7 +413,10 @@ html[dark] .ytcs-pill.ytcs-dim {
   border: 0;
   background: none;
   color: var(--dim);
-  font: 500 12px/1 inherit;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 1;
+  font-family: inherit;
   padding: 8px 6px;
   cursor: pointer;
   transition: color 0.14s ease;
@@ -311,7 +439,10 @@ html[dark] .ytcs-pill.ytcs-dim {
   color: var(--ac);
   height: 34px;
   padding: 0 16px;
-  font: 600 12.5px/1 inherit;
+  font-weight: 600;
+  font-size: 12.5px;
+  line-height: 1;
+  font-family: inherit;
   cursor: pointer;
   transition: background 0.14s ease;
 }
@@ -326,7 +457,10 @@ html[dark] .ytcs-pill.ytcs-dim {
   border: 1px solid var(--line);
   border-radius: 17px;
   color: var(--txt);
-  font: 400 13px/1 inherit;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 1;
+  font-family: inherit;
   outline: none;
   transition: border-color 0.14s ease;
 }
@@ -771,6 +905,66 @@ html[dark] .ytcs-pill.ytcs-dim {
   border-radius: 12px;
   max-width: 560px;
 }
+/*
+ * ---- the rating ask -------------------------------------------------------
+ *
+ * One line of panel furniture, not a notification.
+ *
+ * The first version was a bordered card with a background and an accent rule,
+ * which is the default shape for this sort of thing and completely wrong here.
+ * The panel is dense on purpose, so a 70px box between the count line and the
+ * first row of cards reads as an advert wedged into the tool you are already
+ * using, and it pushes the results down to say so.
+ *
+ * So: no border, no fill, no rule. Dim text at the same weight as the footer,
+ * sitting directly under the count it follows, costing one line. It is allowed
+ * to be missed. Somebody who does not want to review anything should be able to
+ * skim straight past it into the grid, which a card does not permit.
+ */
+.ytcs-rate {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: -8px 16px 16px;
+  color: var(--dim);
+  font-size: 12px;
+}
+
+/*
+ * Required, and not obvious. The `hidden` attribute hides an element through
+ * `display: none` in the user-agent stylesheet, which any author rule setting
+ * display beats. So the flex rule above silently cancelled it: the row ignored
+ * `hidden`, the Hide button did nothing, and every user saw the ask from
+ * install rather than after five uses. Same class of bug as `[hidden]` versus
+ * any display value, and the fix is to restate it where the cascade can see it.
+ */
+.ytcs-rate[hidden] { display: none; }
+
+.ytcs-ratetext {
+  line-height: 1.5;
+}
+
+/* The only coloured thing in the row, and only on hover, so the line reads as
+   text with an option in it rather than as a button with a label. */
+.ytcs-ratego {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--ac);
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1.5;
+  font-family: inherit;
+  cursor: pointer;
+}
+.ytcs-ratego:hover { text-decoration: underline; }
+
+.ytcs-rate .ytcs-ghost {
+  padding: 0;
+  font-size: 12px;
+}
+
 .ytcs-foot {
   margin: 12px 16px 24px;
   padding-top: 14px;
@@ -779,3 +973,629 @@ html[dark] .ytcs-pill.ytcs-dim {
   font-size: 11.5px;
   line-height: 1.5;
 }
+
+/*
+ * ---- the search bar (omnibar.js) -------------------------------------------
+ *
+ * These sit inside YouTube's own suggestion dropdown, above its results and on
+ * its thumbnails, so they borrow its tokens and its type rather than the panel's
+ * accent. Red appears only where YouTube itself uses red: the progress bar, and
+ * the underline on the words you searched for.
+ */
+.ytcs-omni,
+.ytcs-libstrip,
+.ytcs-badge {
+  --ac: #e5484d;
+  --line: var(--yt-spec-10-percent-layer, #2a2a2a);
+  --txt: var(--yt-spec-text-primary, #f1f1f1);
+  --dim: var(--yt-spec-text-secondary, #a0a0a0);
+  --hover: var(--yt-spec-badge-chip-background, rgba(255, 255, 255, 0.1));
+  font-family: "Roboto", system-ui, sans-serif;
+}
+.ytcs-omni,
+.ytcs-libstrip { color: var(--txt); }
+.ytcs-ico { flex: none; }
+
+/*
+ * YouTube hides its dropdown with a host class when it has no suggestions of
+ * its own. When ours has something to show and the bar has focus, it stays up.
+ */
+yt-searchbox.ytcs-omni-open .ytSearchboxComponentSuggestionsContainer {
+  display: block !important;
+}
+
+.ytcs-omni {
+  padding: 4px 0 8px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+}
+.ytcs-omni:last-child { border-bottom: 0; margin-bottom: 0; }
+
+.ytcs-omni-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px 16px 6px;
+}
+.ytcs-omni-chip {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 22px;
+  padding: 0 10px;
+  border-radius: 11px;
+  background: rgba(229, 72, 77, 0.16);
+  color: var(--txt);
+}
+
+.ytcs-omni-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 16px 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--dim);
+}
+
+.ytcs-omni-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 8px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  color: var(--txt);
+  text-decoration: none;
+}
+.ytcs-omni-row:hover,
+.ytcs-omni-row.ytcs-on { background: var(--hover); }
+.ytcs-omni-row.ytcs-on { box-shadow: inset 2px 0 0 var(--ac); }
+
+.ytcs-omni-thumb,
+.ytcs-libcard-thumb {
+  position: relative;
+  flex: none;
+  overflow: hidden;
+  background: var(--line);
+}
+.ytcs-omni-thumb { width: 72px; height: 40px; border-radius: 6px; }
+.ytcs-omni-thumb img,
+.ytcs-libcard-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.ytcs-omni-bar {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  background: #f03;
+}
+
+.ytcs-omni-text { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.ytcs-omni-title {
+  font-size: 14px;
+  line-height: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ytcs-omni-meta {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* The words you searched for: weight and a red underline, never a highlighter
+   block, which on a dark dropdown reads as a selection rather than a match. */
+mark.ytcs-hl {
+  background: none;
+  color: inherit;
+  font-weight: 600;
+  box-shadow: inset 0 -2px 0 rgba(229, 72, 77, 0.7);
+}
+.ytcs-omni-hint {
+  padding: 8px 16px 2px;
+  font-size: 12px;
+  color: var(--dim);
+}
+
+/* The operators, as things you can click. How anyone finds out they exist. */
+.ytcs-omni-tips {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+  padding: 9px 16px 2px;
+  border-top: 1px dashed var(--line);
+  font-size: 12px;
+  color: var(--dim);
+}
+.ytcs-omni-tiplead { margin: 0 4px 0 1px; }
+.ytcs-omni-tip {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: none;
+  color: var(--txt);
+  font: 500 11.5px/20px ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  padding: 0 7px;
+  cursor: pointer;
+}
+.ytcs-omni-tip:hover { border-color: var(--dim); background: var(--hover); }
+.ytcs-omni-tipsoff {
+  margin-left: auto;
+  border: 0;
+  background: none;
+  color: var(--dim);
+  font-weight: 400;
+  font-size: 11.5px;
+  line-height: 20px;
+  font-family: inherit;
+  cursor: pointer;
+}
+.ytcs-omni-tipsoff:hover { color: var(--txt); }
+
+/* "From your library", above the results: one row that scrolls sideways. */
+.ytcs-libstrip {
+  margin: 8px 0 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+}
+.ytcs-libstrip-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.ytcs-libstrip-title { font-size: 18px; font-weight: 600; }
+.ytcs-libstrip-count { font-size: 13px; color: var(--dim); font-variant-numeric: tabular-nums; }
+.ytcs-libstrip-more {
+  border: 0;
+  border-radius: 16px;
+  background: var(--hover);
+  color: var(--txt);
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 32px;
+  font-family: inherit;
+  padding: 0 14px;
+  cursor: pointer;
+}
+.ytcs-libstrip-row {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+  mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent);
+}
+.ytcs-libstrip-row::-webkit-scrollbar { display: none; }
+.ytcs-libstrip.ytcs-open .ytcs-libstrip-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 18px 12px;
+  mask-image: none;
+}
+.ytcs-libcard {
+  flex: 0 0 210px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  color: var(--txt);
+  text-decoration: none;
+  scroll-snap-align: start;
+}
+.ytcs-libcard-thumb { width: 100%; aspect-ratio: 16 / 9; border-radius: 10px; margin-bottom: 4px; }
+.ytcs-libcard-dur,
+.ytcs-libcard-src {
+  position: absolute;
+  bottom: 5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 14px;
+}
+.ytcs-libcard-dur { right: 5px; font-variant-numeric: tabular-nums; }
+.ytcs-libcard-src { left: 5px; }
+.ytcs-libcard-title {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.ytcs-libcard-meta {
+  font-size: 12px;
+  color: var(--dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ytcs-libcard:hover .ytcs-libcard-title { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+
+/* On YouTube's own thumbnails: what your library already knows about this one. */
+.ytcs-badge {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 7px 3px 6px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 14px;
+  letter-spacing: 0.1px;
+  pointer-events: none;
+}
+.ytcs-badge-wl { box-shadow: inset 2px 0 0 #3ea6ff; }
+.ytcs-badge-hist { box-shadow: inset 2px 0 0 #f03; }
+.ytcs-badge-liked { box-shadow: inset 2px 0 0 #aaa; }
+/* Alone in the dropdown, the tips need no divider above them. */
+.ytcs-omni-tips:first-child { border-top: 0; margin-top: 0; }
+.ytcs-badge.ytcs-badge-r { left: auto; right: 6px; }
+
+/*
+ * ---- facts on a line --------------------------------------------------------
+ * Statuses, card meta and stats are runs of short facts. They used to be joined
+ * with " · " and "•", which on a line of three or four read as punctuation
+ * noise. Space does the separating now.
+ */
+.ytcs-fact + .ytcs-fact { margin-left: 14px; }
+.ytcs-omni-meta .ytcs-fact + .ytcs-fact,
+.ytcs-libcard-meta .ytcs-fact + .ytcs-fact,
+.ytcs-cmeta .ytcs-fact + .ytcs-fact { margin-left: 10px; }
+.ytcs-stats { gap: 6px 24px; }
+.ytcs-stat { gap: 7px; }
+.ytcs-statlabel { color: var(--dim); }
+
+/* Load more, at the foot of the results. */
+.ytcs-loadmore {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 0 8px;
+}
+.ytcs-loadmorebtn {
+  height: 36px;
+  padding: 0 20px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  color: var(--txt);
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.14s ease;
+}
+.ytcs-loadmorebtn:hover { border-color: var(--dim); }
+.ytcs-loadmorebtn:disabled { opacity: 0.6; cursor: default; }
+.ytcs-loadmorenote { font-size: 12.5px; color: var(--dim); }
+
+/*
+ * ---- memory features --------------------------------------------------------
+ * Custom ranges, following, muting. Pieces that sit on YouTube's own page
+ * (the mute button, the notice, the toast) carry their own tokens, since they
+ * live outside the panel's wrapper.
+ */
+.ytcs-mutebtn,
+.ytcs-mutenote,
+.ytcs-toast,
+.ytcs-omni-follow {
+  --ac: #e5484d;
+  --line: var(--yt-spec-10-percent-layer, #2a2a2a);
+  --txt: var(--yt-spec-text-primary, #f1f1f1);
+  --dim: var(--yt-spec-text-secondary, #a0a0a0);
+  --hover: var(--yt-spec-badge-chip-background, rgba(255, 255, 255, 0.1));
+  font-family: "Roboto", system-ui, sans-serif;
+}
+
+/* The range editor "Custom…" opens, under the add row. */
+.ytcs-custom {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 8px 2px;
+  font-size: 13px;
+  color: var(--dim);
+}
+.ytcs-custom[hidden] { display: none; }
+.ytcs-customlead { color: var(--txt); font-weight: 500; }
+.ytcs-customin {
+  width: 88px;
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: var(--surface);
+  color: var(--txt);
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 1;
+  font-family: inherit;
+  outline: none;
+}
+.ytcs-customin:focus { border-color: rgba(229, 72, 77, 0.6); }
+.ytcs-customgo {
+  height: 30px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 15px;
+  background: var(--ac-soft);
+  color: var(--txt);
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1;
+  font-family: inherit;
+  cursor: pointer;
+}
+.ytcs-customgo:hover { background: rgba(229, 72, 77, 0.28); }
+.ytcs-customerr { color: var(--ac); font-size: 12.5px; }
+
+/* Follow this search, in the panel's header. */
+.ytcs-followbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  background: none;
+  color: var(--txt);
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.14s ease, background 0.14s ease;
+}
+.ytcs-followbtn:hover { border-color: var(--dim); }
+.ytcs-followbtn.ytcs-on { background: var(--ac-soft); border-color: transparent; }
+
+/* Followed searches in the dropdown: a count at the end of the row. */
+.ytcs-follow-count {
+  margin-left: auto;
+  flex: none;
+  min-width: 22px;
+  padding: 0 7px;
+  border-radius: 11px;
+  background: var(--ac);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 20px;
+  text-align: center;
+}
+.ytcs-omni-follow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+  padding: 9px 16px 2px;
+  border-top: 1px dashed var(--line);
+  font-size: 12px;
+  color: var(--dim);
+}
+.ytcs-omni-followbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: none;
+  color: var(--txt);
+  font-weight: 500;
+  font-size: 12.5px;
+  line-height: 1;
+  font-family: inherit;
+  cursor: pointer;
+}
+.ytcs-omni-followbtn:hover { background: var(--hover); }
+.ytcs-omni-followbtn.ytcs-on { background: rgba(229, 72, 77, 0.16); border-color: transparent; }
+
+/* Mute, on hover, bottom left of a result's thumbnail. */
+.ytcs-mutebtn {
+  position: absolute;
+  left: 6px;
+  bottom: 8px;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.14s ease, background 0.14s ease;
+}
+a:hover > .ytcs-mutebtn,
+.ytcs-thumb:hover > .ytcs-mutebtn,
+.ytcs-mutebtn:focus-visible { opacity: 1; }
+.ytcs-mutebtn:hover { background: var(--ac); }
+@media (hover: none) { .ytcs-mutebtn { opacity: 0.85; } }
+
+/* Above YouTube's list when a mute has hidden something. */
+.ytcs-mutenote {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 16px;
+  font-size: 13px;
+  color: var(--dim);
+}
+.ytcs-mutenote-btn {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--txt);
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1;
+  font-family: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* One-line confirmation with an undo, bottom left like YouTube's own. */
+.ytcs-toast {
+  position: fixed;
+  left: 24px;
+  bottom: 24px;
+  z-index: 7000;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: #212121;
+  color: #fff;
+  font-size: 14px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+.ytcs-toast button {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: #3ea6ff;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/*
+ * ---- the filter menu ----------------------------------------------------------
+ * Replaces the browser's own dropdown, which opened flush left of an invisible
+ * box. This one is centred under the pill that opened it. The pill is now a
+ * real button, so the padding that used to sit on the wrapper moves onto it and
+ * the whole visible pill is clickable.
+ */
+.ytcs-fsel { display: none !important; }
+.ytcs-f { padding: 0; }
+.ytcs-f.ytcs-token { padding-left: 0; }
+.ytcs-addrow .ytcs-f:not(.ytcs-token) { padding: 0; }
+.ytcs-f:focus-within { outline: none; }
+.ytcs-flabel {
+  display: inline-flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 15px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.ytcs-f.ytcs-token .ytcs-flabel { padding: 0 2px 0 12px; }
+.ytcs-flabel:focus-visible { outline: 2px solid var(--ac); outline-offset: 2px; }
+.ytcs-f.ytcs-open:not(.ytcs-token) { color: var(--txt); background: var(--surface); }
+
+.ytcs-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  min-width: max(100%, 184px);
+  max-height: 340px;
+  overflow-y: auto;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--yt-spec-menu-background, #282828);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  animation: ytcs-menu-in 0.12s ease-out;
+}
+@keyframes ytcs-menu-in {
+  from { opacity: 0; margin-top: -4px; }
+  to { opacity: 1; margin-top: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .ytcs-menu { animation: none; } }
+.ytcs-menuitem {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0 16px 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--txt);
+  font-weight: 400;
+  font-size: 13.5px;
+  line-height: 1.2;
+  font-family: inherit;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+/* A fixed column for the check, so every label starts at the same place. */
+.ytcs-menuitem::before {
+  content: "";
+  flex: none;
+  width: 16px;
+  text-align: center;
+  color: var(--ac);
+  font-weight: 700;
+}
+.ytcs-menuitem.ytcs-sel { font-weight: 500; }
+.ytcs-menuitem.ytcs-sel::before { content: "✓"; }
+.ytcs-menuitem:hover,
+.ytcs-menuitem:focus-visible { background: var(--surface); outline: none; }
+.ytcs-menucustom { margin-top: 9px; color: var(--dim); }
+.ytcs-menucustom::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: -5px;
+  height: 1px;
+  background: var(--line);
+}
+
+/*
+ * A base size of our own. YouTube's root is 10px, and anything here without an
+ * explicit size used to inherit it: that, plus font shorthands browsers were
+ * silently discarding, is why the add row rendered at 10px on YouTube while
+ * looking right everywhere else.
+ */
+.ytcs-wrap { font-size: 14px; line-height: 1.4; }
+.ytcs-addrow .ytcs-f { height: 32px; font-size: 14px; }
+.ytcs-addrow { gap: 4px; }

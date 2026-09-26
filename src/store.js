@@ -1,5 +1,5 @@
 /*
- * YouTube Channel Search+
+ * Needle for YouTube
  * IndexedDB cache, view-count snapshots, aggregate stats, and export.
  *
  * Loaded as an ordered content script, so every module shares one scope.
@@ -105,7 +105,9 @@ async function idbDelete(keys) {
  * costs one re-fetch, which is what a cache is for.
  */
 const INDEX_KEY = "__index";
-const META_KEYS = ["__watchlist", INDEX_KEY];
+// The library is exempt for the same reason as the watchlist: it is one record
+// per install, refreshed in place, so it can never be what makes the cache big.
+const META_KEYS = ["__watchlist", "__library", INDEX_KEY];
 
 async function touchIndex(key, at) {
   const idx = (await idbGet(INDEX_KEY)) || {};
@@ -175,7 +177,11 @@ function statsOf(cat) {
  * included because they are also treated as formula starts by some readers.
  */
 function toCSV(rows) {
-  const cols = ["title", "videoId", "url", "durationSeconds", "duration", "views", "published", "approxDaysAgo", "viewsPerDay"];
+  // Watch dates only exist on history, and two permanently empty columns on
+  // every channel export is worse than a shape that varies with the source.
+  const watched = rows.some((v) => v.watchedLabel);
+  const cols = ["title", "videoId", "url", "durationSeconds", "duration", "views", "published", "approxDaysAgo", "viewsPerDay"]
+    .concat(watched ? ["watchedOn", "watchedDaysAgo"] : []);
   const esc = (s) => {
     s = String(s == null ? "" : s);
     if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
@@ -184,10 +190,19 @@ function toCSV(rows) {
   const lines = [cols.join(",")];
   for (const v of rows) {
     const vpd = v.days ? Math.round(v.views / Math.max(v.days, 1)) : "";
-    lines.push([
+    const row = [
       esc(v.title), esc(v.id), esc("https://youtu.be/" + v.id), v.seconds, esc(fmtDuration(v.seconds)),
       v.views, esc(v.publishedText), v.days != null ? Math.round(v.days) : "", vpd,
-    ].join(","));
+    ];
+    if (watched) {
+      // The normalised date, not the raw label: "Today" and "3 Sept" in the
+      // same column would be useless to sort in a spreadsheet.
+      const d = v.watchedOn ? new Date(v.watchedOn) : null;
+      const iso = d && !isNaN(d) ? d.getFullYear() + "-" +
+        String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0") : "";
+      row.push(esc(iso), v.watchedDays != null ? v.watchedDays : "");
+    }
+    lines.push(row.join(","));
   }
   return lines.join("\n");
 }

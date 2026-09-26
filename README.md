@@ -1,4 +1,10 @@
-# Channel Search+ for YouTube
+# Needle for YouTube
+
+Formerly Channel Search+ for YouTube. Same extension, same listing, new name.
+
+**A Chrome extension to search all the videos on a YouTube channel, and filter a
+channel's back catalogue by video length, view count, upload date and what you
+have already watched.**
 
 YouTube's in-channel search only matches words in titles. You cannot ask it for
 videos under twenty minutes, or the ones you started and never finished, or a
@@ -170,7 +176,7 @@ Developer mode, choose Load unpacked, and select `dist/chrome`.
 Add-on, and pick the `manifest.json` inside `dist/firefox`.
 
 Then open any channel's Videos tab, for example `youtube.com/@mkbhd/videos`, and
-click the Search+ button at the bottom right, or press Alt+Y.
+click the needle button at the bottom right, or press Alt+Y.
 
 Clicking the toolbar icon opens the panel on the channel you are looking at and
 holds the settings: how deep to read a channel, what counts as finished, which

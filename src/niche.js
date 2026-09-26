@@ -1,5 +1,5 @@
 /*
- * YouTube Channel Search+
+ * Needle for YouTube
  * Competitor watchlist, cross-channel outliers, and view switching.
  *
  * Loaded as an ordered content script, so every module shares one scope.
@@ -86,18 +86,22 @@ function clearNicheResults() {
 async function refreshWatchlist() {
   if (!state.watchlist.length) {
     clearNicheResults();
-    ui.nicheStatus.textContent = "add a channel first";
+    ui.nicheStatus.textContent = "Add a channel first";
     renderNiche();
     return;
   }
-  ui.nicheRefresh.disabled = true;
+  // Held locally for the same reason as runCompare: this loop takes a while,
+  // and leaving the page mid-way can set ui to null under it.
+  const u = ui;
+  const gen = state.navGen;
+  u.nicheRefresh.disabled = true;
   const outliers = [];
   const theirVideos = [];
   const newSeen = new Set();
   let liveChannels = 0;
   let fails = 0;
   for (const key of state.watchlist) {
-    ui.nicheStatus.textContent = "reading " + key.replace(/^\//, "") + "…";
+    u.nicheStatus.textContent = "Reading " + key.replace(/^\//, "") + "…";
     try {
       const cat = await fetchCatalogFrom(location.origin + key + "/videos", () => {});
       const info = await persistCatalog(key, cat); // annotates measured velocity in place
@@ -147,7 +151,7 @@ async function refreshWatchlist() {
       theirVideos.push.apply(theirVideos, cat);
     } catch (e) {
       fails++;
-      console.error("[Channel Search+] watchlist", key, e);
+      console.error("[Needle] watchlist", key, e);
     }
   }
   /*
@@ -156,6 +160,13 @@ async function refreshWatchlist() {
    * questions, so they are never interleaved: sorting them together once let
    * the weaker measure crowd out the stronger one.
    */
+  // The content gaps below are measured against this page's catalogue, so a
+  // different page gets no results rather than someone else's gaps. The
+  // snapshots saved along the way are still kept.
+  if (pageGone(gen)) {
+    u.nicheRefresh.disabled = false;
+    return;
+  }
   outliers.sort((a, b) => {
     if (a.measured !== b.measured) return a.measured ? -1 : 1;
     return a.measured ? b.ratio - a.ratio : b.v.views - a.v.views;
@@ -176,10 +187,10 @@ async function refreshWatchlist() {
     bits.push(liveChannels + " of " + state.watchlist.length + " live");
   } else {
     bits.push(plural(outliers.length, "recent upload"));
-    bits.push("baseline set, refresh again later for measured velocity");
+    bits.push("Baseline set. Refresh again later for measured growth");
   }
   if (fails) bits.push(fails + " couldn't be read");
-  ui.nicheStatus.textContent = bits.join(" · ");
+  factsInto(ui.nicheStatus, bits.map(cap));
   ui.nicheRefresh.disabled = false;
   renderNiche();
 }
@@ -222,7 +233,7 @@ function nicheList(items) {
       // repeating it here would say the same thing twice on one line.
       parts.push(it.v.publishedText);
     }
-    sub.textContent = parts.join("  ·  ");
+    factsInto(sub, parts.map(cap));
     meta.appendChild(t);
     meta.appendChild(sub);
 
@@ -249,10 +260,10 @@ function nicheList(items) {
     mlab.className = "ytcs-nmlab";
     if (it.measured) {
       mval.textContent = it.ratio.toFixed(1) + "x";
-      mlab.textContent = "normal pace";
+      mlab.textContent = "Normal pace";
     } else {
       mval.textContent = fmtCompact(it.v.views);
-      mlab.textContent = "views";
+      mlab.textContent = "Views";
     }
     metric.appendChild(mval);
     metric.appendChild(mlab);

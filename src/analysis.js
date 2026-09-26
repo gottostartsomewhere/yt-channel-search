@@ -1,5 +1,5 @@
 /*
- * YouTube Channel Search+
+ * Needle for YouTube
  * Channel comparison, plus title and format analysis.
  *
  * Loaded as an ordered content script, so every module shares one scope.
@@ -22,21 +22,27 @@ function normalizeChannelInput(input) {
   return null;
 }
 async function runCompare() {
-  const raw = ui.cmpInput.value.trim();
+  // Held locally: leaving the page mid-read can set ui to null, and this
+  // would otherwise throw on the way out instead of just stopping.
+  const u = ui;
+  const gen = state.navGen;
+  const raw = u.cmpInput.value.trim();
   if (!raw) return;
   const url = normalizeChannelInput(raw);
-  if (!url) { ui.cmpStatus.textContent = "couldn't parse that channel"; return; }
-  ui.cmpBtn.disabled = true;
-  ui.cmpStatus.textContent = "loading… 0";
+  if (!url) { u.cmpStatus.textContent = "Couldn't read that channel address"; return; }
+  u.cmpBtn.disabled = true;
+  u.cmpStatus.textContent = "Loading…";
   try {
-    const cat = await fetchCatalogFrom(url, (n) => (ui.cmpStatus.textContent = "loading… " + n));
-    ui.cmpStatus.textContent = plural(cat.length, "video") + (cat.truncated ? " (capped)" : "");
+    const cat = await fetchCatalogFrom(url, (n) => (u.cmpStatus.textContent = "Loading… " + n));
+    // Compared against this page's channel, so a different page means no answer.
+    if (pageGone(gen)) return;
+    u.cmpStatus.textContent = cap(plural(cat.length, "video")) + (cat.truncated ? " (capped)" : "");
     const label = raw.replace(/^https?:\/\/(www\.)?youtube\.com\//i, "").replace(/\/.*$/, "");
     renderCompare(state.catalog, cat, label);
   } catch (e) {
-    ui.cmpStatus.textContent = "error: " + e.message;
+    u.cmpStatus.textContent = "Error: " + e.message;
   } finally {
-    ui.cmpBtn.disabled = false;
+    u.cmpBtn.disabled = false;
   }
 }
 function renderCompare(catA, catB, labelB) {
@@ -56,8 +62,6 @@ function renderCompare(catA, catB, labelB) {
     ["Total views", a.total, b.total, fmtCompact(a.total), fmtCompact(b.total)],
     ["Median views", a.medViews, b.medViews, fmtCompact(a.medViews), fmtCompact(b.medViews)],
     ["Avg length", a.avgDur, b.avgDur, fmtDuration(a.avgDur) || "–", fmtDuration(b.avgDur) || "–"],
-    ["Median views/day", a.medVpd, b.medVpd, fmtCompact(Math.round(a.medVpd)), fmtCompact(Math.round(b.medVpd))],
-    ["Top views/day", a.topVpd, b.topVpd, fmtCompact(Math.round(a.topVpd)), fmtCompact(Math.round(b.topVpd))],
   ];
   const thisLabel = (channelBasePath() || "this channel").replace(/^\//, "");
   const tbl = document.createElement("table");

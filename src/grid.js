@@ -1,5 +1,5 @@
 /*
- * YouTube Channel Search+
+ * Needle for YouTube
  * Shared runtime state, the filter and sort pipeline, and the video grid.
  *
  * Loaded as an ordered content script, so every module shares one scope.
@@ -7,12 +7,40 @@
  */
 
 // ---- state ---------------------------------------------------------------
+/*
+ * Filters that exist only as typed operators or custom ranges, with no select
+ * of their own. Ages are in days, so after:2023 is a maxAge and "watched in
+ * August" is a watchedMin/watchedMax pair counted back from today.
+ */
+function freshExtra() {
+  return {
+    channel: "", notChannels: [], excludes: [],
+    minAge: 0, maxAge: Infinity,
+    watchedMin: 0, watchedMax: Infinity, watchedText: "",
+    lang: "", fresh: false,
+  };
+}
+
 const state = {
   catalog: [], loading: false, active: false, enabling: false,
-  nativeGrid: null, nativeDisplay: "",
+  // Every grid the panel has hidden, as {el, display}. A single reference was
+  // not enough: see hideNativeGrids in panel.js.
+  hiddenGrids: [],
   medianVpd: 0, medianViews: 0, view: "search", insight: "overview",
   newIds: new Set(), cachedAt: 0,
   watchlist: [], nicheItems: [], gapItems: [], nicheRan: false,
+  // Set by the search bar (omnibar.js): which of your lists a scoped query
+  // asked for, filters waiting for the panel to open, and what the library
+  // strip above the results is matching.
+  omniScope: "", pendingOmni: null, stripFilters: null,
+  extra: freshExtra(),
+  // The live search sessions behind the results page, so Load more can resume.
+  searchCtx: null,
+  // A followed search's new videos, on their way to the panel as NEW.
+  followFresh: null,
+  // Counts navigations. Anything slow remembers the value it started under and
+  // drops its result if it changed: see pageGone in panel.js.
+  navGen: 0,
 };
 let ui = null;      // cached refs for the injected UI
 let launcher = null;
@@ -44,9 +72,36 @@ function filterAndSort() {
   const watched = ui.watched.value; // "", "new", "partial", "done", "unfinished"
   const sort = ui.sort.value;
   const fits = parseFloat(ui.fits.value) > 0 ? parseFloat(ui.fits.value) * 60 : Infinity;
+  const x = state.extra;
+  const muteHere = isSearchPage() && !state.omniScope;
+  /*
+   * Every word, anywhere in the title or channel, rather than the whole phrase
+   * in one piece: "async rust" finds "Rust async explained". Your own history
+   * and lists also forgive a typo, since they are searched from memory; a
+   * channel's catalogue and search results match as typed.
+   */
+  const kwWords = kw ? kw.split(/\s+/).filter(Boolean) : [];
+  const forgiving = listHasWatchDates() || !!state.omniScope;
 
   let rows = state.catalog.filter((v) => {
-    if (kw && !v.title.toLowerCase().includes(kw)) return false;
+    if (x.channel && !matchChannel(v, x.channel)) return false;
+    if (x.excludes.length) {
+      const hay = (v.title + " " + (v.channel || "")).toLowerCase();
+      if (x.excludes.some((w) => hay.includes(w))) return false;
+    }
+    // Upload age always, even on history: after:2023 is about when it was made.
+    if (x.minAge && !(v.days != null && v.days >= x.minAge)) return false;
+    if (x.maxAge !== Infinity && !(v.days != null && v.days <= x.maxAge)) return false;
+    if (x.watchedMin || x.watchedMax !== Infinity) {
+      if (!(typeof v.watchedDays === "number" && v.watchedDays >= x.watchedMin && v.watchedDays <= x.watchedMax)) return false;
+    }
+    if (x.notChannels.length && x.notChannels.some((c) => matchChannel(v, c))) return false;
+    // Muted channels only leave search results. Your own lists and a channel
+    // you opened on purpose are yours to see in full.
+    if (muteHere && isMuted(v)) return false;
+    if (x.lang && !langMatches(v.title, x.lang)) return false;
+    if (x.fresh && !isFresh(v)) return false;
+    if (kwWords.length && !matchScore(v, kwWords, forgiving)) return false;
     if (v.seconds > fits) return false;
     if (v.seconds < minDur || v.seconds > maxDur) return false;
     if (v.views < minViews || v.views > maxViews) return false;
@@ -55,9 +110,16 @@ function filterAndSort() {
       if (watched === "unfinished" ? ws === "done" : ws !== watched) return false;
     }
     if (uploaded) {
+      /*
+       * The date pill means different things on the two surfaces. On a channel
+       * it is upload age, which is the only date there. On history the date
+       * anyone is actually thinking about is when they watched it, so the same
+       * control filters on that instead and the panel relabels it to say so.
+       */
+      const age = listHasWatchDates() ? v.watchedDays : v.days;
       if (uploaded === "old") {
-        if (!(v.days != null && v.days > 366)) return false;
-      } else if (!(v.days != null && v.days <= parseFloat(uploaded))) {
+        if (!(age != null && age > 366)) return false;
+      } else if (!(age != null && age <= parseFloat(uploaded))) {
         return false;
       }
     }
@@ -71,7 +133,19 @@ function filterAndSort() {
     const size = Math.max(0.25, v.views / (state.medianViews || 1));
     return rate / size;
   };
+  // Unknown watch dates sort last in both directions rather than clumping at
+  // whichever end happens to be numerically convenient.
+  const wdLast = (v) => (typeof v.watchedDays === "number" ? v.watchedDays : Infinity);
+  const wdFirst = (v) => (typeof v.watchedDays === "number" ? v.watchedDays : -1);
+  // Upload order where position means nothing (search results, your lists).
+  const ageNew = (v) => (v.days != null ? v.days : Infinity);
+  const ageOld = (v) => (v.days != null ? v.days : -1);
   const sorters = {
+    upload_new: (a, b) => ageNew(a) - ageNew(b),
+    upload_old: (a, b) => ageOld(b) - ageOld(a),
+    // watchedDays counts backwards from today, so ascending is most recent.
+    watched_desc: (a, b) => wdLast(a) - wdLast(b),
+    watched_asc: (a, b) => wdFirst(b) - wdFirst(a),
     views_desc: (a, b) => b.views - a.views,
     views_asc: (a, b) => a.views - b.views,
     duration_desc: (a, b) => b.seconds - a.seconds,
@@ -126,7 +200,10 @@ function applyView() {
   } else {
     renderGrid(rows);
   }
-  ui.count.textContent = rows.length + " of " + state.catalog.length;
+  // Nothing loaded yet is not "0 of 0", which reads as "nothing found".
+  const total = state.catalog.length;
+  ui.count.textContent = total ? rows.length + " of " + total : "";
+  if (ui.meterFill) ui.meterFill.style.width = (total ? (rows.length / total) * 100 : 0) + "%";
 
   /*
   * Two different questions, which used to share one answer.
@@ -138,10 +215,19 @@ function applyView() {
   * was removed.
   */
   const narrowed = rows.length !== state.catalog.length;
+  const x = state.extra;
   const touched = !!(ui.kw.value.trim() || ui.duration.value || ui.views.value ||
-    ui.uploaded.value || ui.watched.value || ui.fits.value || ui.sort.value !== "newest");
+    ui.uploaded.value || ui.watched.value || ui.fits.value || ui.sort.value !== "newest" ||
+    extraTokens().length);
   ui.clear.style.display = touched ? "" : "none";
   ui.count.classList.toggle("ytcs-filtered", narrowed);
+  ui.count.parentElement.classList.toggle("ytcs-narrowed", narrowed);
+  if (typeof layoutTokens === "function") layoutTokens();
+
+  // A narrowed set is the tool having worked, which is when the rating ask
+  // counts a use. Guarded on typeof because panel.js defines it and this file
+  // loads first: a broken ask must never be able to take the grid down with it.
+  if (narrowed && typeof tickRating === "function") tickRating();
 }
 
 function median(nums) {
@@ -180,14 +266,23 @@ function renderLoading(n) {
   const spinner = document.createElement("div");
   spinner.className = "ytcs-spinner";
 
+  // Says what is actually being read. A search is not a channel, and it is not
+  // cached either, so the channel's promise would be false on both counts.
+  const search = typeof isSearchPage === "function" && isSearchPage() && !state.omniScope;
   const head = document.createElement("div");
   head.className = "ytcs-loadhead";
-  head.textContent = "Reading this channel's full catalogue";
+  head.textContent = search ? "Reading the first 200 or so results"
+    : isHistoryPage() || state.omniScope === "hist" ? "Reading your watch history"
+    : state.omniScope ? "Reading your " + LIB_NAMES[state.omniScope]
+    : ownListScope() ? "Reading your " + LIB_NAMES[ownListScope()]
+    : "Reading this channel's full catalogue";
 
   const sub = document.createElement("div");
   sub.className = "ytcs-loadsub";
   sub.textContent = n
-    ? plural(n, "video") + " so far"
+    ? plural(n, search ? "result" : "video") + " so far"
+    : search ? "About ten seconds, then filtering is instant"
+    : state.omniScope || ownListScope() ? "A few seconds, then filtering is instant"
     : "This happens once, then it is cached";
 
   box.appendChild(spinner);
@@ -197,44 +292,40 @@ function renderLoading(n) {
 }
 
 function renderStats(rows) {
+  // Nothing loaded is not a channel with zero views.
+  ui.stats.style.display = state.catalog.length ? "" : "none";
   const n = rows.length;
   const totalViews = rows.reduce((s, v) => s + v.views, 0);
-  const medViews = median(rows.map((v) => v.views));
+  // An even count puts the median between two videos, and "209.5 views" is a
+  // precision view counts never had.
+  const medViews = Math.round(median(rows.map((v) => v.views)));
   const avgDur = n ? Math.round(rows.reduce((s, v) => s + v.seconds, 0) / n) : 0;
-  const vpds = rows.filter((v) => v.days).map((v) => v.views / Math.max(v.days, 1));
-  const medVpd = median(vpds);
-  // No video count here: the filter row already says "18 of 177", and repeating
-  // it in a tile was one of six identical boxes competing for the same glance.
+  // No video count here: the query line already says "18 of 177". Label first,
+  // value after, spaced rather than dotted: "Median views 318" reads as a fact,
+  // "318 median views" read as a sentence missing its start.
   const tiles = [
-    ["total views", fmtCompact(totalViews)],
-    ["median views", fmtCompact(medViews)],
-    ["avg length", fmtDuration(avgDur) || "–"],
-    ["median views/day", fmtRate(medVpd)],
+    ["Total views", fmtCompact(totalViews)],
+    ["Median views", fmtCompact(medViews)],
+    ["Average length", fmtDuration(avgDur) || "–"],
   ];
   // Only meaningful when this account actually has history on the channel.
   if (state.catalog.some((v) => typeof v.progress === "number")) {
-    tiles.push(["not started", String(rows.filter((v) => watchState(v) === "new").length)]);
+    tiles.push(["Not started", String(rows.filter((v) => watchState(v) === "new").length)]);
   }
   ui.stats.innerHTML = "";
-  tiles.forEach(([label, val], i) => {
-    if (i) {
-      const dot = document.createElement("span");
-      dot.className = "ytcs-statdot";
-      dot.textContent = "·";
-      ui.stats.appendChild(dot);
-    }
+  for (const [label, val] of tiles) {
     const tile = document.createElement("span");
     tile.className = "ytcs-stat";
-    const vEl = document.createElement("span");
-    vEl.className = "ytcs-statval";
-    vEl.textContent = val;
     const lEl = document.createElement("span");
     lEl.className = "ytcs-statlabel";
     lEl.textContent = label;
-    tile.appendChild(vEl);
+    const vEl = document.createElement("span");
+    vEl.className = "ytcs-statval";
+    vEl.textContent = val;
     tile.appendChild(lEl);
+    tile.appendChild(vEl);
     ui.stats.appendChild(tile);
-  });
+  }
 }
 
 function renderGrid(rows) {
@@ -245,6 +336,10 @@ function renderGrid(rows) {
     const card = document.createElement("a");
     card.className = "ytcs-card" + (ws === "done" ? " ytcs-seen" : "");
     card.href = "/watch?v=" + v.id;
+    // Who made it, for the mute button. Search results carry it; a channel's
+    // own grid does not need it.
+    if (v.channel) card.dataset.ch = v.channel;
+    if (v.handle) card.dataset.h = v.handle;
 
     const thumb = document.createElement("div");
     thumb.className = "ytcs-thumb";
@@ -275,19 +370,10 @@ function renderGrid(rows) {
     t.className = "ytcs-ctitle";
     t.textContent = v.title;
     t.title = v.title;
-    const meta = document.createElement("div");
+    const meta = factsInto(document.createElement("div"), [fmtCompact(v.views) + " views", cap(v.publishedText)]);
     meta.className = "ytcs-cmeta";
-    meta.textContent = [fmtCompact(v.views) + " views", v.publishedText]
-      .filter(Boolean).join("  •  ");
     info.appendChild(t);
     info.appendChild(meta);
-    const vpdVal = v.days ? v.views / Math.max(v.days, 1) : 0;
-    if (v.days) {
-      const vpd = document.createElement("div");
-      vpd.className = "ytcs-cvpd";
-      vpd.textContent = "≈ " + rateText(vpdVal, "day");
-      info.appendChild(vpd);
-    }
     if (v.gained > 0 && v.sinceDays) {
       const span = v.sinceDays < 1
         ? Math.max(1, Math.round(v.sinceDays * 24)) + "h"
@@ -322,9 +408,10 @@ function renderGrid(rows) {
   if (!shown.length && !state.loading) {
     const empty = document.createElement("div");
     empty.className = "ytcs-empty";
-    empty.textContent = state.catalog.length ? "No videos match these filters." : "Click Search+ to load this channel.";
+    empty.textContent = state.catalog.length ? "No videos match these filters." : "Nothing loaded yet. Press refresh to read it.";
     ui.grid.appendChild(empty);
   }
+  if (typeof renderLoadMore === "function") renderLoadMore(ui.grid);
   if (rows.length > shown.length) {
     const more = document.createElement("div");
     more.className = "ytcs-more";

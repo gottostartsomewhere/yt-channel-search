@@ -5,6 +5,10 @@ const DEFAULTS = {
   defaultSort: "newest",
   hideWatched: false,
   autoOpen: false,
+  deepHistory: false,
+  librarySearch: true,
+  filterTips: true,
+  channelIndex: true,
 };
 
 const $ = (id) => document.getElementById(id);
@@ -52,6 +56,43 @@ $("reset").addEventListener("click", () => {
   chrome.storage.sync.set(DEFAULTS, () => flash("Reset"));
 });
 
+/*
+ * Followed searches and muted channels, each with a way out. Both live in the
+ * browser's synced storage, so this reads and edits them directly, and any
+ * open YouTube tab picks the change up through its storage listener.
+ */
+function renderList(listId, emptyId, items, label, onRemove) {
+  const ul = $(listId);
+  ul.textContent = "";
+  $(emptyId).hidden = items.length > 0;
+  for (const item of items) {
+    const li = document.createElement("li");
+    const text = document.createElement("span");
+    text.className = "item";
+    text.textContent = label(item);
+    const x = document.createElement("button");
+    x.className = "remove";
+    x.textContent = "×";
+    x.setAttribute("aria-label", "Remove " + label(item));
+    x.addEventListener("click", () => onRemove(item));
+    li.appendChild(text);
+    li.appendChild(x);
+    ul.appendChild(li);
+  }
+}
+
+function paintLists() {
+  chrome.storage.sync.get({ follows: [], muted: [] }, (got) => {
+    renderList("follows", "followsEmpty", got.follows, (f) => f.q, (f) => {
+      chrome.storage.sync.set({ follows: got.follows.filter((x) => x.id !== f.id) }, paintLists);
+    });
+    renderList("muted", "mutedEmpty", got.muted, (m) => m.name || "@" + m.handle, (m) => {
+      chrome.storage.sync.set({ muted: got.muted.filter((x) => !(x.name === m.name && x.handle === m.handle)) }, paintLists);
+    });
+  });
+}
+paintLists();
+
 // Firefox keeps shortcuts under about:addons and refuses the chrome:// URL.
 const IS_GECKO = navigator.userAgent.indexOf("Firefox") !== -1;
 $("shortcuts").addEventListener("click", (e) => {
@@ -60,14 +101,29 @@ $("shortcuts").addEventListener("click", (e) => {
 });
 
 // The panel lives in the page, so opening it means messaging the active tab.
+/*
+ * Every page the panel can open on. Must stay in step with canRunHere() in
+ * panel.js: the content script decides whether the launcher appears, this
+ * decides whether the popup's button works, and they answering differently
+ * means a button that says it cannot do something the page is already doing.
+ */
+const HISTORY = /^https:\/\/www\.youtube\.com\/feed\/history\/?$/;
 const CHANNEL = /^https:\/\/www\.youtube\.com\/(@[^/]+|channel\/|c\/|user\/)/;
+const RESULTS = /^https:\/\/www\.youtube\.com\/results$/;
+const OWN_LIST = /^https:\/\/www\.youtube\.com\/playlist\?(?:.*&)?list=(WL|LL)(?:&|$)/;
+const PANEL_PAGE = (u) => CHANNEL.test(u) || HISTORY.test(u.split("?")[0]) || RESULTS.test(u.split("?")[0]) || OWN_LIST.test(u);
 const YOUTUBE = /^https:\/\/www\.youtube\.com\//;
 
 chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
   const tab = tabs && tabs[0];
   const url = (tab && tab.url) || "";
 
-  if (CHANNEL.test(url)) {
+  if (PANEL_PAGE(url)) {
+    // "Open on this channel" is wrong on the history page, and a button that
+    // misnames what it is about to do is worse than a generic one.
+    if (HISTORY.test(url.split("?")[0])) $("open").textContent = "Open on your history";
+    if (RESULTS.test(url.split("?")[0])) $("open").textContent = "Filter these results";
+    if (OWN_LIST.test(url)) $("open").textContent = url.includes("list=WL") ? "Open on your Watch Later" : "Open on your Liked videos";
     $("open").addEventListener("click", () => {
       chrome.tabs.sendMessage(tab.id, { type: "ytcs-toggle" }, () => {
         if (chrome.runtime.lastError) {
@@ -79,7 +135,7 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     });
   } else {
     $("open").disabled = true;
-    $("hint").textContent = "Open a YouTube channel to use the panel.";
+    $("hint").textContent = "Open a channel, a search, your history or Watch Later.";
   }
 
   /*
@@ -97,8 +153,8 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
   clear.addEventListener("click", () => {
     if (clear.dataset.armed !== "1") {
       clear.dataset.armed = "1";
-      clear.textContent = "Clear? This cannot be undone";
-      flash("Cached catalogues, snapshots and watchlist");
+      clear.textContent = "Sure? Click again";
+      flash("Catalogues, your library copy, watchlist");
       return;
     }
     chrome.tabs.sendMessage(tab.id, { type: "ytcs-clear" }, (res) => {

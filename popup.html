@@ -2,58 +2,130 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Channel Search+</title>
+<title>Needle</title>
 <link rel="stylesheet" href="popup.css">
 </head>
 <body>
 <header>
-  <img src="icons/icon48.png" alt="" width="26" height="26">
-  <span class="name">Channel Search+</span>
+  <img src="icons/icon48.png" alt="" width="24" height="24">
+  <span class="name">Needle</span>
 </header>
 
 <button id="open" class="primary">Open on this channel</button>
 <p id="hint" class="hint">Alt+Y does the same thing.</p>
 
-<div class="rows">
-  <label class="row" for="defaultSort">
-    <span>Opening sort</span>
-    <select id="defaultSort">
-      <option value="newest">Newest</option>
-      <option value="oldest">Oldest</option>
-      <option value="starthere">Start here</option>
-      <option value="views_desc">Most views</option>
-      <option value="vpd_desc">Views per day</option>
-      <option value="trend_desc">Trending</option>
-    </select>
-  </label>
+<!--
+  The grammar, where people go looking for what the extension can do. Nobody
+  discovers "<20m" by accident, and the tips row in the search bar can be
+  hidden, so this is the one place it is always written down.
+-->
+<section class="card">
+  <h2>In YouTube's search bar</h2>
+  <dl class="ops">
+    <dt>&lt;20m</dt><dd>Shorter than 20 minutes</dd>
+    <dt>&gt;100k</dt><dd>More than 100K views</dd>
+    <dt>unwatched</dt><dd>Never started</dd>
+    <dt>is:fresh</dt><dd>Nothing you were shown before</dd>
+    <dt>date:week</dt><dd>Uploaded this week</dd>
+    <dt>watched:august</dt><dd>What you watched in August</dd>
+    <dt>in:wl</dt><dd>Only your Watch Later</dd>
+    <dt>in:channels</dt><dd>Channels you watch, every video</dd>
+    <dt>@name</dt><dd>From that channel</dd>
+    <dt>-@name</dt><dd>Never from that channel</dd>
+    <dt>lang:en</dt><dd>Titles in English</dd>
+    <dt>is:4k</dt><dd>YouTube's own filters: also is:live, has:subtitles</dd>
+  </dl>
+</section>
 
-  <label class="row" for="hideWatched">
-    <span>Hide finished videos</span>
-    <input type="checkbox" id="hideWatched">
-  </label>
+<section>
+  <h2>Your library</h2>
+  <div class="rows">
+    <!--
+      On by default. It reads page one of Watch Later, Liked and history the
+      same way opening those pages does, with no cookie read and nothing signed,
+      so there is nothing here that the browser was not already doing.
+    -->
+    <label class="row" for="librarySearch">
+      <span>Show it in search <em>Watch Later, Liked and history, as you type</em></span>
+      <input type="checkbox" id="librarySearch" class="switch">
+    </label>
+    <label class="row" for="filterTips">
+      <span>Filter tips <em>the clickable examples under the search bar</em></span>
+      <input type="checkbox" id="filterTips" class="switch">
+    </label>
+    <!--
+      Reads the whole catalogues of the channels you watch most, in the
+      background, one every ten minutes at most, so in:channels can search
+      them. Public data, kept on this device, but background reading deserves
+      a way to say no.
+    -->
+    <label class="row" for="channelIndex">
+      <span>Index channels you watch <em>for in:channels, read slowly in the background</em></span>
+      <input type="checkbox" id="channelIndex" class="switch">
+    </label>
+    <!--
+      Off by default and it stays off until somebody ticks it. Reading past the
+      first page of history, Watch Later or Liked means signing the request with
+      your YouTube session, the way youtube.com's own scripts do. Nothing is
+      transmitted anywhere, but it is a choice worth making knowingly rather than
+      a default to discover later. PRIVACY.md carries the full explanation.
+    -->
+    <label class="row" for="deepHistory">
+      <span>Deep reading <em>past page one of your lists, stays on this device</em></span>
+      <input type="checkbox" id="deepHistory" class="switch">
+    </label>
+  </div>
+</section>
 
-  <label class="row" for="autoOpen">
-    <span>Open automatically</span>
-    <input type="checkbox" id="autoOpen">
-  </label>
+<section>
+  <h2>The panel</h2>
+  <div class="rows">
+    <label class="row" for="defaultSort">
+      <span>Opening sort</span>
+      <select id="defaultSort">
+        <option value="newest">Newest</option>
+        <option value="oldest">Oldest</option>
+        <option value="starthere">Start here</option>
+        <option value="views_desc">Most views</option>
+        <option value="trend_desc">Trending</option>
+      </select>
+    </label>
+    <label class="row" for="hideWatched">
+      <span>Hide finished videos</span>
+      <input type="checkbox" id="hideWatched" class="switch">
+    </label>
+    <label class="row" for="autoOpen">
+      <span>Open on every channel</span>
+      <input type="checkbox" id="autoOpen" class="switch">
+    </label>
+    <label class="row" for="maxVideos">
+      <span>Video limit <em>how deep to read a channel</em></span>
+      <input type="number" id="maxVideos" min="30" max="10000" step="30">
+    </label>
+    <label class="row" for="finishedAt">
+      <span>Finished at <em>percent watched</em></span>
+      <input type="number" id="finishedAt" min="50" max="100" step="5">
+    </label>
+  </div>
+</section>
 
-  <label class="row" for="maxVideos">
-    <span>Video limit <em>how deep to read</em></span>
-    <input type="number" id="maxVideos" min="30" max="10000" step="30">
-  </label>
+<section>
+  <h2>Searches you follow</h2>
+  <ul id="follows" class="list"></ul>
+  <p id="followsEmpty" class="empty">Type a search with a filter, like <code>rust &lt;20m</code>, and press Follow in the dropdown or the panel. New matches wait for you in the search bar.</p>
+</section>
 
-  <label class="row" for="finishedAt">
-    <span>Finished at <em>percent watched</em></span>
-    <input type="number" id="finishedAt" min="50" max="100" step="5">
-  </label>
-
-</div>
+<section>
+  <h2>Muted channels</h2>
+  <ul id="muted" class="list"></ul>
+  <p id="mutedEmpty" class="empty">Hover a search result and press the mute button on its thumbnail. Muted channels leave search results only.</p>
+</section>
 
 <footer>
   <button id="reset" class="ghost">Reset</button>
   <button id="clear" class="ghost">Clear cached data</button>
   <span id="saved" class="saved"></span>
-  <a href="#" id="shortcuts">Change shortcut</a>
+  <a href="#" id="shortcuts">Shortcut</a>
 </footer>
 <script src="popup.js"></script>
 </body>

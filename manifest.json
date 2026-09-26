@@ -1,8 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "Channel Search+ for YouTube",
-  "version": "1.0.0",
-  "description": "YouTube's channel search only matches text. This searches the whole back catalogue by length, views, date and what you've watched.",
+  "name": "__MSG_extName__",
+  "short_name": "Needle",
+  "version": "2.0.0",
+  "description": "__MSG_extDesc__",
+  "default_locale": "en",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
@@ -11,17 +13,34 @@
   },
   "content_scripts": [
     {
-      "matches": ["*://www.youtube.com/*"],
+      "matches": [
+        "*://www.youtube.com/*"
+      ],
       "js": [
         "src/core.js",
         "src/grid.js",
         "src/store.js",
+        "src/library.js",
+        "src/memory.js",
         "src/charts.js",
         "src/analysis.js",
         "src/niche.js",
-        "src/panel.js"
+        "src/panel.js",
+        "src/omnibar.js"
       ],
-      "css": ["styles.css"],
+      "css": [
+        "styles.css"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "*://www.youtube.com/*"
+      ],
+      "js": [
+        "src/navigate.js"
+      ],
+      "world": "MAIN",
       "run_at": "document_idle"
     }
   ],
@@ -30,16 +49,20 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Channel Search+"
+    "default_title": "Needle"
   },
   "commands": {
     "toggle-panel": {
       "suggested_key": {
         "default": "Alt+Y"
       },
-      "description": "Open or close the Channel Search+ panel"
+      "description": "Open or close the Needle panel"
     }
   },
-  "permissions": ["storage"],
-  "host_permissions": ["*://www.youtube.com/*"]
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "*://www.youtube.com/*"
+  ]
 }

@@ -1,5 +1,5 @@
 /*
- * YouTube Channel Search+
+ * Needle for YouTube
  * Dependency-free SVG charts and the analytics pane that arranges them.
  *
  * Loaded as an ordered content script, so every module shares one scope.
@@ -140,7 +140,7 @@ function chartCard(title, node, note, wide) {
 function chartEmpty() {
   const d = document.createElement("div");
   d.className = "ytcs-chartempty";
-  d.textContent = "not enough data";
+  d.textContent = "Not enough data";
   return d;
 }
 
@@ -332,6 +332,53 @@ function renderAnalytics(rows) {
 
   const viewsData = bucketCounts(rows, VIEW_BUCKETS, (v) => v.views);
   const lenData = bucketCounts(rows, LEN_BUCKETS, (v) => v.seconds);
+
+  /*
+   * ---- a mixed set gets the distributions and nothing else -----------------
+   *
+   * Everything else on this pane is a statement about one channel, and watch
+   * history is hundreds of channels in a bag. Run unguarded it produced
+   * "Across 1676 videos, this channel's median views peak at 30-45m" and called
+   * it a sweet spot at 2.0x "the channel median". There is no channel. What it
+   * had actually found was that the longer things you watched came from bigger
+   * creators, which is a confound rather than a finding. The title-format lift
+   * table has the identical flaw: it compares each format to "the channel's own
+   * median" across a set with no single channel in it, so it measures which
+   * creators you watch and not which titles work.
+   *
+   * The two distributions survive because they describe the set in front of you
+   * rather than concluding anything about it, and clicking a bar filters the
+   * grid, which makes them controls rather than claims. Same test that decided
+   * what to keep before launch.
+   */
+  // Search results and your own lists are the same bag of channels.
+  if (isHistoryPage() || isSearchPage() || ownListScope()) {
+    const note = document.createElement("p");
+    note.className = "ytcs-finding";
+    const lead = document.createElement("span");
+    lead.textContent =
+      plural(rows.length, "video") + " from many channels, so the per-channel " +
+      "findings are hidden here. A median across creators describes none of them.";
+    note.appendChild(lead);
+    ui.charts.appendChild(note);
+
+    const pick = (el, value) => {
+      el.value = value;
+      el.classList.toggle("ytcs-dim", !value);
+      setView("search");
+    };
+    ui.charts.appendChild(chartCard(
+      "Views distribution",
+      barChart(viewsData, (i) => pick(ui.views, VIEW_VALUES[i])),
+      shareNote(viewsData, rows.length, "band")
+    ));
+    ui.charts.appendChild(chartCard(
+      "Length distribution",
+      barChart(lenData, (i) => pick(ui.duration, LEN_VALUES[i])),
+      shareNote(lenData, rows.length, "range")
+    ));
+    return;
+  }
 
   /*
    * Two videos used to be enough for a bin to count, which is how a channel
