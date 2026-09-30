@@ -5,6 +5,7 @@ YouTube's search doesn't know what you've watched, can't filter by length or vie
 IN THE SEARCH BAR
 - Your Watch Later, likes and history show up as you type
 - Type filters: <20m, >100k, unwatched, date:week, @channel
+- in:playlists searches every playlist you've saved
 - is:fresh hides what you've already been shown
 - Follow a search, mute a channel, see what you've watched on every thumbnail
 
@@ -18,10 +19,18 @@ YOUR HISTORY AND WATCH LATER
 - Everything you started and never finished
 - Filter by channel, length, views or when you watched it
 - Find that video you know you watched, without scrolling
+- Clean up Watch Later: pick what goes, remove it, undo if you change your mind
+
+ANY PLAYLIST AND YOUR SUBSCRIPTIONS
+- Search and filter any playlist, yours or anyone's, all of it
+- Your subscriptions, unwatched and under 20 minutes
+- Dim or hide the videos you've already watched on Home and Subscriptions
 
 INSIGHTS
 - A channel's best-performing video lengths and years
 - Compare two channels side by side
 - A watchlist that spots videos beating their channel's usual views
+
+No sign-in, no account, nothing sent anywhere. It runs in your browser.
 
 Not affiliated with YouTube or Google.
