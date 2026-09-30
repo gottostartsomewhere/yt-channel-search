@@ -1,23 +1,63 @@
 # Needle for YouTube
 
+**The YouTube search that knows what you've watched.** A Chrome extension that
+puts your watch history, Watch Later and Liked videos into YouTube's own search
+bar, adds the filters YouTube leaves out (exact lengths, view counts, only what
+you haven't seen), and searches every upload on a channel.
+
 Formerly Channel Search+ for YouTube. Same extension, same listing, new name.
-
-**A Chrome extension to search all the videos on a YouTube channel, and filter a
-channel's back catalogue by video length, view count, upload date and what you
-have already watched.**
-
-YouTube's in-channel search only matches words in titles. You cannot ask it for
-videos under twenty minutes, or the ones you started and never finished, or a
-big channel's best work. This adds all of that, by reading the channel's entire
-upload history first and then letting you query it.
 
 Free, with no paid tier. It runs entirely in your browser: no account, no API
 key, no server, nothing sent anywhere.
 
-**[Install it here](https://chromewebstore.google.com/detail/channel-search+-for-youtu/magofcbhfhpfabphcldhodhgehhclokc)**
+**[Install it from the Chrome Web Store](https://chromewebstore.google.com/detail/needle-for-youtube-channe/magofcbhfhpfabphcldhodhgehhclokc)**
 
-![The Search view, a keyword and two filters narrowing a channel's full
-catalogue down to a handful of videos](docs/search.png)
+Step by step guides: [search your watch history](https://gottostartsomewhere.github.io/needle/search-watch-history/),
+[search your Watch Later](https://gottostartsomewhere.github.io/needle/search-watch-later/),
+[search every video on a channel](https://gottostartsomewhere.github.io/needle/search-youtube-channel/),
+[filter search by views and exact length](https://gottostartsomewhere.github.io/needle/youtube-search-filters/).
+
+![Typing in YouTube's search bar: videos from your Watch Later and history show
+up above YouTube's own suggestions](docs/shot-bar.png)
+
+## In the search bar
+
+Start typing anywhere on YouTube. Matches from your history, Watch Later and
+Liked videos show up above YouTube's own suggestions, with when you watched each
+one and how far you got. Filters go straight into the query and are taken out
+before YouTube sees it:
+
+| Type | Gets you |
+| --- | --- |
+| `<20m` `>45m` | Length, exactly |
+| `>100k` `<5k` | View count |
+| `unwatched` `is:started` | Watch state |
+| `is:fresh` | Nothing you were shown in an earlier search |
+| `watched:august` | When you watched it |
+| `in:history` `in:wl` `in:liked` | Only that list |
+| `in:channels` | Every video from the channels you watch |
+| `@name` `-@name` | From that channel, or never from it |
+| `date:week` `after:2023` | Upload date |
+| `sort:views` | Order |
+| `lang:en` | Title language |
+| `is:4k` `is:live` `has:subtitles` | YouTube's own filters, passed straight through |
+
+Press Enter and anything YouTube can do itself goes to YouTube as its own
+filter. The rest is applied to the results in the panel, which keeps reading
+further down YouTube's results when a strict filter leaves too few. You can also
+follow a search and see when something new matches it, and mute a channel so it
+stops turning up.
+
+## Your history, Watch Later and Liked
+
+YouTube can't search inside Watch Later or Liked, and its history search only
+takes words. Press the needle button on any of those pages and the same panel
+opens over the list: filter by channel, length, views, upload date, when you
+watched it and how far you got.
+
+Page one of each list needs nothing special. Reading further back is **Deep
+reading**, a switch in the popup that is off by default.
+[PRIVACY.md](PRIVACY.md) explains exactly what it does before you turn it on.
 
 ## The idea
 
@@ -29,10 +69,13 @@ Questions like "what are this channel's least-viewed videos" or "what is the
 median length across 1,200 uploads" are unanswerable from the loaded DOM, and
 trivial here.
 
-## Search
+## On a channel
 
-The main view. It replaces the native grid in place, with a Restore YouTube
-button to put things back.
+Open a channel's Videos tab and press the needle button, or Alt+Y. The panel
+replaces the native grid in place, with a Close button to put things back.
+
+![A channel's 180 videos filtered down to 12: four to twenty minutes, not
+finished, fits in 45 minutes](docs/shot-channel.png)
 
 Filter by title keyword, length band, view band, upload recency, and **watch
 state**. That last one is the piece plain YouTube never gives you: hide
@@ -49,13 +92,14 @@ from any one year, giving you the channel's best work spread across its life.
 20, set Watched to not started, and you have the answer to what should I watch
 right now.
 
-Sort by views, length, views per day, measured trend, or hidden gems, meaning
+Sort by views, length, measured trend, or hidden gems, meaning
 fast relative to the channel but still small in absolute terms. A summary line
 recalculates as you filter.
 
 ## Insights
 
-Everything analytical, behind one tab, in three sections.
+Everything analytical, behind one tab, in three sections. Insights only appear
+on channel pages, since a channel is the only thing it can honestly describe.
 
 **Overview.** Charts drawn from whatever the filters currently select: uploads
 per year, median views by upload year, view and length distributions, and the
@@ -70,7 +114,7 @@ Studio tells you what performed and never which pattern performed.
 length and by upload year](docs/insights.png)
 
 **Compare.** Read any other channel's full catalogue and set its median views,
-median views per day, length, and top performers against this one.
+length, and top performers against this one.
 
 **Watchlist.** Track a set of channels. Refresh reads all of them and gives you
 two things: what is working right now, and content gaps, the topics they rank
@@ -121,8 +165,8 @@ top of it does not, and the bias is named on the card so it can be discounted.
 
 Cards carry no outlier badge. It divided a recent upload's launch spike by a
 lifetime average made mostly of old videos, so a badge reading "376x" was
-largely reporting that the video was new. Sorting by views per day ranks the
-same videos without printing a figure that cannot be defended.
+largely reporting that the video was new. A sort can rank the same videos
+without printing a figure that cannot be defended.
 
 Nor is there a title-length chart, which had no mechanism behind it in the
 first place.
@@ -159,7 +203,7 @@ session and needs no API key of your own.
 
 ## Install
 
-**[Install from the Chrome Web Store](https://chromewebstore.google.com/detail/channel-search+-for-youtu/magofcbhfhpfabphcldhodhgehhclokc)**
+**[Install from the Chrome Web Store](https://chromewebstore.google.com/detail/needle-for-youtube-channe/magofcbhfhpfabphcldhodhgehhclokc)**
 
 Works in Edge and other Chromium browsers from the same listing.
 
@@ -199,12 +243,17 @@ load-bearing.
 | `src/core.js` | Settings, parsers, and the InnerTube catalogue reader. No DOM. |
 | `src/grid.js` | Runtime state, the filter and sort pipeline, the video grid. |
 | `src/store.js` | IndexedDB cache, view-count snapshots, stats, export. |
+| `src/library.js` | Your history, Watch Later and Liked, cached for the search bar, and the query grammar. |
+| `src/memory.js` | What you've been shown (`is:fresh`), muted channels, followed searches, the channel index. |
 | `src/charts.js` | SVG charts and the Overview section. |
 | `src/analysis.js` | Channel comparison and title-format analysis. |
 | `src/niche.js` | Watchlist, cross-channel outliers, view switching. |
 | `src/panel.js` | Panel construction, grid takeover, startup. |
+| `src/omnibar.js` | Needle's section in YouTube's search dropdown, and the typed filters. |
+| `src/navigate.js` | Runs in the page's own world so clicks open without a reload. Loaded separately. |
 
-`background.js` exists only to relay the keyboard shortcut into the page, and
+`background.js` relays the keyboard shortcut into the page and sets the toolbar
+badge for followed searches, and
 `popup.*` is the toolbar popup. `docs/design-preview.html` renders the real
 panel against generated data, so the design can be checked without hunting for
 a channel with the right shape of history.
@@ -233,7 +282,7 @@ so the narrower of the two is the one requested.
 - Public view counts are all anyone gets for a channel they do not own, so this
   is a signal tool rather than a precision instrument. For other people's
   channels every tool is working from the same public numbers.
-- Upload dates from InnerTube are relative ("6 months ago"), so views per day
+- Upload dates from InnerTube are relative ("6 months ago"), so Start here
   and the per-year charts are approximate. Measured velocity is not, because it
   comes from your own snapshots.
 - Velocity needs at least two visits before it can show anything.

@@ -14,3 +14,6 @@ dist/
 
 # monitor snapshots
 server/data/
+
+# the built site is its own repo (gottostartsomewhere/needle), deployed from site/public
+site/public/
