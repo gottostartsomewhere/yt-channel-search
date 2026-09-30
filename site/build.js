@@ -12,6 +12,7 @@ const STORE = "https://chromewebstore.google.com/detail/needle-for-youtube-chann
 const REPO = "https://github.com/gottostartsomewhere/yt-channel-search";
 const PRIVACY = REPO + "/blob/main/PRIVACY.md";
 const WALKTHROUGH = ""; // the full walkthrough on YouTube; the button hides while this is empty
+const GOOGLE_VERIFY = "wJhPw44jUD5iJfyrFXwTOOI03u5a8x-EcJHtOchnTqI"; // Search Console's HTML-tag code, just the content="..." value
 const OUT = path.join(__dirname, "public");
 
 // UTM on every store link, so the listing's Analytics says which page sent who.
@@ -283,7 +284,7 @@ function shell({ slug, title, description, body, jsonld, depth, robots }) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${esc(title)}</title>
+<title>${esc(title)}</title>${GOOGLE_VERIFY && !slug && !robots ? `\n<meta name="google-site-verification" content="${GOOGLE_VERIFY}">` : ""}
 <meta name="description" content="${esc(description)}">
 ${robots ? `<meta name="robots" content="${robots}">` : `<link rel="canonical" href="${url}">`}
 <meta property="og:type" content="${slug ? "article" : "website"}">
