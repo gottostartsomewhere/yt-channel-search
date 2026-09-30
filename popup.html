@@ -15,6 +15,22 @@
 <p id="hint" class="hint">Alt+Y does the same thing.</p>
 
 <!--
+  Shown once after an update that adds something, then gone: the toolbar badge
+  says NEW until this has been seen. See background.js.
+-->
+<section id="whatsnew" class="card news" hidden>
+  <h2>New in 2.1</h2>
+  <ul class="newlist">
+    <li><b>Any playlist.</b> Open Needle on any playlist, anyone's, and filter it.</li>
+    <li><b>Your subscriptions.</b> Unwatched, under 20 minutes, this week.</li>
+    <li><b>Clean up Watch Later.</b> Select, remove, undo.</li>
+    <li><b>in:playlists</b> searches every playlist you've saved.</li>
+    <li><b>List view</b>, a <b>Channel</b> picker, and who made it on every card.</li>
+    <li><b>Dim watched videos</b> on Home and Subscriptions, below.</li>
+  </ul>
+</section>
+
+<!--
   The grammar, where people go looking for what the extension can do. Nobody
   discovers "<20m" by accident, and the tips row in the search bar can be
   hidden, so this is the one place it is always written down.
@@ -29,6 +45,7 @@
     <dt>date:week</dt><dd>Uploaded this week</dd>
     <dt>watched:august</dt><dd>What you watched in August</dd>
     <dt>in:wl</dt><dd>Only your Watch Later</dd>
+    <dt>in:playlists</dt><dd>Every playlist you've saved</dd>
     <dt>in:channels</dt><dd>Channels you watch, every video</dd>
     <dt>@name</dt><dd>From that channel</dd>
     <dt>-@name</dt><dd>Never from that channel</dd>
@@ -73,6 +90,29 @@
     <label class="row" for="deepHistory">
       <span>Deep reading <em>past page one of your lists, stays on this device</em></span>
       <input type="checkbox" id="deepHistory" class="switch">
+    </label>
+    <!--
+      The one switch that lets Needle change your account rather than read it:
+      removing videos from Watch Later, from the panel's Select mode. Off until
+      somebody turns it on, here or at the first Remove. PRIVACY.md explains it.
+    -->
+    <label class="row" for="allowEdits">
+      <span>Removing from Watch Later <em>from the panel's Select, always with undo</em></span>
+      <input type="checkbox" id="allowEdits" class="switch">
+    </label>
+  </div>
+</section>
+
+<section>
+  <h2>YouTube's own pages</h2>
+  <div class="rows">
+    <label class="row" for="feedWatched">
+      <span>Finished videos <em>on Home and Subscriptions</em></span>
+      <select id="feedWatched">
+        <option value="off">Leave them</option>
+        <option value="dim">Dim them</option>
+        <option value="hide">Hide them</option>
+      </select>
     </label>
   </div>
 </section>
@@ -127,6 +167,11 @@
   <span id="saved" class="saved"></span>
   <a href="#" id="shortcuts">Shortcut</a>
 </footer>
+<nav class="links">
+  <a href="https://gottostartsomewhere.github.io/needle/#guides" target="_blank" rel="noopener">Guides</a>
+  <a href="https://chromewebstore.google.com/detail/needle-for-youtube-channe/magofcbhfhpfabphcldhodhgehhclokc/reviews" target="_blank" rel="noopener">Rate Needle</a>
+  <a href="https://github.com/gottostartsomewhere/yt-channel-search/blob/main/PRIVACY.md" target="_blank" rel="noopener">Privacy</a>
+</nav>
 <script src="popup.js"></script>
 </body>
 </html>

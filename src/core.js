@@ -47,6 +47,18 @@ const DEFAULTS = {
    * reading in the background, which deserves a way to say no.
    */
   channelIndex: true,
+  /*
+   * Removing videos from your Watch Later. Off until somebody turns it on, which
+   * the panel asks for the first time Remove is pressed, because it is the one
+   * thing Needle can do that changes your account rather than reading it.
+   */
+  allowEdits: false,
+  /*
+   * What to do with videos you have finished on Home and Subscriptions: "off",
+   * "dim" or "hide". Off by default, since hiding things on YouTube's own pages
+   * is a choice, not something to find out about.
+   */
+  feedWatched: "off",
 };
 const cfg = Object.assign({}, DEFAULTS);
 
@@ -503,9 +515,8 @@ function parseItemArray(arr) {
       } else if (content.videoRenderer && content.videoRenderer.videoId) {
         videos.push(mapVideo(content.videoRenderer));
       }
-    } else if (it.continuationItemRenderer) {
-      const ce = it.continuationItemRenderer.continuationEndpoint;
-      token = (ce && ce.continuationCommand && ce.continuationCommand.token) || null;
+    } else if (it.continuationItemRenderer || it.continuationItemViewModel) {
+      token = findContinuationToken(it);
     }
   }
   return { videos, token };
@@ -778,6 +789,7 @@ async function fetchHistoryContinuation(apiKey, clientVersion, token, auth) {
   if (auth) {
     headers["Authorization"] = auth;
     headers["X-Origin"] = HISTORY_ORIGIN;
+    Object.assign(headers, accountHeaders());
   }
   const res = await fetch(
     location.origin + "/youtubei/v1/browse?key=" + apiKey + "&prettyPrint=false",
@@ -852,9 +864,16 @@ async function fetchHistory(onProgress, signed) {
   return all;
 }
 
-// Only ever the continuation's own token. A history payload is full of other
-// things called `token` (share panels, notification actions), and grabbing the
-// first one produced a valid-looking 200 with no videos in it.
+/*
+ * Only ever the continuation's own token. A history payload is full of other
+ * things called `token` (share panels, notification actions), and grabbing the
+ * first one produced a valid-looking 200 with no videos in it.
+ *
+ * Two shapes. The older continuationItemRenderer, and since late 2026 on
+ * playlists a continuationItemViewModel, which keeps the same token one level
+ * further in, under innertubeCommand. Reading only the old one made a long
+ * public playlist stop at its first 100 with no sign anything was missing.
+ */
 function findContinuationToken(o) {
   if (!o || typeof o !== "object") return null;
   if (o.continuationItemRenderer) {
@@ -862,11 +881,41 @@ function findContinuationToken(o) {
     const t = ce && ce.continuationCommand && ce.continuationCommand.token;
     if (t) return t;
   }
+  if (o.continuationItemViewModel) {
+    const cc = o.continuationItemViewModel.continuationCommand;
+    const ic = cc && cc.innertubeCommand;
+    const t = (ic && ic.continuationCommand && ic.continuationCommand.token) || (cc && cc.token);
+    if (t) return t;
+  }
   for (const k in o) {
     const r = findContinuationToken(o[k]);
     if (r) return r;
   }
   return null;
+}
+
+// A continuation's new items, from the actions that carry them rather than from
+// the first thing anywhere in the response that happens to share the name.
+function continuationItems(json) {
+  return deepFind((json && json.onResponseReceivedActions) || json, "continuationItems");
+}
+
+/*
+ * Which of the signed-in person's accounts a signed request speaks for.
+ *
+ * Somebody signed into two Google accounts, or using a brand account's channel,
+ * has YouTube's own page attach these, and a request without them answers for
+ * the default account instead. Harmless to leave off when reading, not when
+ * changing a Watch Later. navigate.js copies them off the page.
+ */
+function accountHeaders() {
+  const root = document.documentElement;
+  const h = {};
+  const idx = root.getAttribute("data-ytcs-authuser");
+  const page = root.getAttribute("data-ytcs-pageid");
+  if (idx) h["X-Goog-AuthUser"] = idx;
+  if (page) h["X-Goog-PageId"] = page;
+  return h;
 }
 
 // The two things every InnerTube POST needs, read off any youtube.com page.
@@ -939,17 +988,58 @@ function parsePlaylistItems(arr) {
   return videos;
 }
 
-async function fetchPlaylist(listId, signed) {
+/*
+ * Where a playlist page keeps its videos, in either of the two layouts YouTube
+ * serves. The older one wraps them in playlistVideoListRenderer. The newer one,
+ * on every public playlist checked in September 2026, has no list renderer at
+ * all: the videos are lockups sitting straight in the page's section list.
+ * Reading only the older shape found nothing on those and returned an empty list
+ * as though the playlist were private.
+ */
+function playlistRoot(data) {
+  return data ? deepFind(data, "playlistVideoListRenderer") || deepFind(data, "sectionListRenderer") : null;
+}
+
+function playlistEntries(root) {
+  const out = [];
+  for (const c of (root && root.contents) || []) {
+    if (c.itemSectionRenderer) out.push(...(c.itemSectionRenderer.contents || []));
+    else out.push(c);
+  }
+  return out;
+}
+
+// The playlist's own name, for the panel's header.
+function playlistTitle(data) {
+  const md = data && deepFind(data, "playlistMetadataRenderer");
+  if (md && md.title) return md.title;
+  const head = data && deepFind(data, "pageHeaderViewModel");
+  const t = head && head.title && deepFind(head.title, "content");
+  return typeof t === "string" ? t : "";
+}
+
+// Lists that belong to whoever is signed in and answer nobody else, so reading
+// past their first page needs the signed request. Everyone else's are public.
+const PRIVATE_LISTS = new Set(["WL", "LL"]);
+
+async function fetchPlaylist(listId, signed, onProgress) {
   const html = await (await fetch("/playlist?list=" + encodeURIComponent(listId), { credentials: "same-origin" })).text();
   const { apiKey, clientVersion } = innertubeConfig(html);
   const data = findJson(html, "ytInitialData");
-  const list = data && deepFind(data, "playlistVideoListRenderer");
+  const root = playlistRoot(data);
+  const all = parsePlaylistItems(playlistEntries(root));
+  all.title = playlistTitle(data);
   // Signed out, or a list that does not exist: nothing to read, not an error.
-  if (!list || !list.contents) return [];
+  if (!all.length) return all;
+  if (onProgress) onProgress(all.length);
 
-  const all = parsePlaylistItems(list.contents);
+  /*
+   * A public playlist pages without any signature, the same as a channel's
+   * uploads do. Your own lists page only when signed, so without deep reading
+   * they stop at their first 100, and say so.
+   */
   const auth = signed && apiKey ? await sapisidHash() : null;
-  let token = auth ? findContinuationToken(list) : null;
+  let token = apiKey && (auth || !PRIVATE_LISTS.has(listId)) ? findContinuationToken(root) : null;
   const seen = new Set(all.map((v) => v.id));
   let pages = 0;
   const maxPages = Math.max(1, Math.ceil(cfg.maxVideos / 100));
@@ -961,7 +1051,7 @@ async function fetchPlaylist(listId, signed) {
     } catch (e) {
       break;
     }
-    const items = deepFind(json, "continuationItems");
+    const items = continuationItems(json);
     if (!items) break;
     let added = 0;
     for (const v of parsePlaylistItems(items)) {
@@ -971,10 +1061,179 @@ async function fetchPlaylist(listId, signed) {
       added++;
     }
     token = findContinuationToken(items);
+    if (onProgress) onProgress(all.length);
     if (added === 0) break;
   }
   all.truncated = !!token && pages >= maxPages;
+  all.shallow = PRIVATE_LISTS.has(listId) && !auth && !!findContinuationToken(root);
   return all;
+}
+
+/*
+ * ---- your subscriptions --------------------------------------------------------
+ *
+ * The subscriptions feed is the same rich grid as a channel's Videos tab, with
+ * the channel on each card. Page one comes with the HTML. It is private to the
+ * account, so further pages need the signed request like history, and without
+ * deep reading the panel says it has the first page only.
+ *
+ * Shorts arrive in shelves between the rows. Those are not rich items, so the
+ * grid reader skips them, and any stray Short is dropped for the same reason a
+ * channel's are: no length and no date to filter on.
+ */
+const SUBS_PATH = "/feed/subscriptions";
+// A feed with no end, so a ceiling: about two weeks of a typical subscription list.
+const SUBS_MAX_PAGES = 12;
+
+function isSubscriptionsPage() {
+  return location.pathname.replace(/\/$/, "") === SUBS_PATH;
+}
+
+async function fetchSubscriptions(onProgress, signed) {
+  const html = await (await fetch(SUBS_PATH, { credentials: "same-origin" })).text();
+  const { apiKey, clientVersion } = innertubeConfig(html);
+  const data = findJson(html, "ytInitialData");
+  const grid = data && deepFind(data, "richGridRenderer");
+  if (!grid || !grid.contents) throw new Error("Could not read your subscriptions. Are you signed in?");
+  let { videos, token } = parseItemArray(grid.contents);
+  const all = videos.filter((v) => !v.isShort);
+  onProgress(all.length);
+
+  const auth = signed && apiKey ? await sapisidHash() : null;
+  if (!auth) token = null;
+  const seen = new Set(all.map((v) => v.id));
+  let pages = 0;
+  const maxPages = Math.min(SUBS_MAX_PAGES, Math.max(1, Math.ceil(cfg.maxVideos / 30)));
+  while (token && pages < maxPages) {
+    pages++;
+    let json;
+    try {
+      json = await fetchHistoryContinuation(apiKey, clientVersion, token, auth);
+    } catch (e) {
+      break;
+    }
+    const arr = continuationItems(json);
+    if (!arr) break;
+    const res = parseItemArray(arr);
+    let added = 0;
+    for (const v of res.videos) {
+      if (v.isShort || seen.has(v.id)) continue;
+      seen.add(v.id);
+      all.push(v);
+      added++;
+    }
+    token = res.token;
+    onProgress(all.length);
+    if (added === 0) break;
+  }
+  all.shallow = !auth;
+  return all;
+}
+
+/*
+ * ---- your other playlists, for in:playlists --------------------------------------
+ *
+ * The playlists page lists everything saved to your library. Each one is then
+ * read like any playlist, page one unless deep reading is on, and every video
+ * remembers which list it came from so the dropdown can say. Capped, since
+ * somebody with sixty playlists should not pay for sixty page loads to search.
+ */
+const MY_PLAYLISTS_MAX = 25;
+
+function collectPlaylists(o, out) {
+  if (!o || typeof o !== "object") return out;
+  const lvm = o.lockupViewModel;
+  if (lvm && lvm.contentType === "LOCKUP_CONTENT_TYPE_PLAYLIST" && lvm.contentId) {
+    const lmv = lvm.metadata && lvm.metadata.lockupMetadataViewModel;
+    out.push({ id: lvm.contentId, title: (lmv && lmv.title && lmv.title.content) || "" });
+  }
+  const gpr = o.gridPlaylistRenderer;
+  if (gpr && gpr.playlistId) out.push({ id: gpr.playlistId, title: runsText(gpr.title) });
+  for (const k in o) if (k !== "lockupViewModel" && k !== "gridPlaylistRenderer") collectPlaylists(o[k], out);
+  return out;
+}
+
+async function fetchMyPlaylists() {
+  const html = await (await fetch("/feed/playlists", { credentials: "same-origin" })).text();
+  const data = findJson(html, "ytInitialData");
+  const seen = new Set(["WL", "LL"]);
+  return collectPlaylists(data, []).filter((p) => !seen.has(p.id) && seen.add(p.id)).slice(0, MY_PLAYLISTS_MAX);
+}
+
+async function fetchPlaylistVideos(signed) {
+  const out = [];
+  const seen = new Set();
+  for (const pl of await fetchMyPlaylists()) {
+    let vids = [];
+    try { vids = await fetchPlaylist(pl.id, signed); } catch (e) { continue; }
+    for (const v of vids) {
+      if (v.playable === false || seen.has(v.id)) continue;
+      seen.add(v.id);
+      v.list = pl.title;
+      out.push(v);
+    }
+  }
+  return out;
+}
+
+/*
+ * ---- changing your Watch Later ----------------------------------------------------
+ *
+ * The one place Needle writes to anybody's account, and only when they turn it
+ * on and confirm. It sends exactly the action YouTube's own "Remove from Watch
+ * later" menu item sends, read off the payload of a real playlist page:
+ * ACTION_REMOVE_VIDEO_BY_VIDEO_ID to take one out, ACTION_ADD_VIDEO to put it
+ * back, both against playlist "WL" at /youtubei/v1/browse/edit_playlist.
+ *
+ * Signed the same way deep reading is, with the account headers YouTube's page
+ * uses, so it changes the Watch Later of the account the page is showing and no
+ * other. Sent in batches, and it stops at the first batch YouTube refuses, so a
+ * failure never leaves anybody guessing how much went through: the caller gets
+ * the ids that did.
+ */
+const WL_EDIT_BATCH = 25;
+
+async function editWatchLater(ids, add, onProgress) {
+  let it = typeof pageInnertube === "function" ? pageInnertube() : null;
+  if (!it) {
+    const cfgPage = innertubeConfig(await (await fetch("/playlist?list=WL", { credentials: "same-origin" })).text());
+    if (cfgPage.apiKey) it = cfgPage;
+  }
+  if (!it) throw new Error("Could not reach YouTube. Try reloading the page.");
+  const auth = await sapisidHash();
+  if (!auth) throw new Error("Sign in to YouTube first.");
+  const done = [];
+  for (let i = 0; i < ids.length; i += WL_EDIT_BATCH) {
+    const batch = ids.slice(i, i + WL_EDIT_BATCH);
+    const res = await fetch(location.origin + "/youtubei/v1/browse/edit_playlist?key=" + it.apiKey + "&prettyPrint=false", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: Object.assign({
+        "Content-Type": "application/json",
+        "X-YouTube-Client-Name": "1",
+        "X-YouTube-Client-Version": it.clientVersion,
+        "Authorization": auth,
+        "X-Origin": HISTORY_ORIGIN,
+      }, accountHeaders()),
+      body: JSON.stringify({
+        context: { client: { clientName: "WEB", clientVersion: it.clientVersion } },
+        playlistId: "WL",
+        actions: batch.map((id) => (add
+          ? { addedVideoId: id, action: "ACTION_ADD_VIDEO" }
+          : { action: "ACTION_REMOVE_VIDEO_BY_VIDEO_ID", removedVideoId: id })),
+      }),
+    });
+    let json = null;
+    try { json = await res.json(); } catch (e) { /* treated as a refusal below */ }
+    if (!res.ok || !json || json.status !== "STATUS_SUCCEEDED") {
+      const err = new Error(done.length ? "YouTube stopped after " + done.length + ". Try the rest again." : "YouTube refused the change. Are you signed in?");
+      err.done = done;
+      throw err;
+    }
+    done.push(...batch);
+    if (onProgress) onProgress(done.length);
+  }
+  return done;
 }
 
 /*
@@ -1023,12 +1282,18 @@ function isSearchPage() {
   return location.pathname === "/results";
 }
 
+// Any playlist page's list id: yours, or anybody's public one.
+function playlistId() {
+  if (location.pathname !== "/playlist") return null;
+  return new URLSearchParams(location.search).get("list") || null;
+}
+
 // Your own lists opened on their own page, as the library scope they share
-// with in:wl and in:liked. Other people's playlists are not lists of yours.
+// with in:wl and in:liked. Other playlists are read the same way but are not
+// part of your library.
 const OWN_LISTS = { WL: "wl", LL: "liked" };
 function ownListScope() {
-  if (location.pathname !== "/playlist") return null;
-  return OWN_LISTS[new URLSearchParams(location.search).get("list")] || null;
+  return OWN_LISTS[playlistId()] || null;
 }
 
 function searchQuery() {

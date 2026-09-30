@@ -41,6 +41,14 @@ const state = {
   // Counts navigations. Anything slow remembers the value it started under and
   // drops its result if it changed: see pageGone in panel.js.
   navGen: 0,
+  // A playlist's own name, once read, for the panel's header.
+  listTitle: "",
+  // Cards as a grid or as a list, remembered on this device.
+  listView: false,
+  // Select mode, Watch Later only: see startSelecting in panel.js.
+  selecting: false, selected: new Set(), confirming: false,
+  // What the filters last left, so the selection bar can offer "all shown".
+  lastRows: null,
 };
 let ui = null;      // cached refs for the injected UI
 let launcher = null;
@@ -191,8 +199,11 @@ function startHere(rows) {
 
 function applyView() {
   if (!ui) return;
+  if (typeof refreshChannelFacet === "function") refreshChannelFacet();
   const rows = filterAndSort();
+  state.lastRows = rows;
   renderStats(rows);
+  if (state.selecting && typeof renderSelbar === "function" && !state.confirming) renderSelbar();
   if (state.view === "insights") {
     if (state.insight === "overview") renderAnalytics(rows);
     else if (state.insight === "watchlist") renderNiche();
@@ -271,10 +282,15 @@ function renderLoading(n) {
   const search = typeof isSearchPage === "function" && isSearchPage() && !state.omniScope;
   const head = document.createElement("div");
   head.className = "ytcs-loadhead";
+  const list = playlistId() && !ownListScope();
+  const subs = isSubscriptionsPage();
   head.textContent = search ? "Reading the first 200 or so results"
     : isHistoryPage() || state.omniScope === "hist" ? "Reading your watch history"
+    : state.omniScope === "pl" ? "Reading every playlist in your library"
     : state.omniScope ? "Reading your " + LIB_NAMES[state.omniScope]
     : ownListScope() ? "Reading your " + LIB_NAMES[ownListScope()]
+    : list ? "Reading this playlist"
+    : subs ? "Reading your subscriptions"
     : "Reading this channel's full catalogue";
 
   const sub = document.createElement("div");
@@ -282,7 +298,8 @@ function renderLoading(n) {
   sub.textContent = n
     ? plural(n, search ? "result" : "video") + " so far"
     : search ? "About ten seconds, then filtering is instant"
-    : state.omniScope || ownListScope() ? "A few seconds, then filtering is instant"
+    : state.omniScope === "pl" ? "One page per playlist, so this one takes a little while"
+    : state.omniScope || playlistId() || subs ? "A few seconds, then filtering is instant"
     : "This happens once, then it is cached";
 
   box.appendChild(spinner);
@@ -331,11 +348,16 @@ function renderStats(rows) {
 function renderGrid(rows) {
   const frag = document.createDocumentFragment();
   const shown = rows.slice(0, 600);
+  // Who made each one, wherever a list spans channels. A channel's own page
+  // already says who, on every card, by being that channel's page.
+  const showChannel = typeof isChannelPage === "function" && !isChannelPage();
   for (const v of shown) {
     const ws = watchState(v);
     const card = document.createElement("a");
-    card.className = "ytcs-card" + (ws === "done" ? " ytcs-seen" : "");
+    const picked = state.selecting && state.selected.has(v.id);
+    card.className = "ytcs-card" + (ws === "done" ? " ytcs-seen" : "") + (picked ? " ytcs-picked" : "");
     card.href = "/watch?v=" + v.id;
+    card.dataset.id = v.id;
     // Who made it, for the mute button. Search results carry it; a channel's
     // own grid does not need it.
     if (v.channel) card.dataset.ch = v.channel;
@@ -364,16 +386,36 @@ function renderGrid(rows) {
       thumb.appendChild(track);
     }
 
+    // Select mode's tick, top left, where a thumbnail has nothing else.
+    if (state.selecting) {
+      const tick = document.createElement("span");
+      tick.className = "ytcs-tick";
+      tick.setAttribute("aria-hidden", "true");
+      thumb.appendChild(tick);
+    }
+
     const info = document.createElement("div");
     info.className = "ytcs-info";
     const t = document.createElement("div");
     t.className = "ytcs-ctitle";
     t.textContent = v.title;
     t.title = v.title;
-    const meta = factsInto(document.createElement("div"), [fmtCompact(v.views) + " views", cap(v.publishedText)]);
+    const chName = showChannel && v.channel ? v.channel : "";
+    const meta = factsInto(document.createElement("div"), [chName, fmtCompact(v.views) + " views", cap(v.publishedText)]);
     meta.className = "ytcs-cmeta";
-    info.appendChild(t);
-    info.appendChild(meta);
+    if (chName) meta.firstChild.classList.add("ytcs-cchan");
+    // Which of your playlists it came from, when searching them all at once.
+    if (v.list && state.omniScope === "pl") {
+      const from = document.createElement("div");
+      from.className = "ytcs-cmeasured";
+      from.textContent = "In " + v.list;
+      info.appendChild(t);
+      info.appendChild(meta);
+      info.appendChild(from);
+    } else {
+      info.appendChild(t);
+      info.appendChild(meta);
+    }
     if (v.gained > 0 && v.sinceDays) {
       const span = v.sinceDays < 1
         ? Math.max(1, Math.round(v.sinceDays * 24)) + "h"

@@ -103,7 +103,7 @@ const WATCH_DATE_OPTS = [
 // Deep link to the listing's reviews tab, which opens the rating box directly
 // rather than dropping someone on the description they have already read.
 const STORE_REVIEW_URL =
-  "https://chromewebstore.google.com/detail/channel-search+-for-youtu/magofcbhfhpfabphcldhodhgehhclokc/reviews";
+  "https://chromewebstore.google.com/detail/needle-for-youtube-channe/magofcbhfhpfabphcldhodhgehhclokc/reviews";
 const RATE_KEY = "rateAsk";
 /*
  * Three, not the conventional five.
@@ -229,6 +229,12 @@ function toggleMenu(slot, sel, name, label) {
     item.setAttribute("role", "option");
     item.setAttribute("aria-selected", on ? "true" : "false");
     item.textContent = o.textContent;
+    if (o.dataset.count) {
+      const c = document.createElement("span");
+      c.className = "ytcs-menucount";
+      c.textContent = o.dataset.count;
+      item.appendChild(c);
+    }
     item.onclick = (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -329,6 +335,19 @@ function buildUi() {
   exports.appendChild(csv);
   exports.appendChild(json);
 
+  // Grid or list. A list fits three times as many videos on screen, which is
+  // what a long Watch Later or history needs; a grid is for browsing a channel.
+  const viewBtn = document.createElement("button");
+  viewBtn.type = "button";
+  viewBtn.className = "ytcs-iconbtn ytcs-viewbtn";
+  viewBtn.onclick = () => setListView(!state.listView);
+
+  // Watch Later only: pick videos, then remove them. See the selection bar.
+  const selectBtn = ghostBtn("Select", "Pick videos to remove from your Watch Later");
+  selectBtn.classList.add("ytcs-selectbtn");
+  selectBtn.style.display = "none";
+  selectBtn.onclick = () => (state.selecting ? endSelecting() : startSelecting());
+
   head.appendChild(brand);
   head.appendChild(source);
   head.appendChild(status);
@@ -350,10 +369,12 @@ function buildUi() {
     setTimeout(updateFollowButton, 50);
   };
   head.appendChild(followBtn);
+  head.appendChild(selectBtn);
   head.appendChild(tabs);
   // Export sits with the other actions rather than among the filters: it is a
   // thing you do to the result, not a thing that changes it.
   head.appendChild(exports);
+  head.appendChild(viewBtn);
   head.appendChild(refresh);
   head.appendChild(restore);
 
@@ -419,6 +440,22 @@ function buildUi() {
     ["60", "1 hour free"],
   ], "Only show videos that fit the time you have");
 
+  /*
+   * Who made them, as a menu of the channels actually in this list with how
+   * many each has, biggest first. Picking one is the same filter as typing
+   * @name, so it lands as that token and this stays a picker, never a value.
+   * Only offered where a list spans channels: on a channel page it would be a
+   * menu of one.
+   */
+  const chan = pill([["", "Any channel"]], "Channel");
+  chan.addEventListener("change", () => {
+    if (!chan.value) return;
+    state.extra.channel = chan.value;
+    chan.value = "";
+    chan.classList.add("ytcs-dim");
+    applyView();
+  });
+
   const sort = pill(SORTS, "Sort order");
   sort.classList.remove("ytcs-dim");
   sort.classList.add("ytcs-sort");
@@ -462,11 +499,14 @@ function buildUi() {
   ];
   const sortSlot = filterSlot(sort, "Sort");
   sortSlot.slot.classList.add("ytcs-sortslot");
+  const chanSlot = filterSlot(chan, "Channel");
+  chanSlot.slot.classList.add("ytcs-chanslot");
 
   // Unset filters wait here, one quiet line under the query.
   const addrow = document.createElement("div");
   addrow.className = "ytcs-addrow";
   for (const s of slots) addrow.appendChild(s.slot);
+  addrow.appendChild(chanSlot.slot);
   const fspacer = document.createElement("span");
   fspacer.className = "ytcs-spacer";
   addrow.appendChild(fspacer);
@@ -638,6 +678,12 @@ function buildUi() {
   chrome.className = "ytcs-chrome";
   chrome.appendChild(head);
   chrome.appendChild(filters);
+  // Select mode's bar: how many are picked and what to do with them. Part of
+  // the sticky block, so it stays in reach however far down a long list you are.
+  const selbar = document.createElement("div");
+  selbar.className = "ytcs-selbar";
+  selbar.hidden = true;
+  chrome.appendChild(selbar);
 
   wrap.appendChild(chrome);
   wrap.appendChild(stats);
@@ -649,8 +695,8 @@ function buildUi() {
   wrap.appendChild(foot);
 
   ui = {
-    wrap, head, filters, kw, duration, views, uploaded, watched, fits, sort,
-    status, count, clear, stats, grid,
+    wrap, head, filters, kw, duration, views, uploaded, watched, fits, sort, chan, chanSlot,
+    status, count, clear, stats, grid, viewBtn, selectBtn, selbar,
     source, tokens, meterFill, addrow, slots, sortSlot, customRow, followBtn,
     insights, charts, rate,
     tabSearch, tabInsights,
@@ -693,7 +739,239 @@ function buildUi() {
     el.addEventListener("input", applyView);
     el.addEventListener("change", applyView);
   }
+  // In select mode a click on a card picks it rather than opening the video.
+  grid.addEventListener("click", (e) => {
+    if (!state.selecting) return;
+    const card = e.target.closest && e.target.closest("a.ytcs-card");
+    if (!card || !card.dataset.id) return;
+    e.preventDefault();
+    toggleSelected(card.dataset.id, card);
+  });
+  setListView(state.listView, true);
   layoutTokens();
+}
+
+// ---- grid or list ----------------------------------------------------------------
+const ICON_GRID = "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z";
+const ICON_LIST = "M4 6h16M4 12h16M4 18h16";
+
+function setListView(on, quiet) {
+  state.listView = !!on;
+  if (!ui) return;
+  ui.grid.classList.toggle("ytcs-listview", state.listView);
+  ui.viewBtn.textContent = "";
+  // The button shows what a click switches to.
+  ui.viewBtn.appendChild(icon(state.listView ? ICON_GRID : ICON_LIST));
+  const label = state.listView ? "Show as a grid" : "Show as a list";
+  ui.viewBtn.title = label;
+  ui.viewBtn.setAttribute("aria-label", label);
+  if (!quiet) {
+    try { chrome.storage.local.set({ listView: state.listView }); } catch (e) { /* it still switches */ }
+  }
+}
+
+// ---- the channel picker --------------------------------------------------------------
+/*
+ * Rebuilt only when the list itself changes, not on every keystroke: counting a
+ * few thousand videos by channel is cheap, but not something to repeat for each
+ * letter typed. Top 40, since a menu longer than that is a list nobody reads.
+ */
+let facetFor = null;
+function refreshChannelFacet() {
+  if (!ui || !ui.chan) return;
+  if (facetFor === state.catalog) return;
+  facetFor = state.catalog;
+  const counts = new Map();
+  for (const v of state.catalog) {
+    const c = (v.channel || "").trim();
+    if (c) counts.set(c, (counts.get(c) || 0) + 1);
+  }
+  const top = Array.from(counts.entries()).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 40);
+  ui.chan.textContent = "";
+  for (const [val, label, n] of [["", "Any channel", 0]].concat(top.map(([name, k]) => [name, name, k]))) {
+    const o = document.createElement("option");
+    o.value = val;
+    o.textContent = label;
+    // The menu shows the count in its own column; see toggleMenu.
+    if (n) o.dataset.count = String(n);
+    ui.chan.appendChild(o);
+  }
+  ui.chan.value = "";
+  ui.chanSlot.label.textContent = "Channel";
+  ui.chanSlot.slot.style.display = !isChannelPage() && counts.size > 1 ? "" : "none";
+}
+
+// ---- select and remove, in Watch Later ---------------------------------------------
+/*
+ * The one place the panel changes anybody's account. Select mode turns every
+ * card into a checkbox; the bar above the grid says how many are picked and
+ * offers the two picks people actually want (everything the filters left, and
+ * everything already finished) before the one that acts.
+ *
+ * Removing always asks first, in the bar, not in a browser dialog. The first
+ * time it also asks for the switch that allows it at all (allowEdits), which is
+ * off until then. After it runs, the toast offers Undo, which puts every one of
+ * them back through YouTube's own "Save to Watch later" action.
+ */
+function startSelecting() {
+  state.selecting = true;
+  state.selected = new Set();
+  state.confirming = false;
+  ui.selectBtn.textContent = "Done";
+  ui.selectBtn.classList.add("ytcs-on");
+  ui.grid.classList.add("ytcs-selecting");
+  renderSelbar();
+  applyView();
+}
+
+function endSelecting() {
+  const was = state.selecting;
+  state.selecting = false;
+  state.selected = new Set();
+  state.confirming = false;
+  if (!ui) return;
+  ui.selectBtn.textContent = "Select";
+  ui.selectBtn.classList.remove("ytcs-on");
+  ui.grid.classList.remove("ytcs-selecting");
+  ui.selbar.hidden = true;
+  if (was) applyView();
+}
+
+function toggleSelected(id, card) {
+  if (state.selected.has(id)) state.selected.delete(id);
+  else state.selected.add(id);
+  if (card) card.classList.toggle("ytcs-picked", state.selected.has(id));
+  state.confirming = false;
+  renderSelbar();
+}
+
+function selectIds(ids) {
+  state.selected = new Set(ids);
+  state.confirming = false;
+  renderSelbar();
+  applyView();
+}
+
+function selBtn(label, cls, onClick, title) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.className = cls;
+  b.textContent = label;
+  if (title) b.title = title;
+  b.onclick = onClick;
+  return b;
+}
+
+function renderSelbar() {
+  const bar = ui.selbar;
+  bar.hidden = !state.selecting;
+  if (!state.selecting) return;
+  bar.textContent = "";
+  const n = state.selected.size;
+  const shown = state.lastRows || filterAndSort();
+  const finished = shown.filter((v) => watchState(v) === "done");
+
+  if (state.confirming) {
+    const msg = document.createElement("span");
+    msg.className = "ytcs-selmsg";
+    msg.textContent = cfg.allowEdits
+      ? "Remove " + plural(n, "video") + " from your Watch Later? You can undo straight after."
+      : "Needle will remove these from your Watch Later on YouTube, with your own sign-in, the way YouTube's page does. Allow it? You can undo straight after, and turn it off in the popup.";
+    bar.appendChild(msg);
+    bar.appendChild(selBtn(cfg.allowEdits ? "Remove " + n : "Allow and remove " + n, "ytcs-danger", () => removeSelected()));
+    bar.appendChild(selBtn("Cancel", "ytcs-ghost", () => { state.confirming = false; renderSelbar(); }));
+    return;
+  }
+
+  const count = document.createElement("span");
+  count.className = "ytcs-selcount";
+  count.textContent = n ? plural(n, "video") + " picked" : "Click videos to pick them";
+  bar.appendChild(count);
+  if (shown.length && n !== shown.length) {
+    bar.appendChild(selBtn("Pick all " + shown.length + " shown", "ytcs-ghost", () => selectIds(shown.map((v) => v.id)),
+      "Everything the filters left, so a filter decides what goes"));
+  }
+  if (finished.length) {
+    bar.appendChild(selBtn("Pick the " + finished.length + " finished", "ytcs-ghost", () => selectIds(finished.map((v) => v.id))));
+  }
+  if (n) bar.appendChild(selBtn("Clear", "ytcs-ghost", () => selectIds([])));
+  const spacer = document.createElement("span");
+  spacer.className = "ytcs-spacer";
+  bar.appendChild(spacer);
+  const go = selBtn("Remove from Watch Later", "ytcs-danger", () => { state.confirming = true; renderSelbar(); });
+  go.disabled = !n;
+  bar.appendChild(go);
+}
+
+async function removeSelected() {
+  const ids = Array.from(state.selected);
+  if (!ids.length) return;
+  if (!cfg.allowEdits) {
+    cfg.allowEdits = true;
+    try { chrome.storage.sync.set({ allowEdits: true }); } catch (e) { /* on for this tab regardless */ }
+  }
+  const gen = state.navGen;
+  // Where each one sat, so Undo can put the panel back exactly as it was.
+  const at = new Map(state.catalog.map((v, i) => [v.id, i]));
+  const gone = state.catalog.filter((v) => state.selected.has(v.id));
+  ui.selbar.textContent = "";
+  const msg = document.createElement("span");
+  msg.className = "ytcs-selmsg";
+  msg.textContent = "Removing… 0 of " + ids.length;
+  ui.selbar.appendChild(msg);
+
+  let done = [];
+  let error = null;
+  try {
+    done = await editWatchLater(ids, false, (k) => { msg.textContent = "Removing… " + k + " of " + ids.length; });
+  } catch (e) {
+    error = e;
+    done = e.done || [];
+  }
+  const doneSet = new Set(done);
+  if (done.length) {
+    await libraryRemove("wl", done);
+    countUse();
+  }
+  if (pageGone(gen)) return;
+  state.catalog = state.catalog.filter((v) => !doneSet.has(v.id));
+  facetFor = null;
+  if (error) {
+    state.selected = new Set(ids.filter((id) => !doneSet.has(id)));
+    state.confirming = false;
+    renderSelbar();
+    setStatus([plural(state.catalog.length, "video"), error.message]);
+    applyView();
+    return;
+  }
+  endSelecting();
+  setStatus([plural(state.catalog.length, "video")]);
+  applyView();
+  const back = gone.filter((v) => doneSet.has(v.id));
+  toast("Removed " + plural(back.length, "video") + " from Watch Later", "Undo", () => undoRemove(back, at, gen), 12000);
+}
+
+async function undoRemove(videos, at, gen) {
+  const ids = videos.map((v) => v.id);
+  let done = [];
+  try {
+    done = await editWatchLater(ids, true);
+  } catch (e) {
+    done = e.done || [];
+    toast(done.length ? "Put back " + done.length + " of " + ids.length + ". " + e.message : e.message);
+  }
+  const doneSet = new Set(done);
+  const back = videos.filter((v) => doneSet.has(v.id));
+  if (back.length) await libraryRestore("wl", back);
+  if (pageGone(gen) || !back.length) return;
+  // Into their old places, in order, so the list reads as it did before.
+  const merged = state.catalog.slice();
+  for (const v of back.slice().sort((a, b) => at.get(a.id) - at.get(b.id))) merged.splice(Math.min(at.get(v.id), merged.length), 0, v);
+  state.catalog = merged;
+  facetFor = null;
+  setStatus([plural(state.catalog.length, "video")]);
+  applyView();
+  if (done.length === ids.length) toast("Put " + plural(back.length, "video") + " back in Watch Later");
 }
 
 // ---- grid takeover lifecycle ---------------------------------------------
@@ -715,7 +993,7 @@ function buildUi() {
 // Everywhere the panel is allowed to open. Both surfaces are lists of videos,
 // which is the only thing the filter engine actually cares about.
 function canRunHere() {
-  return isChannelPage() || isHistoryPage() || isSearchPage() || !!ownListScope();
+  return isChannelPage() || isHistoryPage() || isSearchPage() || !!playlistId() || isSubscriptionsPage();
 }
 
 // Cache key for whatever this page is a list of. History gets a fixed key since
@@ -723,10 +1001,15 @@ function canRunHere() {
 // results get none: they are a fresh answer to one query and a cached copy of
 // yesterday's would be quietly wrong, so loadCatalog always refetches them.
 function sourceKey() {
-  // Watch Later and Liked change every time you save something, and the page
-  // you are standing on has to show that, so they are read fresh too.
-  if (isSearchPage() || ownListScope()) return null;
+  // Playlists (Watch Later and Liked above all) change every time you save
+  // something, and your subscriptions every hour, so they are read fresh too.
+  if (isSearchPage() || playlistId() || isSubscriptionsPage()) return null;
   return isHistoryPage() ? "__history" : channelBasePath();
+}
+
+// Watch Later is the one list the panel can change, so it gets Select.
+function canEditHere() {
+  return ownListScope() === "wl";
 }
 
 // History's watch dates, whether on its own page or reached with in:history.
@@ -763,6 +1046,8 @@ function labelForSource() {
   const hist = listHasWatchDates();
   const search = isSearchPage();
   const own = ownListScope();
+  const list = playlistId();
+  const subs = isSubscriptionsPage();
   const scope = (search && state.omniScope) || own;
 
   /*
@@ -778,6 +1063,8 @@ function labelForSource() {
   ui.kw.placeholder = hist ? "Search your history, or type <12m, @channel"
     : scope === "channels" ? "Search channels you watch, or type <12m, @channel"
     : scope ? "Search your " + LIB_NAMES[scope] + ", or type <12m, @channel"
+    : list ? "Search this playlist, or type <12m, @channel"
+    : subs ? "Search your subscriptions, or type <12m, unwatched"
     : search ? "Narrow these results, or type <12m, >100k"
     : "Search this channel, or type <12m, >100k";
   ui.kw.setAttribute("aria-label", ui.kw.placeholder);
@@ -786,7 +1073,11 @@ function labelForSource() {
   setOptions(ui.uploaded, hist ? WATCH_DATE_OPTS : DATE_OPTS);
   ui.uploaded.title = hist ? "When you watched it" : "Upload date";
   ui.watched.title = hist ? "How far you got through these"
-    : search || own ? "What you have already watched" : "Your watch history on this channel";
+    : search || list || subs ? "What you have already watched" : "Your watch history on this channel";
+
+  // Select only where the panel can change the list: your Watch Later.
+  ui.selectBtn.style.display = canEditHere() ? "" : "none";
+  if (!canEditHere()) endSelecting();
 
   /*
    * Results arrive in YouTube's relevance order and a list arrives in its own,
@@ -794,10 +1085,12 @@ function labelForSource() {
    * "Newest first" is what the engine calls "leave it as it came", which is
    * true on a channel and false here, so it is renamed rather than lying.
    * Oldest and Start here both assume an upload order that is not there.
+   * Your subscriptions arrive newest first already, which is their feed order.
    */
-  if ((search || own) && !hist) {
+  if ((search || list || subs) && !hist) {
     const rest = SORTS.filter(([v]) => v !== "newest" && v !== "oldest" && v !== "starthere");
-    setOptions(ui.sort, [["newest", scope ? "List order" : "Relevance"], ["upload_new", "Newest upload"], ["upload_old", "Oldest upload"]].concat(rest));
+    const asCame = scope || list ? "List order" : subs ? "Feed order" : "Relevance";
+    setOptions(ui.sort, [["newest", asCame], ["upload_new", "Newest upload"], ["upload_old", "Oldest upload"]].concat(rest));
     ui.sort.value = "newest";
     return;
   }
@@ -824,12 +1117,14 @@ function layoutTokens() {
     s.sel.dataset.prev = s.sel.value;
   }
   // Re-seat only what moved, so an open native menu is never yanked from under
-  // the pointer. Order is fixed: Length, Views, Date, Watched, Free time.
+  // the pointer. Order is fixed: Length, Views, Date, Watched, Free time, then
+  // the channel picker, which never becomes a token itself.
   const want = ui.slots.filter((s) => s.sel.value).map((s) => s.slot);
   const have = Array.from(ui.tokens.querySelectorAll(":scope > .ytcs-f:not(.ytcs-xtoken)"));
+  const anchor = ui.chanSlot ? ui.chanSlot.slot : spacer;
   if (want.length !== have.length || want.some((el, i) => el !== have[i])) {
     for (const el of want) ui.tokens.appendChild(el);
-    for (const s of ui.slots) if (!s.sel.value) ui.addrow.insertBefore(s.slot, spacer);
+    for (const s of ui.slots) if (!s.sel.value) ui.addrow.insertBefore(s.slot, anchor);
   }
   ui.sortSlot.label.textContent = ui.sort.selectedOptions[0] ? ui.sort.selectedOptions[0].textContent : "";
 
@@ -1125,6 +1420,8 @@ function updateFollowButton() {
 function sourceName() {
   if (isHistoryPage()) return "Your watch history";
   if (ownListScope()) return "Your " + LIB_NAMES[ownListScope()];
+  if (playlistId()) return state.listTitle || "This playlist";
+  if (isSubscriptionsPage()) return "Your subscriptions";
   if (isSearchPage()) {
     if (state.omniScope === "channels") return "Channels you watch";
     if (state.omniScope) return "Your " + LIB_NAMES[state.omniScope];
@@ -1143,8 +1440,10 @@ function sourceName() {
 function nativeSelector() {
   if (isSearchPage()) return "ytd-search ytd-section-list-renderer";
   // Only the list itself: the playlist's header, with its title and play
-  // buttons, stays where it is beside the panel.
-  if (ownListScope()) return "ytd-playlist-video-list-renderer";
+  // buttons, stays where it is beside the panel. The newer playlist layout has
+  // no list element, just a section list of lockups (checked live, September
+  // 2026), so both are named.
+  if (playlistId()) return "ytd-playlist-video-list-renderer, ytd-browse yt-section-list-renderer";
   return isHistoryPage() ? "ytd-section-list-renderer" : "ytd-rich-grid-renderer";
 }
 
@@ -1314,6 +1613,8 @@ async function refreshCatalog() {
   const history = isHistoryPage();
   const search = isSearchPage();
   const own = ownListScope();
+  const list = playlistId();
+  const subs = isSubscriptionsPage();
   const scope = search && state.omniScope;
   try {
     const onProgress = (n) => {
@@ -1321,13 +1622,20 @@ async function refreshCatalog() {
       setStatus(["Loading… " + n]);
       if (cold) renderLoading(n);
     };
-    const cat = history
+    const read = history
       ? await fetchHistory(onProgress, cfg.deepHistory)
-      : own ? (await fetchPlaylist(own === "wl" ? "WL" : "LL", cfg.deepHistory)).filter((v) => v.playable !== false)
+      : list ? await fetchPlaylist(list, cfg.deepHistory, onProgress)
+      : subs ? await fetchSubscriptions(onProgress, cfg.deepHistory)
       : scope ? await libraryCatalog(scope)
       : search ? await fetchSearch(searchQuery(), onProgress, cfg.deepHistory, currentSearchPlan())
       : await fetchCatalog(onProgress);
+    // Deleted and private videos sit in playlists as unplayable stubs.
+    const cat = list ? Object.assign(read.filter((v) => v.playable !== false), { truncated: read.truncated, shallow: read.shallow }) : read;
     if (pageGone(gen)) return;
+    if (list) {
+      state.listTitle = read.title || "";
+      ui.source.textContent = sourceName();
+    }
     state.catalog = cat;
     state.cachedAt = Date.now();
 
@@ -1371,7 +1679,12 @@ async function refreshCatalog() {
         // Page one of a list is its first 100; say so rather than let a long
         // Watch Later look complete.
         if (!cat.length) bits.push("Nothing read. Are you signed in?");
-        else if (!cfg.deepHistory && cat.length >= 100) bits.push("First 100 only. Deep reading, in the popup, reads further");
+        else if (cat.shallow) bits.push("First 100 only. Deep reading, in the popup, reads further");
+      } else if (list) {
+        if (!cat.length) bits.push("Nothing to read. The playlist may be private");
+        else if (cat.truncated) bits.push("Stopped at your video limit, set in the popup");
+      } else if (subs) {
+        if (cat.shallow) bits.push("Latest page only. Deep reading, in the popup, reads further");
       } else if (scope) {
         if (!cat.length) bits.push("Nothing read yet. Are you signed in?");
       } else if (history) {
@@ -1563,42 +1876,58 @@ function saveRateState(v) {
   } catch (e) { /* best-effort, same as the cache writes */ }
 }
 
-// Answered either way, it is finished for good. tickRating short-circuits on
+// Answered either way, it is finished for good. countUse short-circuits on
 // `done`, so nothing keeps counting afterwards.
 function closeRating() {
   if (ui) ui.rate.hidden = true;
-  saveRateState({ opens: RATE_AFTER, done: true });
+  rateCache = { opens: RATE_AFTER, done: true };
+  saveRateState(rateCache);
 }
 
 /*
  * Counts one *use*, and reveals the ask from the third onwards.
  *
- * A use is a filter that actually narrowed the catalogue, not a panel open.
- * Opening the panel three times proves somebody clicked a button three times;
- * watching "236 of 236" become "6 of 236" is the tool doing the thing it exists
- * for, and it is the only moment anyone feels like recommending it.
+ * A use is the tool doing the thing it exists for: a filter that actually
+ * narrowed a list ("236 of 236" becoming "6 of 236"), a video opened from your
+ * library in the search bar, a filtered search sent from it, or a clean-up of
+ * Watch Later. Not a panel open. Opening something three times proves somebody
+ * clicked a button three times; finding the video is the only moment anyone
+ * feels like recommending it.
  *
- * Called from applyView, which fires on every keystroke, so rateCounted holds
- * it to once per panel session. Without that, typing a five-letter search term
- * would count five uses and trigger the ask on somebody's first visit.
+ * Before 2.1 only the first of those counted, and the ask only appeared in the
+ * panel, so everybody who used Needle through the search bar alone, which is
+ * most of what 2.0 is for, was never asked at all.
  *
+ * Once per page, whatever happens on it: typing a five-letter search term would
+ * otherwise count five uses and trigger the ask on somebody's first visit.
  * It keeps showing rather than firing exactly once. Only the buttons end it.
  */
-let rateCounted = false;
+let rateCache = null;
+let rateCountedGen = -1;
 
-async function tickRating() {
-  if (rateCounted) return;
-  rateCounted = true;
+async function countUse() {
+  if (rateCountedGen === state.navGen) return;
+  rateCountedGen = state.navGen;
   const st = await rateState();
   // Unknown state, so nothing is counted and nothing is concluded. The guard
-  // reopens so the next filter tries again rather than the install going quiet.
-  if (!st) { rateCounted = false; return; }
+  // reopens so the next use tries again rather than the install going quiet.
+  if (!st) { rateCountedGen = -1; return; }
+  rateCache = st;
   if (st.done) return;
-  const uses = (st.opens || 0) + 1;
-  // `at` is never read by the panel. It exists so that one storage read answers
-  // "did this ever run", which is the question that cost a day of guessing.
-  saveRateState({ opens: uses, done: false, at: Date.now() });
-  if (uses >= RATE_AFTER && ui) ui.rate.hidden = false;
+  // `at` is never read. It exists so that one storage read answers "did this
+  // ever run", which is the question that cost a day of guessing.
+  rateCache = { opens: (st.opens || 0) + 1, done: false, at: Date.now() };
+  saveRateState(rateCache);
+  if (rateAskReady() && ui) ui.rate.hidden = false;
+}
+
+// grid.js calls it by this name, after a filter narrows the panel's list.
+function tickRating() {
+  countUse();
+}
+
+function rateAskReady() {
+  return !!rateCache && !rateCache.done && (rateCache.opens || 0) >= RATE_AFTER;
 }
 
 async function enable() {
@@ -1651,9 +1980,8 @@ async function enableNow() {
   layoutTokens();
   state.watchlist = await getWatchlist();
   renderNiche();
-  // A fresh session, so the once-per-session guard reopens. The count itself
-  // happens in applyView, only if a filter actually narrows the catalogue.
-  rateCounted = false;
+  // Somebody already asked, from a use in the search bar, sees it here too.
+  ui.rate.hidden = !rateAskReady();
 
   /*
    * The re-entry guard is released here, at the mount, not in enable()'s
@@ -1797,6 +2125,9 @@ window.addEventListener("yt-navigate-finish", () => {
   state.cachedAt = 0;
   state.view = "search";
   state.insight = "overview";
+  state.listTitle = "";
+  state.lastRows = null;
+  endSelecting();
   setTimeout(ensureUi, 300);
 });
 // Keyboard shortcut, relayed from the service worker.
@@ -1824,6 +2155,8 @@ try {
         library.wl = [];
         library.hist = [];
         library.liked = [];
+        library.pl = [];
+        library.plAt = 0;
         library.at = Date.now();
         // And what the memory features were holding, for the same reason.
         seen.map = null;
@@ -1851,6 +2184,14 @@ function bootstrap() {
    */
   ensureUi();
   setInterval(ensureUi, 1500);
+
+  // Per-device state the panel and the search bar both read without waiting.
+  rateState().then((st) => { if (st) rateCache = st; });
+  try {
+    chrome.storage.local.get({ listView: false }, (got) => {
+      if (got && !chrome.runtime.lastError) setListView(!!got.listView, true);
+    });
+  } catch (e) { /* grid it is */ }
 
   loadSettings().then(() => {
     // Settings can change what is already on screen, so run it again once they

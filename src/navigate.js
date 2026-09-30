@@ -15,6 +15,10 @@
  * so a followed search can be checked with one small API call instead of
  * downloading a whole results page first. The key is the one embedded in every
  * YouTube page for every visitor; it identifies the website, not the person.
+ * Alongside them go which signed-in account the page is showing (its index,
+ * and a brand account's page id when there is one), so a signed request from
+ * the content scripts speaks for the same account YouTube's own page does.
+ * Those are positions and ids of the page's own session, never a credential.
  *
  * It marks <html> as present only when it can see YouTube's page globals. An
  * older Firefox ignores "world": "MAIN" and would run this in the isolated world
@@ -32,6 +36,10 @@
     const ver = window.ytcfg.get("INNERTUBE_CLIENT_VERSION");
     if (key) root.setAttribute("data-ytcs-key", key);
     if (ver) root.setAttribute("data-ytcs-ver", ver);
+    const idx = window.ytcfg.get("SESSION_INDEX");
+    const page = window.ytcfg.get("DELEGATED_SESSION_ID");
+    if (idx !== undefined && idx !== null && /^\d+$/.test(String(idx))) root.setAttribute("data-ytcs-authuser", String(idx));
+    if (page && /^\d+$/.test(String(page))) root.setAttribute("data-ytcs-pageid", String(page));
   };
   publish();
   document.addEventListener("yt-navigate-finish", publish);

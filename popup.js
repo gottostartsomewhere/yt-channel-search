@@ -9,6 +9,8 @@ const DEFAULTS = {
   librarySearch: true,
   filterTips: true,
   channelIndex: true,
+  allowEdits: false,
+  feedWatched: "off",
 };
 
 const $ = (id) => document.getElementById(id);
@@ -108,22 +110,36 @@ $("shortcuts").addEventListener("click", (e) => {
  * means a button that says it cannot do something the page is already doing.
  */
 const HISTORY = /^https:\/\/www\.youtube\.com\/feed\/history\/?$/;
+const SUBS = /^https:\/\/www\.youtube\.com\/feed\/subscriptions\/?$/;
 const CHANNEL = /^https:\/\/www\.youtube\.com\/(@[^/]+|channel\/|c\/|user\/)/;
 const RESULTS = /^https:\/\/www\.youtube\.com\/results$/;
-const OWN_LIST = /^https:\/\/www\.youtube\.com\/playlist\?(?:.*&)?list=(WL|LL)(?:&|$)/;
-const PANEL_PAGE = (u) => CHANNEL.test(u) || HISTORY.test(u.split("?")[0]) || RESULTS.test(u.split("?")[0]) || OWN_LIST.test(u);
+const ANY_LIST = /^https:\/\/www\.youtube\.com\/playlist\?(?:.*&)?list=([\w-]+)/;
+const PANEL_PAGE = (u) => CHANNEL.test(u) || HISTORY.test(u.split("?")[0]) || SUBS.test(u.split("?")[0]) ||
+  RESULTS.test(u.split("?")[0]) || ANY_LIST.test(u);
 const YOUTUBE = /^https:\/\/www\.youtube\.com\//;
+
+/*
+ * What's new, once. The card shows while the flag is set and the flag is
+ * cleared as soon as it has been seen, which also clears the NEW badge.
+ */
+chrome.storage.local.get({ whatsNew: "" }, (got) => {
+  if (!got || !got.whatsNew) return;
+  $("whatsnew").hidden = false;
+  chrome.storage.local.set({ whatsNew: "" });
+});
 
 chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
   const tab = tabs && tabs[0];
   const url = (tab && tab.url) || "";
 
   if (PANEL_PAGE(url)) {
-    // "Open on this channel" is wrong on the history page, and a button that
+    // "Open on this channel" is wrong anywhere but a channel, and a button that
     // misnames what it is about to do is worse than a generic one.
+    const list = (url.match(ANY_LIST) || [])[1];
     if (HISTORY.test(url.split("?")[0])) $("open").textContent = "Open on your history";
+    if (SUBS.test(url.split("?")[0])) $("open").textContent = "Open on your subscriptions";
     if (RESULTS.test(url.split("?")[0])) $("open").textContent = "Filter these results";
-    if (OWN_LIST.test(url)) $("open").textContent = url.includes("list=WL") ? "Open on your Watch Later" : "Open on your Liked videos";
+    if (list) $("open").textContent = list === "WL" ? "Open on your Watch Later" : list === "LL" ? "Open on your Liked videos" : "Open on this playlist";
     $("open").addEventListener("click", () => {
       chrome.tabs.sendMessage(tab.id, { type: "ytcs-toggle" }, () => {
         if (chrome.runtime.lastError) {
@@ -135,7 +151,7 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     });
   } else {
     $("open").disabled = true;
-    $("hint").textContent = "Open a channel, a search, your history or Watch Later.";
+    $("hint").textContent = "Open a channel, a search, a playlist, your history or your subscriptions.";
   }
 
   /*

@@ -52,10 +52,12 @@ const OMNI_ICONS = {
   follow: "M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0",
   mute: "M3 3l18 18M10.6 5.1A7 7 0 0 1 19 12a7 7 0 0 1-1 3.6M6.3 6.3A7 7 0 0 0 12 19a7 7 0 0 0 5.7-2.9",
   tips: "M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.3.3.5.7.5 1.1v1h6v-1c0-.4.2-.8.5-1.1A6 6 0 0 0 12 3z",
+  pl: "M4 6h12M4 11h12M4 16h7M16 14v6l5-3z",
+  star: "M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z",
 };
 const OMNI_HEADS = {
   wl: "In your Watch Later", hist: "You watched", liked: "Liked", partial: "Pick up where you left off",
-  channels: "From channels you watch", follow: "New in searches you follow",
+  channels: "From channels you watch", follow: "New in searches you follow", pl: "In your playlists",
 };
 
 // The operators people can click to learn, in the order they are most useful.
@@ -90,6 +92,8 @@ document.addEventListener("click", (e) => {
   if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
   const a = e.target && e.target.closest && e.target.closest("a.ytcs-omni-row, a.ytcs-libcard, a.ytcs-card");
   if (!a) return;
+  // In select mode a card is a checkbox, and the panel's own handler takes it.
+  if (state.selecting && a.classList.contains("ytcs-card")) return;
   if (a.classList.contains("ytcs-follow")) {
     e.preventDefault();
     if (omni.input) omni.input.blur();
@@ -99,6 +103,8 @@ document.addEventListener("click", (e) => {
   if (!/^\/watch\?v=/.test(a.getAttribute("href") || "")) return;
   e.preventDefault();
   if (omni.input) omni.input.blur();
+  // Finding a video in your library from the bar is the product working.
+  if (!a.classList.contains("ytcs-card") && typeof countUse === "function") countUse();
   navigateTo(a.getAttribute("href"));
 }, true);
 
@@ -117,6 +123,7 @@ function omniAttach() {
   omni.host = inp.closest("yt-searchbox");
   inp.addEventListener("focus", () => {
     omni.focused = true;
+    noteIntroShown();
     loadLibrary().then(omniSchedule);
     followsWithNews().then((n) => { omni.news = n; omniSchedule(); });
     if (cfg.channelIndex) indexVideos().then(omniSchedule);
@@ -220,8 +227,21 @@ function omniRow(v, groupKey, words) {
   title.appendChild(omniMarked(v.title, words));
   const meta = document.createElement("span");
   meta.className = "ytcs-omni-meta";
-  const bits = [fmtDuration(v.seconds), groupKey === "partial" ? "" : v.channel, omniStateText(v, groupKey)];
+  const channel = groupKey === "partial" ? "" : v.channel;
+  const bits = [fmtDuration(v.seconds), channel, groupKey === "pl" && v.list ? "In " + v.list : "", omniStateText(v, groupKey)];
   factsInto(meta, bits.filter(Boolean).filter((b, i, all) => all.indexOf(b) === i));
+  /*
+   * The channel is searched as well as the title, so a match there is marked
+   * the same way. Otherwise "lex" finding a Lex Fridman video reads as a row
+   * with no reason to be there.
+   */
+  if (channel) {
+    const span = Array.from(meta.children).find((s) => s.textContent === channel);
+    if (span) {
+      span.textContent = "";
+      span.appendChild(omniMarked(channel, words));
+    }
+  }
   text.appendChild(title);
   text.appendChild(meta);
   a.appendChild(text);
@@ -266,6 +286,97 @@ function omniTipsRow() {
   return row;
 }
 
+/*
+ * ---- first run -----------------------------------------------------------------
+ *
+ * The dropdown is the whole of 2.0 and nothing announces it: YouTube's bar looks
+ * exactly as it always did until you type. So the first three times it opens
+ * with something of yours in it, one line says what this is. "Got it" ends it
+ * sooner. Counted per focus, not per keystroke, in storage.local like the
+ * review ask, since it is about this device having seen it.
+ */
+const INTRO_KEY = "omniIntro";
+const INTRO_TIMES = 3;
+let introSeen = null;
+try {
+  chrome.storage.local.get({ [INTRO_KEY]: 0 }, (got) => { introSeen = (got && got[INTRO_KEY]) || 0; });
+} catch (e) { introSeen = INTRO_TIMES; }
+
+function noteIntroShown() {
+  omni.intro = introSeen !== null && introSeen < INTRO_TIMES;
+  if (!omni.intro) return;
+  introSeen++;
+  try { chrome.storage.local.set({ [INTRO_KEY]: introSeen }); } catch (e) { /* shows again next time */ }
+}
+
+function omniIntroRow() {
+  const row = document.createElement("div");
+  row.className = "ytcs-omni-intro";
+  row.appendChild(omniIcon("tips", 14));
+  const t = document.createElement("span");
+  t.textContent = "Needle: your Watch Later, history and likes show up here as you type. Add <20m or unwatched to filter.";
+  row.appendChild(t);
+  const ok = document.createElement("button");
+  ok.type = "button";
+  ok.className = "ytcs-omni-tipsoff";
+  ok.textContent = "Got it";
+  ok.onclick = () => {
+    introSeen = 99;
+    omni.intro = false;
+    try { chrome.storage.local.set({ [INTRO_KEY]: 99 }); } catch (e) { /* ignore */ }
+    omniRender();
+  };
+  row.appendChild(ok);
+  return row;
+}
+
+// The review ask, for people who only ever use the bar. See countUse in panel.js.
+function omniRateRow() {
+  const row = document.createElement("div");
+  row.className = "ytcs-omni-rate";
+  row.appendChild(omniIcon("star", 14));
+  const t = document.createElement("span");
+  t.textContent = "Finding Needle useful? A review helps other people find it.";
+  row.appendChild(t);
+  const go = document.createElement("button");
+  go.type = "button";
+  go.className = "ytcs-omni-ratego";
+  go.textContent = "Leave one";
+  go.onclick = () => {
+    window.open(STORE_REVIEW_URL, "_blank", "noopener");
+    closeRating();
+    omniRender();
+  };
+  const no = document.createElement("button");
+  no.type = "button";
+  no.className = "ytcs-omni-tipsoff";
+  no.textContent = "Hide";
+  no.title = "Hide this for good";
+  no.onclick = () => {
+    closeRating();
+    omniRender();
+  };
+  row.appendChild(go);
+  row.appendChild(no);
+  return row;
+}
+
+/*
+ * Two rows per list keeps YouTube's own suggestions in sight, which means most
+ * matches are never shown. "See all 14" opens that whole list in the panel,
+ * already searched, on the results page for the same words.
+ */
+function openScoped(key, f) {
+  const scoped = Object.assign({}, f, { scope: key, chips: f.chips.concat(["Only " + LIB_NAMES[key]]) });
+  try {
+    sessionStorage.setItem(OMNI_PENDING, JSON.stringify({ q: f.query, f: packFilters(scoped), at: Date.now() }));
+  } catch (e) { /* the search still opens, just not scoped */ }
+  if (typeof countUse === "function") countUse();
+  omni.input.value = f.query;
+  omni.input.blur();
+  navigateTo(searchUrl(f.query, ""));
+}
+
 function omniRender() {
   if (!omni.input || !cfg.librarySearch) return;
   const box = omniListbox();
@@ -273,9 +384,20 @@ function omniRender() {
 
   const raw = omni.input.value;
   const f = parseOmniQuery(raw);
+  // in:playlists before your playlists have ever been read: read them now, and
+  // say so meanwhile, rather than answering "nothing matches".
+  if (f.scope === "pl" && !library.pl.length) {
+    if (!library.plLoading) loadPlaylistLibrary().then(omniSchedule);
+    omni.hint = "Reading your playlists, one page each. A few seconds.";
+  } else if (omni.hint === "Reading your playlists, one page each. A few seconds.") {
+    omni.hint = "";
+  }
   let groups = [];
   if (!raw.trim()) groups = libraryIdle();
   else if (f.words.length || f.ops) groups = matchLibrary(f, f.scope ? 8 : OMNI_PER_GROUP);
+  // How many each list really has, for "See all".
+  const totals = {};
+  if (raw.trim() && f.query && groups.length) for (const g of matchLibrary(f, 0)) totals[g.key] = g.videos.length;
 
   if (!omni.el) {
     omni.el = document.createElement("div");
@@ -286,6 +408,9 @@ function omniRender() {
     omni.el.addEventListener("mousedown", (e) => e.preventDefault());
   }
   omni.el.textContent = "";
+
+  const mine = groups.length || (!raw.trim() && omni.news.length);
+  if (omni.intro && mine) omni.el.appendChild(omniIntroRow());
 
   if (f.chips.length) {
     const row = document.createElement("div");
@@ -312,6 +437,16 @@ function omniRender() {
     const name = document.createElement("span");
     name.textContent = g.key === "wl" && g.name !== LIB_NAMES.wl ? g.name : OMNI_HEADS[g.key] || g.name;
     head.appendChild(name);
+    const total = totals[g.key] || 0;
+    if (total > g.videos.length) {
+      const all = document.createElement("button");
+      all.type = "button";
+      all.className = "ytcs-omni-seeall";
+      all.textContent = "See all " + total;
+      all.title = "Open every match from your " + LIB_NAMES[g.key] + " in the panel";
+      all.onclick = () => openScoped(g.key, f);
+      head.appendChild(all);
+    }
     omni.el.appendChild(head);
     for (const v of g.videos) omni.el.appendChild(omniRow(v, g.key, words));
   }
@@ -338,6 +473,8 @@ function omniRender() {
   if (cfg.filterTips && !f.ops && (!raw.trim() || groups.length)) omni.el.appendChild(omniTipsRow());
   // A filtered search can be followed from right here.
   if (raw.trim() && f.ops && f.query && !f.scope) omni.el.appendChild(followOffer(raw.trim()));
+  // The review ask, only on an empty bar, where it interrupts nothing.
+  if (!raw.trim() && mine && typeof rateAskReady === "function" && rateAskReady()) omni.el.appendChild(omniRateRow());
 
   if (!omni.el.childNodes.length) {
     if (omni.el.parentNode) omni.el.remove();
@@ -398,7 +535,10 @@ function omniKeys(e) {
     const row = rows[omni.active];
     omni.input.blur();
     if (row.classList.contains("ytcs-follow")) openFollow(row.dataset.q);
-    else navigateTo(row.getAttribute("href"));
+    else {
+      if (typeof countUse === "function") countUse();
+      navigateTo(row.getAttribute("href"));
+    }
     return;
   } else if (e.key === "Escape") {
     omni.active = -1;
@@ -433,6 +573,7 @@ function omniSubmit(e) {
   try {
     sessionStorage.setItem(OMNI_PENDING, JSON.stringify({ q: f.query, f: packFilters(f), at: Date.now() }));
   } catch (err) { /* private mode: the search still happens, unfiltered */ }
+  if (typeof countUse === "function") countUse();
   /*
    * Whatever YouTube can filter itself goes to YouTube: its own results page
    * opens with its own strict filters on, across its whole index, and the panel
@@ -689,7 +830,7 @@ function renderLibraryStrip() {
     const src = document.createElement("span");
     src.className = "ytcs-libcard-src";
     src.appendChild(omniIcon(g, 12));
-    src.appendChild(document.createTextNode(g === "hist" ? "History" : g === "liked" ? "Liked" : "Watch Later"));
+    src.appendChild(document.createTextNode(g === "hist" ? "History" : g === "liked" ? "Liked" : g === "pl" ? (v.list || "Playlist") : "Watch Later"));
     thumb.appendChild(src);
     if (v.seconds) {
       const dur = document.createElement("span");
@@ -781,9 +922,53 @@ function markThumb(host, id, idx, extraClass) {
   host.appendChild(mark);
 }
 
+/*
+ * ---- watched videos on Home and Subscriptions --------------------------------------
+ *
+ * Dimmed or hidden, as the popup says (feedWatched). "Watched" means finished,
+ * by the same line the panel uses (cfg.finishedAt), read two ways: YouTube's own
+ * red bar on the thumbnail, which it draws for anything you have started, and
+ * your history, for a card whose bar YouTube has not drawn. Half-watched stays,
+ * since something you are halfway through is the opposite of done with.
+ *
+ * Home and Subscriptions only. Search results have YouTube's own Unwatched chip,
+ * and a channel's page is somewhere people go to see everything on purpose.
+ */
+const FEED_CARD = "ytd-rich-item-renderer";
+
+function feedPage() {
+  return location.pathname === "/" || isSubscriptionsPage();
+}
+
+// The width of YouTube's red bar on a card, as a percentage, or null.
+function barPercent(card) {
+  const bar = card.querySelector(
+    "ytd-thumbnail-overlay-resume-playback-renderer #progress, " +
+    ".ytThumbnailOverlayProgressBarHostWatchedProgressBarSegment, " +
+    "yt-thumbnail-overlay-progress-bar-view-model [class*='WatchedProgressBarSegment']"
+  );
+  const w = bar && parseFloat(bar.style.width);
+  return typeof w === "number" && !isNaN(w) ? w : null;
+}
+
+function feedFinished(card, id, idx) {
+  const pct = barPercent(card);
+  if (pct !== null) return pct >= cfg.finishedAt;
+  const e = idx && idx.get(id);
+  return !!(e && e.hist && typeof e.hist.progress === "number" && e.hist.progress >= cfg.finishedAt);
+}
+
+function applyFeedWatched(card, finished) {
+  const mode = finished ? cfg.feedWatched : "off";
+  if (card.getAttribute("data-ytcs-feed") === mode) return;
+  if (mode === "off") card.removeAttribute("data-ytcs-feed");
+  else card.setAttribute("data-ytcs-feed", mode);
+}
+
 function badgeResults() {
   const idx = cfg.librarySearch && !libraryEmpty() ? libraryIndex() : null;
   const onSearch = isSearchPage();
+  const onFeed = feedPage();
   const done = new Set();
   for (const a of document.querySelectorAll(BADGE_SELECTOR)) {
     // A lockup has several links to the same video; mark its first one only.
@@ -794,6 +979,8 @@ function badgeResults() {
     const id = videoIdOf(a);
     if (!id) continue;
     if (idx) markThumb(a, id, idx, "");
+    const feedCard = onFeed && a.closest(FEED_CARD);
+    if (feedCard) applyFeedWatched(feedCard, cfg.feedWatched !== "off" && feedFinished(feedCard, id, idx));
     if (onSearch && card.closest("ytd-search")) {
       addMuteButton(a);
       observeShown(card, id);
@@ -920,7 +1107,8 @@ function renderMuteNote(n) {
 }
 
 // A short message at the foot of the page, with one action, gone by itself.
-function toast(text, action, onAction) {
+// Anything with an Undo gets longer than the default six seconds.
+function toast(text, action, onAction, ms) {
   const old = document.querySelector(".ytcs-toast");
   if (old) old.remove();
   const t = document.createElement("div");
@@ -940,7 +1128,7 @@ function toast(text, action, onAction) {
     t.appendChild(b);
   }
   document.body.appendChild(t);
-  setTimeout(() => t.remove(), 6000);
+  setTimeout(() => t.remove(), ms || 6000);
 }
 
 // ---- following searches, in the bar ----------------------------------------------------------
@@ -1073,6 +1261,12 @@ if (!window.__ytcsOmniLoaded) {
   });
   setInterval(omniTick, 1500);
   omniTick();
+  // Dim or hide switched in the popup reaches the page already open.
+  try {
+    chrome.storage.onChanged.addListener((changes, area) => {
+      if (area === "sync" && (changes.feedWatched || changes.finishedAt)) setTimeout(badgeResults, 50);
+    });
+  } catch (e) { /* no extension context */ }
   // The marks need the library, which is only read when the search bar is used,
   // so a cached copy is loaded quietly here; nothing is fetched until it is stale
   // and the bar is actually clicked.
@@ -1082,7 +1276,9 @@ if (!window.__ytcsOmniLoaded) {
         library.wl = rec.wl || [];
         library.hist = rec.hist || [];
         library.liked = rec.liked || [];
+        library.pl = rec.pl || [];
         library.at = rec.at || 0;
+        library.plAt = rec.plAt || 0;
         library.loaded = true;
         badgeResults();
       }

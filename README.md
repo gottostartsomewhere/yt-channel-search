@@ -59,6 +59,24 @@ Page one of each list needs nothing special. Reading further back is **Deep
 reading**, a switch in the popup that is off by default.
 [PRIVACY.md](PRIVACY.md) explains exactly what it does before you turn it on.
 
+On Watch Later the panel can also clean up. **Select** turns the cards into
+checkboxes, with "pick everything the filters left" and "pick everything
+finished" as shortcuts, and **Remove from Watch Later** sends YouTube's own
+remove action after you confirm the number, with Undo straight after. It is the
+one thing Needle can change on your account, so it is off until you allow it.
+
+## Any playlist, and your subscriptions
+
+The panel opens on any playlist page, yours or anybody's public one, and reads
+the whole list rather than the first 100. The **Channel** picker lists who is
+in it and how many each has. `in:playlists` in the search bar searches every
+playlist saved to your library at once.
+
+On your subscriptions page it filters the feed the same way: unwatched, under
+twenty minutes, this week. And if you would rather not see what you have
+already finished, the popup can dim or hide those videos on Home and
+Subscriptions.
+
 ## The idea
 
 Most in-page filter tools only touch the video cards already loaded on screen,

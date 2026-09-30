@@ -20,10 +20,17 @@
  */
 const LIB_KEY = "__library";
 const LIB_TTL = 3 * 3600 * 1000;
-const LIB_NAMES = { wl: "Watch Later", hist: "watch history", liked: "Liked videos", channels: "channels you watch" };
+const LIB_NAMES = { wl: "Watch Later", hist: "watch history", liked: "Liked videos", channels: "channels you watch", pl: "playlists" };
 const LIB_ORDER = ["wl", "hist", "liked"];
+/*
+ * Your other playlists are read only when asked for, with in:playlists, and
+ * then kept half a day. Reading them means one page load per playlist, which is
+ * too much to spend on every visit to the search bar for people who never ask.
+ * Once read, they join the dropdown's groups like the other lists.
+ */
+const PL_TTL = 12 * 3600 * 1000;
 
-const library = { wl: [], hist: [], liked: [], at: 0, loaded: false, refreshing: null };
+const library = { wl: [], hist: [], liked: [], pl: [], at: 0, plAt: 0, loaded: false, refreshing: null, plLoading: null };
 const libListeners = [];
 
 function onLibraryChange(fn) {
@@ -49,12 +56,61 @@ async function loadLibrary() {
       library.wl = rec.wl || [];
       library.hist = rec.hist || [];
       library.liked = rec.liked || [];
+      library.pl = rec.pl || [];
       library.at = rec.at || 0;
+      library.plAt = rec.plAt || 0;
     }
     library.loaded = true;
   }
   if (Date.now() - library.at > LIB_TTL) refreshLibrary();
   return library;
+}
+
+function saveLibrary() {
+  return idbPut(LIB_KEY, { wl: library.wl, hist: library.hist, liked: library.liked, pl: library.pl, at: library.at, plAt: library.plAt });
+}
+
+function libraryChanged() {
+  for (const fn of libListeners) {
+    try { fn(); } catch (e) { /* a listener must not stop the others */ }
+  }
+}
+
+// Your other playlists, read on first ask and then kept for PL_TTL.
+function loadPlaylistLibrary(force) {
+  if (library.plLoading) return library.plLoading;
+  if (!force && library.pl.length && Date.now() - library.plAt < PL_TTL) return Promise.resolve(library.pl);
+  library.plLoading = (async () => {
+    try {
+      library.pl = await fetchPlaylistVideos(cfg.deepHistory);
+      library.plAt = Date.now();
+      await saveLibrary();
+      libraryChanged();
+    } catch (e) { /* keeps whatever it had */ }
+    return library.pl;
+  })().finally(() => { library.plLoading = null; });
+  return library.plLoading;
+}
+
+/*
+ * Watch Later edited from the panel. The search bar keeps its own copy of the
+ * list, so without this a removed video would still be offered in the dropdown
+ * until the next refresh, and one put back would be missing from it.
+ */
+async function libraryRemove(key, ids) {
+  await loadLibrary();
+  const drop = new Set(ids);
+  library[key] = library[key].filter((v) => !drop.has(v.id));
+  await saveLibrary();
+  libraryChanged();
+}
+
+async function libraryRestore(key, videos) {
+  await loadLibrary();
+  const have = new Set(library[key].map((v) => v.id));
+  library[key] = library[key].concat(videos.filter((v) => !have.has(v.id)));
+  await saveLibrary();
+  libraryChanged();
 }
 
 function refreshLibrary() {
@@ -75,10 +131,8 @@ function refreshLibrary() {
     library.liked = liked.filter((v) => v.playable !== false);
     library.hist = hist;
     library.at = Date.now();
-    await idbPut(LIB_KEY, { wl: library.wl, hist: library.hist, liked: library.liked, at: library.at });
-    for (const fn of libListeners) {
-      try { fn(); } catch (e) { /* a listener must not stop the others */ }
-    }
+    await saveLibrary();
+    libraryChanged();
   })().finally(() => { library.refreshing = null; });
   return library.refreshing;
 }
@@ -95,6 +149,7 @@ function refreshLibrary() {
  *   unwatched                     and bare "unwatched" as a shortcut)
  *   is:fresh                      nothing you were shown in an earlier search
  *   in:wl  in:history  in:liked   only that list
+ *   in:playlists                  every playlist in your library (read on first ask)
  *   in:channels                   only the channels you watch, whole catalogues
  *   @veritasium  -@mrbeast        from that channel, or never from it
  *   -shorts                       leave out anything mentioning this
@@ -121,7 +176,7 @@ function refreshLibrary() {
  */
 const OMNI_SCOPES = {
   wl: "wl", watchlater: "wl", later: "wl", history: "hist", watched: "hist", liked: "liked", likes: "liked",
-  channels: "channels", mine: "channels",
+  channels: "channels", mine: "channels", playlists: "pl", playlist: "pl", pl: "pl",
 };
 const OMNI_WATCH = {
   unwatched: "new",
@@ -418,7 +473,9 @@ function matchesWords(v, words, fuzzy) {
  */
 function matchLibrary(f, perGroup) {
   const watchedAsked = f.watchedMin || f.watchedMax !== Infinity;
-  const lists = f.scope && f.scope !== "channels" ? [f.scope] : watchedAsked ? ["hist"] : LIB_ORDER;
+  // Your other playlists join the groups once they have been read, last.
+  const order = library.pl.length ? LIB_ORDER.concat(["pl"]) : LIB_ORDER;
+  const lists = f.scope && f.scope !== "channels" ? [f.scope] : watchedAsked ? ["hist"] : order;
   const seenIds = new Set();
   const groups = [];
   for (const key of lists) {
@@ -445,7 +502,7 @@ function matchIndex(f, limit) {
   const all = typeof chIndex !== "undefined" && chIndex.videos;
   if (!all || (!f.words.length && !f.channel)) return [];
   const out = [];
-  const libIds = new Set(library.wl.concat(library.hist, library.liked).map((v) => v.id));
+  const libIds = new Set(library.wl.concat(library.hist, library.liked, library.pl).map((v) => v.id));
   for (const v of all) {
     if (libIds.has(v.id)) continue;
     if (!matchScore(v, f.words, false) || !passesFilters(v, f)) continue;
@@ -485,6 +542,7 @@ function libraryIdle() {
 async function libraryCatalog(scope) {
   if (scope === "channels") return (await indexVideos()).slice();
   await loadLibrary();
+  if (scope === "pl") return (await loadPlaylistLibrary()).slice();
   if (!library[scope].length && library.refreshing) await library.refreshing;
   if (!library[scope].length) await refreshLibrary();
   return library[scope].slice();

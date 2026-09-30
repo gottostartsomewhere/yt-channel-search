@@ -1599,3 +1599,144 @@ a:hover > .ytcs-mutebtn,
 .ytcs-wrap { font-size: 14px; line-height: 1.4; }
 .ytcs-addrow .ytcs-f { height: 32px; font-size: 14px; }
 .ytcs-addrow { gap: 4px; }
+
+/*
+ * ---- 2.1 --------------------------------------------------------------------
+ */
+
+/* Who made it, first on the card's line wherever a list spans channels. */
+.ytcs-cchan { color: var(--txt); opacity: 0.86; }
+
+/* The channel picker is always a picker, never a token. */
+.ytcs-chanslot .ytcs-fx { display: none; }
+
+/* Grid or list. A list row: thumbnail left, text right, three times as many on
+   screen, for the long lists (Watch Later, history, a big playlist). */
+.ytcs-grid.ytcs-listview {
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+.ytcs-listview .ytcs-card {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 4px;
+  border-radius: 12px;
+}
+.ytcs-listview .ytcs-card:hover { background: var(--surface); }
+.ytcs-listview .ytcs-thumb { width: 196px; flex: none; border-radius: 8px; }
+.ytcs-listview .ytcs-info { padding: 4px 0 0; min-width: 0; }
+.ytcs-listview .ytcs-ctitle { font-size: 15px; }
+.ytcs-listview .ytcs-card:hover .ytcs-thumb img { transform: none; }
+
+/* Select mode, Watch Later only. */
+.ytcs-selectbtn {
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  font-size: 13px;
+}
+.ytcs-selectbtn.ytcs-on { color: var(--txt); background: var(--surface); border-color: transparent; }
+.ytcs-selbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin: 2px 16px 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--surface);
+  font-size: 13px;
+}
+.ytcs-selbar[hidden] { display: none; }
+.ytcs-selbar .ytcs-ghost { padding: 4px 0; font-size: 13px; }
+.ytcs-selcount { font-weight: 500; font-variant-numeric: tabular-nums; }
+.ytcs-selmsg { flex: 1 1 320px; line-height: 1.45; }
+.ytcs-danger {
+  height: 32px;
+  padding: 0 16px;
+  border: 1px solid var(--ac);
+  border-radius: 16px;
+  background: var(--ac);
+  color: #fff;
+  font-weight: 500;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+}
+.ytcs-danger:hover { filter: brightness(1.08); }
+.ytcs-danger:disabled { opacity: 0.4; cursor: default; filter: none; }
+.ytcs-selecting .ytcs-card { cursor: pointer; }
+.ytcs-tick {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  background: rgba(0, 0, 0, 0.35);
+  box-sizing: border-box;
+}
+.ytcs-picked .ytcs-tick { background: var(--ac); border-color: var(--ac); }
+.ytcs-picked .ytcs-tick::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 1px;
+  width: 6px;
+  height: 11px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.ytcs-picked .ytcs-thumb { outline: 3px solid var(--ac); outline-offset: -3px; }
+.ytcs-picked .ytcs-thumb img { opacity: 0.8; }
+
+/* The dropdown: first-run line, the review ask, "See all". */
+.ytcs-omni-intro,
+.ytcs-omni-rate {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 2px 12px 6px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: var(--yt-spec-badge-chip-background, #272727);
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+.ytcs-omni-intro .ytcs-omni-tipsoff,
+.ytcs-omni-rate .ytcs-omni-tipsoff { flex: none; }
+.ytcs-omni-ratego {
+  flex: none;
+  margin-left: auto;
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--ac);
+  font-weight: 600;
+  font-size: 12.5px;
+  font-family: inherit;
+  cursor: pointer;
+}
+.ytcs-omni-ratego:hover { text-decoration: underline; }
+.ytcs-omni-seeall {
+  margin-left: auto;
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--dim);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+}
+.ytcs-omni-seeall:hover { color: var(--txt); text-decoration: underline; }
+
+/* Watched videos on Home and Subscriptions, if asked for in the popup. */
+[data-ytcs-feed="dim"] { opacity: 0.32; transition: opacity 0.15s ease; }
+[data-ytcs-feed="dim"]:hover { opacity: 1; }
+[data-ytcs-feed="hide"] { display: none !important; }
+/* A count in its own column at the end of a menu row (the Channel picker). */
+.ytcs-menucount { margin-left: auto; padding-left: 24px; color: var(--dim); font-variant-numeric: tabular-nums; font-size: 12.5px; }

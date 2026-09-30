@@ -47,6 +47,7 @@ const closer = (slug, line) => `
 const LABELS = {
   why: "The problem", "ctrl-f": "The workaround", needle: "With Needle", filters: "Filters", faq: "Questions",
   youtube: "On YouTube", "my-activity": "My Activity", popular: "Most viewed", missing: "The gap",
+  cleanup: "Clean up", all: "All at once",
 };
 
 const GUIDES = [
@@ -62,6 +63,7 @@ const GUIDES = [
     faq: [
       ["Can you search Watch Later in the YouTube app?", "Not in the app, and not with Needle either. Needle is for YouTube in a desktop browser: Chrome, or another browser that installs extensions from the Chrome Web Store."],
       ["Does this work for Liked videos too?", "Yes. The same panel opens on your Liked videos page, and in:liked searches them from the search bar."],
+      ["Can Needle remove videos from Watch Later?", "Yes, when you ask it to. Press Select in the panel, pick videos, and remove them, with an undo straight after. It is off until you turn it on."],
       ["Is my Watch Later sent anywhere?", "No. Needle has no server. It reads the list from youtube.com with the session you're already signed in with, keeps it on your device, and never sends it anywhere."],
       ["Is it free?", "Yes. No account, no trial, no paid tier."],
     ],
@@ -107,7 +109,89 @@ ${opsTable([
   ["-word", "Leave out anything mentioning it"],
   ["sort:shortest", "Shortest first (also longest, views, newest, oldest)"],
 ])}
-<p>They combine, so ${o("in:wl unwatched <15m")} is the answer to "what can I watch on my break".</p>`,
+<p>They combine, so ${o("in:wl unwatched <15m")} is the answer to "what can I watch on my break".</p>
+
+<h2 id="cleanup">Clean it up while you're there</h2>
+<p>Found three years of videos you'll never watch? Press <strong>Select</strong> in the panel, pick them (or filter first and pick everything shown), and remove them from Watch Later, with an undo straight after. <a href="../remove-watched-watch-later/">How cleaning up works</a>.</p>`,
+  },
+
+  {
+    slug: "remove-watched-watch-later",
+    tag: "Clean up",
+    card: "Remove watched videos from Watch Later",
+    blurb: "YouTube's one button removes everything. Pick exactly what goes instead, with an undo.",
+    title: "How to remove watched videos from your YouTube Watch Later",
+    h1: "How to remove watched videos from Watch Later",
+    description: "YouTube can clear everything it counts as watched from Watch Later in one go. How to do that, and how to pick exactly what goes instead, with an undo.",
+    answer: `On your Watch Later page, open the list's menu (the three dots near <em>Play all</em>) and choose <em>Remove watched videos</em>. It removes everything YouTube counts as watched, all at once, with no preview and no undo. To choose what goes, by length, age, channel or how far you got, and undo it afterwards, use <a href="${store("remove-watched-watch-later")}">Needle</a>'s Select on the same page.`,
+    faq: [
+      ["Is removing with Needle safe?", "It sends YouTube's own remove action, the same one YouTube's menu uses, only after you confirm the number. Undo puts them back with YouTube's own Save to Watch later action."],
+      ["Can it remove videos from my other playlists?", "Not yet. Watch Later only."],
+      ["Does it need extra permissions?", "No. It is off until you turn it on, in the Needle popup or the first time you press Remove, and it only ever touches your Watch Later."],
+      ["Is it free?", "Yes. No account, no trial, no paid tier."],
+    ],
+    body: () => `
+<h2 id="youtube">YouTube's own button</h2>
+<ol class="steps">
+  <li>Open your Watch Later at <a href="https://www.youtube.com/playlist?list=WL">youtube.com/playlist?list=WL</a>.</li>
+  <li>Open the list's menu, the three dots near <em>Play all</em>.</li>
+  <li>Choose <em>Remove watched videos</em> and confirm.</li>
+</ol>
+<p>It's all or nothing. Everything YouTube counts as watched goes, including the one you meant to watch again, and nothing it counts as unwatched does, however old. There's no preview and no undo.</p>
+
+<h2 id="needle">Pick exactly what goes, with Needle</h2>
+<ol class="steps">
+  <li>Open your Watch Later and press the needle button in the bottom right corner, or <kbd>Alt</kbd>+<kbd>Y</kbd>.</li>
+  <li>Press <strong>Select</strong>.</li>
+  <li>Click the videos to go, or let a filter choose: <em>Pick the finished ones</em>, or set filters and <em>Pick all shown</em>.</li>
+  <li>Press <strong>Remove from Watch Later</strong> and confirm the number.</li>
+  <li>Changed your mind? <strong>Undo</strong> in the corner puts them all back.</li>
+</ol>
+${figure("../img/select.webp", 1280, 520, "Needle's Select mode on a Watch Later list, four videos picked and a Remove from Watch Later button", "Four picked. The bar offers every video the filters left, or every finished one, before Remove.")}
+
+<h3>Filters decide, so you don't have to click 300 times</h3>
+${opsTable([
+  ["unwatched >1h", "Long videos you saved and never started"],
+  ["before:2023", "Anything uploaded before 2023"],
+  ["@name", "Everything from one channel"],
+  ["is:watched", "Everything you've finished"],
+])}
+<p>Type a filter in the panel's box, then <em>Pick all shown</em>: exactly those, and nothing else.</p>
+
+<h3>Lists longer than 100 videos</h3>
+<p>Needle reads the first 100 unless <strong>Deep reading</strong> is on in the popup, the same as when searching. Turn it on to clean up the whole list.</p>`,
+  },
+
+  {
+    slug: "search-youtube-playlist",
+    tag: "Playlists",
+    card: "Search inside any playlist",
+    blurb: "Yours or anyone's, filtered by length, views and channel.",
+    title: "How to search inside a YouTube playlist",
+    h1: "How to search inside a YouTube playlist",
+    description: "YouTube has no search box inside a playlist. How to find a video in any playlist, yours or anyone's, and filter it by length, views and channel.",
+    answer: `YouTube has no search box inside a playlist, and Ctrl+F only sees the videos loaded so far. <a href="${store("search-youtube-playlist")}">Needle</a> reads the whole playlist, yours or anyone's public one, and lets you search and filter it by title, channel, length and views. To search every playlist you've saved at once, type ${o("in:playlists")} into YouTube's search bar.`,
+    faq: [
+      ["Does it work on someone else's playlist?", "Yes, any playlist you can open: public ones, and unlisted ones you have the link to."],
+      ["What about private playlists?", "Only your own, while you're signed in, the same as YouTube."],
+      ["How long is too long?", "Needle reads up to the Video limit in the popup, 1,800 by default, 100 at a time. A long playlist takes a few seconds, then filtering is instant."],
+      ["Is it free?", "Yes. No account, no trial, no paid tier."],
+    ],
+    body: () => `
+<h2 id="why">Why you can't search a playlist on YouTube</h2>
+<p>A playlist page shows the first 100 videos and loads the rest in batches as you scroll. There's a sort menu on some, but no search box and no filters, so finding one video in a 600-video course means scrolling it all in and trying Ctrl+F.</p>
+
+<h2 id="needle">Search it with Needle</h2>
+<ol class="steps">
+  <li>Open the playlist.</li>
+  <li>Press the needle button in the bottom right corner, or <kbd>Alt</kbd>+<kbd>Y</kbd>.</li>
+  <li>Needle reads every video in it, not just the ones on screen.</li>
+  <li>Type to search titles and channels, or filter by Length, Views, Date, Watched and Channel.</li>
+</ol>
+<p>The <strong>Channel</strong> picker lists everyone in the playlist with how many videos each has, which on a big mixed playlist is often the fastest way in.</p>
+
+<h2 id="all">Every playlist you've saved, at once</h2>
+<p>Type ${o("in:playlists")} and a word into YouTube's search bar. The first time, Needle reads each playlist in your library once, then keeps them for twelve hours, so the search after that is instant. ${o("in:playlists rust <20m")} is every short Rust video across all of them.</p>`,
   },
 
   {
@@ -270,7 +354,7 @@ ${opsTable([
 ];
 
 // History leads: the least contested search, and the thing nobody else does in the search bar.
-const ORDER = ["search-watch-history", "search-watch-later", "search-youtube-channel", "youtube-search-filters"];
+const ORDER = ["search-watch-history", "search-watch-later", "remove-watched-watch-later", "search-youtube-playlist", "search-youtube-channel", "youtube-search-filters"];
 GUIDES.sort((a, b) => ORDER.indexOf(a.slug) - ORDER.indexOf(b.slug));
 
 // ---------------------------------------------------------------------------
@@ -426,7 +510,7 @@ function homePage() {
         ${eyebrow("", "Nothing left to scroll")}
         <h1>Search it.<br>Filter it.<br><span class="red">Find it.</span></h1>
         <p class="promise"><strong>Free</strong> and nothing leaves your browser.</p>
-        <p class="lede">The YouTube search that knows what you've watched. Your history, Watch Later and likes show up in YouTube's own search bar, with the filters YouTube leaves out: exact lengths, view counts, and only what you haven't seen.</p>
+        <p class="lede">The YouTube search that knows what you've watched. Your history, Watch Later and likes show up in YouTube's own search bar, and any channel, playlist or your subscriptions can be filtered the ways YouTube leaves out: exact lengths, view counts, and only what you haven't seen.</p>
         <div class="stack">
           <a class="btn btn-wide" href="${store()}">Add to Chrome ${ARROW}</a>
           <a class="btn-line btn-wide" href="#tour">Take the tour ${ARROW}</a>
@@ -464,11 +548,11 @@ function homePage() {
   <section class="band band-alt">
     <div class="wrap">
       ${eyebrow("02", "The fix")}
-      <h2 class="strike"><s>Not another Watch Later cleaner.</s><br><s>Not another hide-watched button.</s><br><span class="red">Built to find the one video you're thinking of.</span></h2>
+      <h2 class="strike"><s>Not just a Watch Later cleaner.</s><br><s>Not just a hide-watched button.</s><br><span class="red">Built to find the one video you're thinking of.</span></h2>
       <div class="cards cards-3">
-        <div class="card"><p class="eyebrow eyebrow-grey"><span>Cleaners</span></p><h3 class="dim">Tidier lists</h3><p class="mono">Sort and bulk delete your Watch Later. Neater, and you still can't search it.</p></div>
-        <div class="card"><p class="eyebrow eyebrow-grey"><span>Hiders</span></p><h3 class="dim">Fewer videos</h3><p class="mono">Hide what you've watched from the home page. YouTube has started doing this itself.</p></div>
-        <div class="card card-hot"><p class="eyebrow"><span>Built for</span></p><h3>Finding it.</h3><p class="mono">Your Watch Later, likes, history and all of YouTube, in the search bar you already use, filtered however you like.</p></div>
+        <div class="card"><p class="eyebrow eyebrow-grey"><span>Cleaners</span></p><h3 class="dim">Tidier lists</h3><p class="mono">Bulk delete your Watch Later. Neater, and you still can't search it.</p></div>
+        <div class="card"><p class="eyebrow eyebrow-grey"><span>Hiders</span></p><h3 class="dim">Fewer videos</h3><p class="mono">Hide what you've watched. Useful, and you still can't find anything.</p></div>
+        <div class="card card-hot"><p class="eyebrow"><span>Built for</span></p><h3>Finding it.</h3><p class="mono">Your Watch Later, likes, history, playlists, subscriptions and all of YouTube, in the search bar you already use. Cleaning up and hiding what you've watched come with it.</p></div>
       </div>
     </div>
   </section>
@@ -563,6 +647,72 @@ function homePage() {
   });
 }
 
+/*
+ * The page a fresh install opens, once. Nothing on YouTube looks different
+ * until you use the search bar, so this says where Needle is and what to try.
+ */
+function welcomePage() {
+  const steps = [
+    ["The search bar", "Click YouTube's search bar and start typing", "Your Watch Later, history and likes show up above YouTube's own suggestions. Try " + o("in:wl") + " to search only Watch Later."],
+    ["The needle button", "Open a channel, playlist, your history or subscriptions", "Press the needle button in the bottom right corner, or " + "<kbd>Alt</kbd>+<kbd>Y</kbd>" + ". Everything on that page, filtered however you like."],
+    ["Typed filters", "Add them anywhere you search", o("<20m") + " " + o(">100k") + " " + o("unwatched") + " " + o("@channel") + " work in the search bar and in the panel."],
+  ];
+  const body = `
+<main>
+  <section class="band band-article">
+    <div class="article">
+      ${eyebrow("", "Needle is on")}
+      <h1>Here's where to find it<span class="red">.</span></h1>
+      <p class="mono small">Signed in to YouTube? Your library works straight away. Nothing leaves your browser.</p>
+      <div class="gaps">
+        ${steps.map(([tag, h, p], i) => `<div class="gap"><span class="num">0${i + 1}</span><div><p class="eyebrow eyebrow-grey"><span>${esc(tag)}</span></p><h3>${esc(h)}</h3><p class="chev">${p}</p></div></div>`).join("\n        ")}
+      </div>
+      <p style="margin-top:40px"><a class="btn" href="https://www.youtube.com/">Open YouTube ${ARROW}</a></p>
+      <p class="mono small" style="margin-top:28px">Step by step: <a href="../search-watch-history/">search your history</a>, <a href="../search-watch-later/">search Watch Later</a>, <a href="../search-youtube-playlist/">search a playlist</a>.</p>
+    </div>
+  </section>
+</main>`;
+  return shell({
+    slug: "",
+    title: "Welcome to Needle for YouTube",
+    description: "Where Needle shows up on YouTube, and what to try first.",
+    body, jsonld: { "@context": "https://schema.org", "@type": "WebPage", name: "Welcome" }, depth: 1, robots: "noindex",
+  });
+}
+
+/*
+ * The page the browser opens when Needle is removed. One question, each answer
+ * a link, and nothing about the person on the way in: the extension opens a
+ * fixed address with no parameters.
+ */
+const FEEDBACK_FORM = ""; // a Google Form link, once there is one; GitHub issues until then
+function byePage() {
+  const reasons = ["It didn't work on a page", "It was slow", "I didn't need it", "Something was missing", "A privacy worry", "Something else"];
+  const link = (r) => FEEDBACK_FORM
+    ? FEEDBACK_FORM
+    : REPO + "/issues/new?title=" + encodeURIComponent("Removed Needle: " + r) + "&body=" + encodeURIComponent("What happened, if you'd like to say more:\n\n");
+  const body = `
+<main>
+  <section class="band band-article">
+    <div class="article">
+      ${eyebrow("", "Needle was removed")}
+      <h1>Sorry to see it go<span class="red">.</span></h1>
+      <p>One question, if you have ten seconds. It's the only way to find out, since Needle never sent anything anywhere. What made you remove it?</p>
+      <div class="cards cards-2 bye">
+        ${reasons.map((r) => `<a class="card card-link" href="${link(r)}"><h3>${esc(r)}</h3></a>`).join("\n        ")}
+      </div>
+      <p class="mono small" style="margin-top:32px">Removed it by accident? <a href="${store("bye")}">Add it back</a>.</p>
+    </div>
+  </section>
+</main>`;
+  return shell({
+    slug: "",
+    title: "Needle was removed",
+    description: "What made you remove Needle for YouTube?",
+    body, jsonld: { "@context": "https://schema.org", "@type": "WebPage", name: "Removed" }, depth: 1, robots: "noindex",
+  });
+}
+
 function notFound() {
   return shell({
     slug: "",
@@ -588,6 +738,8 @@ function write(rel, text) {
 write("index.html", homePage());
 GUIDES.forEach((g, i) => write(g.slug + "/index.html", guidePage(g, i)));
 write("404.html", notFound());
+write("welcome/index.html", welcomePage());
+write("bye/index.html", byePage());
 write("robots.txt", `User-agent: *\nAllow: /\n\nSitemap: ${BASE}sitemap.xml\n`);
 write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
