@@ -1,0 +1,29 @@
+Iskanje v YouTubu ne ve, kaj ste si že ogledali, ne filtrira po dolžini ali ogledih, iskanje znotraj kanala pa pregleda le naslove. Needle to popravi neposredno v iskalni vrstici YouTuba.
+
+V ISKALNI VRSTICI
+- Ogled pozneje, videoposnetki, ki so vam všeč, in zgodovina se prikažejo že med tipkanjem
+- Vpišite filtre: <20m, >100k, unwatched, date:week, @kanal
+- is:fresh skrije, kar vam je bilo že prikazano
+- Spremljajte iskanje, utišajte kanal in na vsaki sličici vidite, kaj ste si že ogledali
+
+ISKANJE PO KANALU
+Kliknite gumb z iglo na zavihku Videoposnetki katerega koli kanala. Needle prebere vse videoposnetke kanala, ne le že naloženih.
+- Filtrirajte po dolžini, ogledih, datumu in ključni besedi
+- Skrijte, kar ste si ogledali do konca, ali poiščite, kar ste pustili na pol
+- Izberite, koliko minut imate, in vidite le tisto, kar gre vanje
+
+ZGODOVINA IN OGLED POZNEJE
+- Vse, kar ste začeli in nikoli dokončali
+- Filtrirajte po kanalu, dolžini, ogledih ali času ogleda
+- Poiščite tisti videoposnetek, ki ste si ga zagotovo ogledali, brez neskončnega drsenja
+
+STATISTIKA
+- Dolžine videoposnetkov in leta, ko je kanalu šlo najbolje
+- Primerjajte dva kanala drug ob drugem
+- Seznam spremljanja, ki najde videoposnetke, ki presegajo običajne oglede svojega kanala
+
+Brez prijave, brez računa, nič se nikamor ne pošilja. Vse teče v vašem brskalniku.
+
+Vmesnik razširitve je v angleščini.
+
+Ni povezano z YouTubom ali Googlom.

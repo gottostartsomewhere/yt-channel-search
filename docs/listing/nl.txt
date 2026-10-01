@@ -1,0 +1,29 @@
+De zoekfunctie van YouTube weet niet wat je al hebt gezien, filtert niet op lengte of weergaven, en zoeken in een kanaal kijkt alleen naar titels. Needle lost dat op, direct in de zoekbalk van YouTube.
+
+IN DE ZOEKBALK
+- Je video's uit Later bekijken, je likes en je geschiedenis verschijnen terwijl je typt
+- Typ filters: <20m, >100k, unwatched, date:week, @kanaal
+- is:fresh verbergt wat je al eerder te zien kreeg
+- Volg een zoekopdracht, demp een kanaal en zie op elke thumbnail wat je al hebt bekeken
+
+EEN KANAAL DOORZOEKEN
+Klik op de naaldknop op het tabblad Video's van elk kanaal. Needle leest alle video's van het kanaal, niet alleen wat al geladen is.
+- Filter op lengte, weergaven, datum en trefwoord
+- Verberg wat je hebt uitgekeken of vind terug wat je halverwege liet liggen
+- Geef aan hoeveel minuten je hebt en zie alleen wat erin past
+
+JE GESCHIEDENIS EN LATER BEKIJKEN
+- Alles wat je bent begonnen en nooit hebt afgemaakt
+- Filter op kanaal, lengte, weergaven of wanneer je het keek
+- Vind die video waarvan je zeker weet dat je hem hebt gezien, zonder eindeloos te scrollen
+
+INZICHTEN
+- De videolengtes en jaren waarin een kanaal het best presteert
+- Vergelijk twee kanalen naast elkaar
+- Een volglijst die video's vindt die beter scoren dan de gebruikelijke weergaven van hun kanaal
+
+Niet inloggen, geen account, er wordt niets verstuurd. Alles draait in je browser.
+
+De interface van de extensie is in het Engels.
+
+Niet verbonden aan YouTube of Google.

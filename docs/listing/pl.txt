@@ -1,0 +1,29 @@
+Wyszukiwarka YouTube nie wie, co już obejrzano, nie filtruje według długości ani wyświetleń, a wyszukiwanie na kanale sprawdza tylko tytuły. Needle to naprawia, bezpośrednio w pasku wyszukiwania YouTube.
+
+W PASKU WYSZUKIWANIA
+- Filmy z Do obejrzenia, polubione i historia pojawiają się już podczas pisania
+- Wpisuj filtry: <20m, >100k, unwatched, date:week, @kanał
+- is:fresh ukrywa to, co było już Ci pokazane
+- Obserwuj wyszukiwanie, wycisz kanał i zobacz na każdej miniaturze, co już obejrzano
+
+PRZESZUKIWANIE KANAŁU
+Kliknij przycisk z igłą na karcie Filmy dowolnego kanału. Needle czyta wszystkie filmy kanału, a nie tylko te już załadowane.
+- Filtruj według długości, wyświetleń, daty i słowa kluczowego
+- Ukryj to, co skończone, albo znajdź to, co zostało przerwane w połowie
+- Podaj, ile masz minut, i zobacz tylko to, co się zmieści
+
+HISTORIA I DO OBEJRZENIA
+- Wszystko, co zostało zaczęte i nigdy nie skończone
+- Filtruj według kanału, długości, wyświetleń lub daty obejrzenia
+- Znajdź ten jeden obejrzany film bez przewijania bez końca
+
+STATYSTYKI
+- Długości filmów i lata, w których kanał radzi sobie najlepiej
+- Porównaj dwa kanały obok siebie
+- Lista obserwowanych, która wyłapuje filmy bijące zwykłe wyświetlenia swojego kanału
+
+Bez logowania, bez konta, nic nie jest nigdzie wysyłane. Działa w Twojej przeglądarce.
+
+Interfejs rozszerzenia jest po angielsku.
+
+Nie jest powiązane z YouTube ani Google.

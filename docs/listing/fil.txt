@@ -1,0 +1,29 @@
+Hindi alam ng search ng YouTube kung ano na ang napanood mo, hindi ito makapag-filter ayon sa haba o views, at ang paghahanap sa loob ng channel ay tumitingin lang sa mga pamagat. Inaayos iyan ng Needle, mismo sa search bar ng YouTube.
+
+SA SEARCH BAR
+- Lumalabas ang Panoorin Mamaya, mga ni-like mo at ang iyong history habang nagta-type ka
+- Mag-type ng filter: <20m, >100k, unwatched, date:week, @channel
+- Itinatago ng is:fresh ang mga naipakita na sa iyo
+- Sundan ang isang search, i-mute ang isang channel at makita sa bawat thumbnail kung ano na ang napanood mo
+
+MAGHANAP SA ISANG CHANNEL
+Pindutin ang needle button sa Videos tab ng kahit anong channel. Binabasa ng Needle ang bawat video ng channel, hindi lang ang mga na-load na.
+- Mag-filter ayon sa haba, views, petsa at keyword
+- Itago ang mga natapos mo na, o hanapin ang mga hindi mo tinapos
+- Piliin kung ilang minuto ang mayroon ka at makita lang ang kasya
+
+ANG IYONG HISTORY AT PANOORIN MAMAYA
+- Lahat ng sinimulan mo pero hindi tinapos
+- Mag-filter ayon sa channel, haba, views o kung kailan mo ito pinanood
+- Hanapin ang video na sigurado kang napanood mo na, nang hindi nag-i-scroll nang walang katapusan
+
+INSIGHTS
+- Ang haba ng video at mga taon kung kailan pinakamagaling ang isang channel
+- Ikumpara ang dalawang channel nang magkatabi
+- Isang watchlist na nakakakita ng mga video na lumalampas sa karaniwang views ng kanilang channel
+
+Walang sign-in, walang account, walang ipinapadala kahit saan. Tumatakbo ito sa iyong browser.
+
+Nasa Ingles ang interface ng extension.
+
+Hindi kaakibat ng YouTube o Google.

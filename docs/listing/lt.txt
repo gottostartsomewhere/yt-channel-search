@@ -1,0 +1,29 @@
+YouTube paieška nežino, ką jau žiūrėjote, negali filtruoti pagal trukmę ar peržiūras, o paieška kanale tikrina tik pavadinimus. Needle tai ištaiso tiesiai YouTube paieškos juostoje.
+
+PAIEŠKOS JUOSTOJE
+- Žiūrėti vėliau, patikę vaizdo įrašai ir istorija pasirodo jau rašant
+- Rašykite filtrus: <20m, >100k, unwatched, date:week, @kanalas
+- is:fresh paslepia tai, kas jums jau buvo parodyta
+- Sekite paiešką, nutildykite kanalą ir kiekvienoje miniatiūroje matykite, ką jau žiūrėjote
+
+PAIEŠKA KANALE
+Paspauskite adatos mygtuką bet kurio kanalo skirtuke Vaizdo įrašai. Needle perskaito visus kanalo vaizdo įrašus, ne tik jau įkeltus.
+- Filtruokite pagal trukmę, peržiūras, datą ir raktažodį
+- Paslėpkite peržiūrėtus iki galo arba raskite paliktus pusiaukelėje
+- Pasirinkite, kiek minučių turite, ir matykite tik tai, kas telpa
+
+ISTORIJA IR ŽIŪRĖTI VĖLIAU
+- Viskas, ką pradėjote ir niekada nebaigėte
+- Filtruokite pagal kanalą, trukmę, peržiūras ar žiūrėjimo laiką
+- Raskite tą vaizdo įrašą, kurį tikrai žiūrėjote, be begalinio slinkimo
+
+STATISTIKA
+- Vaizdo įrašų trukmės ir metai, kai kanalui sekasi geriausiai
+- Palyginkite du kanalus greta
+- Stebėjimo sąrašas, randantis vaizdo įrašus, kurie lenkia įprastas savo kanalo peržiūras
+
+Be prisijungimo, be paskyros, niekas niekur nesiunčiama. Viskas veikia jūsų naršyklėje.
+
+Plėtinio sąsaja yra anglų kalba.
+
+Nesusijęs su YouTube ar Google.

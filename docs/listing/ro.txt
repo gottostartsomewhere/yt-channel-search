@@ -1,0 +1,29 @@
+Căutarea YouTube nu știe ce ai văzut deja, nu filtrează după durată sau vizionări, iar căutarea într-un canal se uită doar la titluri. Needle rezolvă asta direct în bara de căutare YouTube.
+
+ÎN BARA DE CĂUTARE
+- Vizionează mai târziu, videoclipurile apreciate și istoricul apar chiar în timp ce tastezi
+- Tastează filtre: <20m, >100k, unwatched, date:week, @canal
+- is:fresh ascunde ce ți s-a arătat deja
+- Urmărește o căutare, dezactivează sunetul unui canal și vezi pe fiecare miniatură ce ai văzut deja
+
+CAUTĂ ÎNTR-UN CANAL
+Apasă butonul cu ac din fila Videoclipuri a oricărui canal. Needle citește toate videoclipurile canalului, nu doar pe cele deja încărcate.
+- Filtrează după durată, vizionări, dată și cuvânt cheie
+- Ascunde ce ai terminat sau găsește ce ai lăsat la jumătate
+- Alege câte minute ai și vezi doar ce încape
+
+ISTORICUL ȘI VIZIONEAZĂ MAI TÂRZIU
+- Tot ce ai început și n-ai terminat niciodată
+- Filtrează după canal, durată, vizionări sau când l-ai văzut
+- Găsește acel videoclip pe care știi sigur că l-ai văzut, fără derulare la nesfârșit
+
+STATISTICI
+- Duratele și anii în care unui canal îi merge cel mai bine
+- Compară două canale unul lângă altul
+- O listă de urmărire care găsește videoclipurile ce depășesc vizionările obișnuite ale canalului lor
+
+Fără autentificare, fără cont, nimic nu e trimis nicăieri. Totul rulează în browserul tău.
+
+Interfața extensiei este în engleză.
+
+Nu este afiliată cu YouTube sau Google.

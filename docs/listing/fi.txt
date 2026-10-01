@@ -1,0 +1,29 @@
+YouTuben haku ei tiedä, mitä olet jo katsonut, ei osaa suodattaa pituuden tai katselukertojen mukaan, ja kanavan sisäinen haku katsoo vain otsikoita. Needle korjaa tämän suoraan YouTuben hakukentässä.
+
+HAKUKENTÄSSÄ
+- Katso myöhemmin, tykkäämäsi videot ja historiasi näkyvät jo kirjoittaessa
+- Kirjoita suodattimia: <20m, >100k, unwatched, date:week, @kanava
+- is:fresh piilottaa sen, mitä sinulle on jo näytetty
+- Seuraa hakua, mykistä kanava ja näe jokaisesta pikkukuvasta, mitä olet jo katsonut
+
+HAE KANAVALTA
+Paina neulapainiketta minkä tahansa kanavan Videot-välilehdellä. Needle lukee kanavan kaikki videot, ei vain jo ladattuja.
+- Suodata pituuden, katselukertojen, päivämäärän ja hakusanan mukaan
+- Piilota loppuun katsotut tai löydä kesken jääneet
+- Valitse, montako minuuttia sinulla on, ja näe vain se, mikä mahtuu
+
+HISTORIA JA KATSO MYÖHEMMIN
+- Kaikki, minkä aloitit etkä koskaan katsonut loppuun
+- Suodata kanavan, pituuden, katselukertojen tai katseluajan mukaan
+- Löydä se video, jonka tiedät katsoneesi, ilman loputonta vierittämistä
+
+TILASTOT
+- Videopituudet ja vuodet, joina kanava menestyy parhaiten
+- Vertaa kahta kanavaa rinnakkain
+- Seurantalista, joka löytää videot, jotka ylittävät kanavansa tavalliset katselukerrat
+
+Ei kirjautumista, ei tiliä, mitään ei lähetetä minnekään. Kaikki toimii selaimessasi.
+
+Laajennuksen käyttöliittymä on englanniksi.
+
+Ei liity YouTubeen tai Googleen.

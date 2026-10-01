@@ -1,0 +1,29 @@
+A YouTube keresője nem tudja, mit néztél már meg, nem tud szűrni hosszra vagy megtekintésekre, a csatornán belüli keresés pedig csak a címeket nézi. A Needle ezt közvetlenül a YouTube keresősávjában javítja.
+
+A KERESŐSÁVBAN
+- A Megnézendő, a kedvelt videók és az előzmények már gépelés közben megjelennek
+- Írj szűrőket: <20m, >100k, unwatched, date:week, @csatorna
+- Az is:fresh elrejti, amit már mutattak neked
+- Kövess egy keresést, némíts el egy csatornát, és minden bélyegképen lásd, mit néztél már meg
+
+KERESÉS EGY CSATORNÁBAN
+Nyomd meg a tű gombot bármely csatorna Videók lapján. A Needle a csatorna összes videóját beolvassa, nem csak a már betöltötteket.
+- Szűrj hossz, megtekintések, dátum és kulcsszó szerint
+- Rejtsd el, amit végignéztél, vagy találd meg, amit félbehagytál
+- Add meg, hány perced van, és csak azt lásd, ami belefér
+
+ELŐZMÉNYEK ÉS MEGNÉZENDŐ
+- Minden, amit elkezdtél, de sosem fejeztél be
+- Szűrj csatorna, hossz, megtekintések vagy a megnézés ideje szerint
+- Találd meg azt a videót, amit biztosan láttál, végtelen görgetés nélkül
+
+STATISZTIKA
+- A videóhosszak és évek, amikor egy csatorna a legjobban teljesít
+- Hasonlíts össze két csatornát egymás mellett
+- Egy figyelőlista, amely megtalálja a csatornájuk szokásos megtekintéseit felülmúló videókat
+
+Nincs bejelentkezés, nincs fiók, semmit nem küld sehova. Minden a böngésződben fut.
+
+A bővítmény felülete angol nyelvű.
+
+Nem áll kapcsolatban a YouTube-bal vagy a Google-lel.

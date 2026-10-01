@@ -1,0 +1,29 @@
+Die YouTube-Suche weiß nicht, was du schon gesehen hast, filtert nicht nach Länge oder Aufrufen, und die Suche in einem Kanal durchsucht nur Titel. Needle behebt das, direkt in der Suchleiste von YouTube.
+
+IN DER SUCHLEISTE
+- Deine Videos aus Später ansehen, deine Likes und dein Verlauf erscheinen schon beim Tippen
+- Tippe Filter ein: <20m, >100k, unwatched, date:week, @kanal
+- is:fresh blendet aus, was dir schon einmal angezeigt wurde
+- Folge einer Suche, schalte einen Kanal stumm und sieh auf jedem Thumbnail, was du schon gesehen hast
+
+EINEN KANAL DURCHSUCHEN
+Klick auf den Nadel-Button im Tab Videos eines beliebigen Kanals. Needle liest jedes Video des Kanals, nicht nur die bereits geladenen.
+- Filtere nach Länge, Aufrufen, Datum und Stichwort
+- Blende aus, was du fertig geschaut hast, oder finde, was du abgebrochen hast
+- Gib an, wie viele Minuten du hast, und sieh nur, was hineinpasst
+
+DEIN VERLAUF UND SPÄTER ANSEHEN
+- Alles, was du angefangen und nie beendet hast
+- Filtere nach Kanal, Länge, Aufrufen oder danach, wann du es gesehen hast
+- Finde das Video, das du ganz sicher schon gesehen hast, ohne endlos zu scrollen
+
+STATISTIKEN
+- Die Videolängen und Jahre, in denen ein Kanal am besten läuft
+- Vergleiche zwei Kanäle direkt nebeneinander
+- Eine Beobachtungsliste, die Videos findet, die die üblichen Aufrufe ihres Kanals übertreffen
+
+Keine Anmeldung, kein Konto, nichts wird irgendwohin gesendet. Alles läuft in deinem Browser.
+
+Die Oberfläche der Erweiterung ist auf Englisch.
+
+Nicht mit YouTube oder Google verbunden.

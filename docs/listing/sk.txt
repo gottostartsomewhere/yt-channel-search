@@ -1,0 +1,29 @@
+Vyhľadávanie na YouTube nevie, čo ste už videli, nevie filtrovať podľa dĺžky ani zhliadnutí a hľadanie v kanáli prechádza len názvy. Needle to opravuje priamo vo vyhľadávacom riadku YouTube.
+
+VO VYHĽADÁVACOM RIADKU
+- Videá z Pozrieť neskôr, videá, ktoré sa vám páčia, a história sa zobrazujú už pri písaní
+- Píšte filtre: <20m, >100k, unwatched, date:week, @kanál
+- is:fresh skryje to, čo vám už bolo ukázané
+- Sledujte vyhľadávanie, stlmte kanál a na každej miniatúre uvidíte, čo ste už videli
+
+HĽADANIE V KANÁLI
+Kliknite na tlačidlo s ihlou na karte Videá ľubovoľného kanála. Needle prečíta všetky videá kanála, nielen tie už načítané.
+- Filtrujte podľa dĺžky, zhliadnutí, dátumu a kľúčového slova
+- Skryte, čo ste dopozerali, alebo nájdite, čo ste nechali v polovici
+- Zvoľte, koľko máte minút, a uvidíte len to, čo sa do nich zmestí
+
+HISTÓRIA A POZRIEŤ NESKÔR
+- Všetko, čo ste začali a nikdy nedokončili
+- Filtrujte podľa kanála, dĺžky, zhliadnutí alebo podľa toho, kedy ste to videli
+- Nájdite to video, ktoré ste určite videli, bez nekonečného posúvania
+
+ŠTATISTIKY
+- Dĺžky videí a roky, keď sa kanálu darí najlepšie
+- Porovnajte dva kanály vedľa seba
+- Zoznam sledovaných, ktorý nájde videá prekonávajúce bežné zhliadnutia svojho kanála
+
+Bez prihlásenia, bez účtu, nič sa nikam neodosiela. Všetko beží vo vašom prehliadači.
+
+Rozhranie rozšírenia je v angličtine.
+
+Nie je pridružené k YouTube ani ku Googlu.

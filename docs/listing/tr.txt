@@ -1,0 +1,29 @@
+YouTube araması neleri zaten izlediğinizi bilmez, süreye veya görüntülenmeye göre filtreleyemez ve kanal içi arama yalnızca başlıklara bakar. Needle bunu doğrudan YouTube'un arama çubuğunda çözer.
+
+ARAMA ÇUBUĞUNDA
+- Daha sonra izle, beğendiğiniz videolar ve geçmişiniz siz yazarken görünür
+- Filtre yazın: <20m, >100k, unwatched, date:week, @kanal
+- is:fresh size daha önce gösterilenleri gizler
+- Bir aramayı takip edin, bir kanalı sessize alın ve her küçük resimde neyi izlediğinizi görün
+
+BİR KANALDA ARAYIN
+Herhangi bir kanalın Videolar sekmesindeki iğne düğmesine basın. Needle yalnızca yüklenenleri değil, kanalın tüm videolarını okur.
+- Süre, görüntülenme, tarih ve anahtar kelimeye göre filtreleyin
+- Bitirdiklerinizi gizleyin ya da yarıda bıraktıklarınızı bulun
+- Kaç dakikanız olduğunu seçin ve yalnızca o süreye sığanları görün
+
+GEÇMİŞİNİZ VE DAHA SONRA İZLE
+- Başlayıp hiç bitirmediğiniz her şey
+- Kanala, süreye, görüntülenmeye veya ne zaman izlediğinize göre filtreleyin
+- İzlediğinizden emin olduğunuz o videoyu, durmadan kaydırmadan bulun
+
+İSTATİSTİKLER
+- Bir kanalın en iyi performans gösterdiği video süreleri ve yıllar
+- İki kanalı yan yana karşılaştırın
+- Kanalının olağan görüntülenmesini aşan videoları yakalayan bir izleme listesi
+
+Giriş yok, hesap yok, hiçbir şey hiçbir yere gönderilmez. Her şey tarayıcınızda çalışır.
+
+Uzantının arayüzü İngilizcedir.
+
+YouTube veya Google ile bağlantılı değildir.

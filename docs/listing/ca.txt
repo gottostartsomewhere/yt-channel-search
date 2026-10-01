@@ -1,0 +1,29 @@
+La cerca de YouTube no sap què ja has vist, no filtra per durada ni per visualitzacions, i la cerca dins d'un canal només mira els títols. Needle ho arregla, directament a la barra de cerca de YouTube.
+
+A LA BARRA DE CERCA
+- Els teus vídeos de Mira més tard, els que t'agraden i l'historial apareixen mentre escrius
+- Escriu filtres: <20m, >100k, unwatched, date:week, @canal
+- is:fresh amaga el que ja se t'ha mostrat
+- Segueix una cerca, silencia un canal i mira a cada miniatura què ja has vist
+
+CERCAR EN UN CANAL
+Prem el botó de l'agulla a la pestanya Vídeos de qualsevol canal. Needle llegeix tots els vídeos del canal, no només els que ja s'han carregat.
+- Filtra per durada, visualitzacions, data i paraula clau
+- Amaga el que has acabat o troba el que vas deixar a mitges
+- Tria els minuts que tens i mira només el que hi cap
+
+EL TEU HISTORIAL I MIRA MÉS TARD
+- Tot el que vas començar i no vas acabar mai
+- Filtra per canal, durada, visualitzacions o per quan ho vas veure
+- Troba aquell vídeo que saps que vas veure, sense haver de desplaçar-te sense fi
+
+ESTADÍSTIQUES
+- Les durades i els anys en què a un canal li va millor
+- Compara dos canals de costat
+- Una llista de seguiment que detecta vídeos que superen les visualitzacions habituals del seu canal
+
+Sense iniciar sessió, sense compte, no s'envia res enlloc. Funciona al teu navegador.
+
+La interfície de l'extensió és en anglès.
+
+No està afiliada a YouTube ni a Google.

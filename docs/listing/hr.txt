@@ -1,0 +1,29 @@
+YouTube pretraživanje ne zna što ste već gledali, ne filtrira po trajanju ni pregledima, a pretraživanje unutar kanala gleda samo naslove. Needle to rješava izravno u traci za pretraživanje YouTubea.
+
+U TRACI ZA PRETRAŽIVANJE
+- Gledaj kasnije, videozapisi koji vam se sviđaju i povijest pojavljuju se dok tipkate
+- Upišite filtre: <20m, >100k, unwatched, date:week, @kanal
+- is:fresh skriva ono što vam je već prikazano
+- Pratite pretraživanje, utišajte kanal i vidite na svakoj minijaturi što ste već gledali
+
+PRETRAŽIVANJE KANALA
+Kliknite gumb s iglom na kartici Videozapisi bilo kojeg kanala. Needle čita sve videozapise kanala, ne samo već učitane.
+- Filtrirajte po trajanju, pregledima, datumu i ključnoj riječi
+- Sakrijte odgledano do kraja ili pronađite napušteno na pola
+- Odaberite koliko minuta imate i vidite samo ono što stane
+
+POVIJEST I GLEDAJ KASNIJE
+- Sve što ste započeli i nikad niste završili
+- Filtrirajte po kanalu, trajanju, pregledima ili vremenu gledanja
+- Pronađite onaj videozapis koji ste sigurno gledali, bez beskonačnog pomicanja
+
+STATISTIKA
+- Trajanja i godine u kojima kanal prolazi najbolje
+- Usporedite dva kanala jedan uz drugi
+- Popis praćenja koji pronalazi videozapise što nadmašuju uobičajene preglede svog kanala
+
+Bez prijave, bez računa, ništa se nikamo ne šalje. Sve radi u vašem pregledniku.
+
+Sučelje proširenja je na engleskom.
+
+Nije povezano s YouTubeom ni Googleom.

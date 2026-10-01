@@ -1,0 +1,29 @@
+YouTube-søket vet ikke hva du allerede har sett, kan ikke filtrere på lengde eller visninger, og søk i en kanal ser bare på titler. Needle fikser det, rett i søkefeltet til YouTube.
+
+I SØKEFELTET
+- Se senere, videoer du har likt og historikken din dukker opp mens du skriver
+- Skriv filtre: <20m, >100k, unwatched, date:week, @kanal
+- is:fresh skjuler det du allerede har fått vist
+- Følg et søk, demp en kanal og se på hvert miniatyrbilde hva du allerede har sett
+
+SØK I EN KANAL
+Trykk på nåleknappen i fanen Videoer i en hvilken som helst kanal. Needle leser alle kanalens videoer, ikke bare de som allerede er lastet inn.
+- Filtrer på lengde, visninger, dato og søkeord
+- Skjul det du har sett ferdig, eller finn det du ga opp halvveis
+- Velg hvor mange minutter du har, og se bare det som passer
+
+HISTORIKKEN DIN OG SE SENERE
+- Alt du har begynt på og aldri sett ferdig
+- Filtrer på kanal, lengde, visninger eller når du så det
+- Finn den videoen du vet at du har sett, uten å scrolle i det uendelige
+
+STATISTIKK
+- Videolengdene og årene der en kanal gjør det best
+- Sammenlign to kanaler side om side
+- En overvåkingsliste som finner videoer som slår kanalens vanlige visninger
+
+Ingen innlogging, ingen konto, ingenting sendes noe sted. Alt kjører i nettleseren din.
+
+Grensesnittet i utvidelsen er på engelsk.
+
+Ikke tilknyttet YouTube eller Google.

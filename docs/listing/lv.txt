@@ -1,0 +1,29 @@
+YouTube meklēšana nezina, ko jūs jau esat skatījies, nevar filtrēt pēc garuma vai skatījumiem, un meklēšana kanālā skatās tikai nosaukumus. Needle to labo tieši YouTube meklēšanas joslā.
+
+MEKLĒŠANAS JOSLĀ
+- Skatīties vēlāk, jums patikušie video un vēsture parādās jau rakstīšanas laikā
+- Rakstiet filtrus: <20m, >100k, unwatched, date:week, @kanāls
+- is:fresh paslēpj to, kas jums jau ir parādīts
+- Sekojiet meklējumam, izslēdziet kanāla skaņu un katrā sīktēlā redziet, ko jau esat skatījies
+
+MEKLĒŠANA KANĀLĀ
+Nospiediet adatas pogu jebkura kanāla cilnē Video. Needle nolasa visus kanāla video, ne tikai jau ielādētos.
+- Filtrējiet pēc garuma, skatījumiem, datuma un atslēgvārda
+- Paslēpiet līdz galam noskatīto vai atrodiet pusceļā pamesto
+- Izvēlieties, cik minūšu jums ir, un redziet tikai to, kas ietilpst
+
+VĒSTURE UN SKATĪTIES VĒLĀK
+- Viss, ko sākāt un nekad nepabeidzāt
+- Filtrējiet pēc kanāla, garuma, skatījumiem vai skatīšanās laika
+- Atrodiet to video, ko noteikti esat redzējis, bez bezgalīgas ritināšanas
+
+STATISTIKA
+- Video garumi un gadi, kuros kanālam veicas vislabāk
+- Salīdziniet divus kanālus blakus
+- Novērošanas saraksts, kas atrod video, kuri pārspēj sava kanāla ierastos skatījumus
+
+Bez pieteikšanās, bez konta, nekas netiek nekur sūtīts. Viss darbojas jūsu pārlūkā.
+
+Paplašinājuma saskarne ir angļu valodā.
+
+Nav saistīts ar YouTube vai Google.

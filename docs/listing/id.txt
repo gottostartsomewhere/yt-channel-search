@@ -1,0 +1,29 @@
+Pencarian YouTube tidak tahu apa yang sudah kamu tonton, tidak bisa memfilter menurut durasi atau jumlah tayangan, dan pencarian di dalam channel hanya mencocokkan judul. Needle memperbaikinya, langsung di bilah pencarian YouTube.
+
+DI BILAH PENCARIAN
+- Video Tonton Nanti, video yang kamu sukai, dan riwayatmu muncul saat kamu mengetik
+- Ketik filter: <20m, >100k, unwatched, date:week, @channel
+- is:fresh menyembunyikan apa yang sudah pernah ditampilkan kepadamu
+- Ikuti sebuah pencarian, bisukan channel, dan lihat video yang sudah kamu tonton di setiap thumbnail
+
+CARI DI DALAM CHANNEL
+Tekan tombol jarum di tab Video channel mana pun. Needle membaca semua video channel itu, bukan hanya yang sudah dimuat.
+- Filter menurut durasi, tayangan, tanggal, dan kata kunci
+- Sembunyikan yang sudah selesai, atau temukan yang kamu tinggalkan di tengah jalan
+- Pilih berapa menit waktumu dan lihat hanya video yang muat
+
+RIWAYAT DAN TONTON NANTI
+- Semua yang kamu mulai tapi tidak pernah selesai
+- Filter menurut channel, durasi, tayangan, atau kapan kamu menontonnya
+- Temukan video yang kamu yakin pernah ditonton, tanpa menggulir tanpa akhir
+
+WAWASAN
+- Durasi video dan tahun dengan performa terbaik sebuah channel
+- Bandingkan dua channel berdampingan
+- Daftar pantauan yang menemukan video yang melampaui tayangan biasa channel-nya
+
+Tanpa login, tanpa akun, tidak ada yang dikirim ke mana pun. Semuanya berjalan di browsermu.
+
+Antarmuka ekstensi ini berbahasa Inggris.
+
+Tidak berafiliasi dengan YouTube atau Google.

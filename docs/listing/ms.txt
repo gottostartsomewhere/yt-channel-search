@@ -1,0 +1,29 @@
+Carian YouTube tidak tahu apa yang anda sudah tonton, tidak boleh menapis mengikut tempoh atau tontonan, dan carian dalam saluran hanya memadankan tajuk. Needle membetulkannya, terus di dalam bar carian YouTube.
+
+DALAM BAR CARIAN
+- Tonton Kemudian, video yang anda suka dan sejarah anda muncul semasa anda menaip
+- Taip penapis: <20m, >100k, unwatched, date:week, @saluran
+- is:fresh menyembunyikan apa yang sudah ditunjukkan kepada anda
+- Ikuti carian, senyapkan saluran dan lihat apa yang anda sudah tonton pada setiap lakaran kecil
+
+CARI DALAM SALURAN
+Tekan butang jarum pada tab Video mana-mana saluran. Needle membaca setiap video saluran itu, bukan hanya yang sudah dimuatkan.
+- Tapis mengikut tempoh, tontonan, tarikh dan kata kunci
+- Sembunyikan yang sudah habis ditonton, atau cari yang anda tinggalkan separuh jalan
+- Pilih berapa minit yang anda ada dan lihat hanya yang muat
+
+SEJARAH DAN TONTON KEMUDIAN
+- Semua yang anda mula tetapi tidak pernah habiskan
+- Tapis mengikut saluran, tempoh, tontonan atau bila anda menontonnya
+- Cari video yang anda pasti pernah tonton, tanpa menatal tanpa henti
+
+STATISTIK
+- Tempoh video dan tahun yang paling berjaya bagi sesebuah saluran
+- Bandingkan dua saluran bersebelahan
+- Senarai pantau yang mengesan video yang mengatasi tontonan biasa salurannya
+
+Tiada log masuk, tiada akaun, tiada apa-apa dihantar ke mana-mana. Semuanya berjalan dalam pelayar anda.
+
+Antara muka sambungan ini dalam bahasa Inggeris.
+
+Tidak bergabung dengan YouTube atau Google.

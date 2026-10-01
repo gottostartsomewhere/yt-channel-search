@@ -1,0 +1,29 @@
+YouTube'i otsing ei tea, mida sa oled juba vaadanud, ei oska filtreerida pikkuse ega vaatamiste järgi ja kanalisisene otsing vaatab ainult pealkirju. Needle parandab selle otse YouTube'i otsinguribal.
+
+OTSINGURIBAL
+- Vaata hiljem, meeldinud videod ja ajalugu ilmuvad juba trükkimise ajal
+- Sisesta filtreid: <20m, >100k, unwatched, date:week, @kanal
+- is:fresh peidab selle, mida sulle on juba näidatud
+- Jälgi otsingut, vaigista kanal ja näe igal pisipildil, mida oled juba vaadanud
+
+OTSI KANALIST
+Vajuta mis tahes kanali vahekaardil Videod nõelanuppu. Needle loeb kõik kanali videod, mitte ainult juba laaditud.
+- Filtreeri pikkuse, vaatamiste, kuupäeva ja märksõna järgi
+- Peida lõpuni vaadatud või leia pooleli jäänud
+- Vali, mitu minutit sul on, ja näe ainult seda, mis ära mahub
+
+AJALUGU JA VAATA HILJEM
+- Kõik, mida alustasid ja kunagi lõpuni ei vaadanud
+- Filtreeri kanali, pikkuse, vaatamiste või vaatamise aja järgi
+- Leia see video, mida tead kindlalt vaadanud olevat, ilma lõputu kerimiseta
+
+STATISTIKA
+- Videopikkused ja aastad, mil kanalil läheb kõige paremini
+- Võrdle kahte kanalit kõrvuti
+- Jälgimisnimekiri, mis leiab videod, mis ületavad oma kanali tavapärast vaatamiste arvu
+
+Sisselogimist pole, kontot pole, midagi ei saadeta kuhugi. Kõik töötab sinu brauseris.
+
+Laienduse liides on inglise keeles.
+
+Ei ole seotud YouTube'i ega Google'iga.
