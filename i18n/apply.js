@@ -67,6 +67,64 @@ for (const [code, t] of Object.entries(all)) {
   fs.writeFileSync(path.join(ROOT, "docs", "listing", code + ".txt"), t.d.trim() + "\n");
 }
 
+// A local page for the dashboard pass: one Copy button per language, biggest
+// YouTube markets first, a tick box per row remembered in localStorage.
+const ORDER = ("pt_BR es_419 es id hi ja ru de fr tr vi ko it pl th ar zh_TW fil uk nl ms bn ta te mr gu kn ml " +
+  "fa he cs ro hu el sv da no fi pt_PT ca sk hr sl bg sr lt lv et sw am zh_CN").split(" ");
+const names = new Intl.DisplayNames(["en"], { type: "language" });
+const entries = ORDER.filter((c) => all[c]).map((c) => ({ code: c, lang: names.of(c.replace("_", "-")), d: all[c].d.trim() }));
+const data = JSON.stringify(entries).replace(/</g, "\\u003c");
+fs.writeFileSync(path.join(ROOT, "docs", "listing", "paste.html"), `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Needle listing paste</title>
+<style>
+:root{--bg:#fff;--fg:#111;--mute:#666;--line:#e3e3e3;--acc:#e0242e}
+@media (prefers-color-scheme:dark){:root{--bg:#0f0f0f;--fg:#eee;--mute:#999;--line:#2a2a2a}}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,sans-serif;margin:0 auto;max-width:760px;padding:24px 16px}
+h1{font-size:20px;margin:0 0 4px}p{color:var(--mute);margin:0 0 20px}
+.row{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.row.done .lang{text-decoration:line-through;color:var(--mute)}
+.code{color:var(--mute);font:12px ui-monospace,monospace;margin-left:6px}
+button{font:inherit;border:1px solid var(--line);background:none;color:var(--fg);border-radius:6px;padding:4px 12px;cursor:pointer}
+button.ok{border-color:var(--acc);color:var(--acc)}
+details{grid-column:1/-1}summary{color:var(--mute);cursor:pointer;font-size:13px}
+pre{white-space:pre-wrap;font:13px/1.5 system-ui,sans-serif;margin:8px 0 0}
+</style></head><body>
+<h1>Needle store listing, ${entries.length} languages</h1>
+<p>Dashboard, Store listing, pick the language, paste into Description. Name and summary come from the package.</p>
+<div id="list"></div>
+<script>
+const items = ${data};
+let done = {};
+try { done = JSON.parse(localStorage.getItem("needle-paste") || "{}"); } catch (e) {}
+const save = () => { try { localStorage.setItem("needle-paste", JSON.stringify(done)); } catch (e) {} };
+const list = document.getElementById("list");
+for (const it of items) {
+  const row = document.createElement("div");
+  row.className = "row" + (done[it.code] ? " done" : "");
+  const tick = document.createElement("input");
+  tick.type = "checkbox"; tick.checked = !!done[it.code];
+  tick.onchange = () => { done[it.code] = tick.checked; row.classList.toggle("done", tick.checked); save(); };
+  const label = document.createElement("div");
+  label.innerHTML = '<span class="lang"></span><span class="code"></span>';
+  label.firstChild.textContent = it.lang; label.lastChild.textContent = it.code;
+  const btn = document.createElement("button");
+  btn.textContent = "Copy";
+  btn.onclick = async () => {
+    try { await navigator.clipboard.writeText(it.d); }
+    catch (e) { const t = document.createElement("textarea"); t.value = it.d; document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); }
+    btn.textContent = "Copied"; btn.classList.add("ok");
+    setTimeout(() => { btn.textContent = "Copy"; btn.classList.remove("ok"); }, 1500);
+  };
+  const more = document.createElement("details");
+  more.innerHTML = "<summary>Show text</summary><pre></pre>";
+  more.querySelector("pre").textContent = it.d;
+  row.append(tick, label, btn, more);
+  list.appendChild(row);
+}
+</script></body></html>
+`);
+
 const rows = Object.entries(all).map(([c, t]) => `${c.padEnd(6)} name ${String(len(t.n)).padStart(2)}  summary ${String(len(t.s)).padStart(3)}  description ${len(t.d)}`);
 console.log(rows.join("\n"));
 console.log(`\n${Object.keys(all).length} languages written to _locales/ and docs/listing/`);
