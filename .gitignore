@@ -17,3 +17,5 @@ server/data/
 
 # the built site is its own repo (gottostartsomewhere/needle), deployed from site/public
 site/public/
+# the github.io root page is its own repo too (gottostartsomewhere/gottostartsomewhere.github.io)
+site/root/
