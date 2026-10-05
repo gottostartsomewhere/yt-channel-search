@@ -1740,3 +1740,47 @@ a:hover > .ytcs-mutebtn,
 [data-ytcs-feed="hide"] { display: none !important; }
 /* A count in its own column at the end of a menu row (the Channel picker). */
 .ytcs-menucount { margin-left: auto; padding-left: 24px; color: var(--dim); font-variant-numeric: tabular-nums; font-size: 12.5px; }
+
+/*
+ * ---- 2.1, the rest: putting back, failures, Play and Export ------------------
+ */
+
+/* The calm action beside the red one: Put back, Allow and look, Copy report. */
+.ytcs-primarybtn {
+  height: 32px;
+  padding: 0 16px;
+  border: 1px solid var(--ac);
+  border-radius: 16px;
+  background: var(--ac-soft);
+  color: var(--ac);
+  font-weight: 500;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+}
+.ytcs-primarybtn:hover { background: rgba(229, 72, 77, 0.26); }
+.ytcs-primarybtn:disabled { opacity: 0.4; cursor: default; }
+
+/* A read that failed: said plainly, above whatever the page itself had. */
+.ytcs-failnote {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(229, 72, 77, 0.45);
+  background: rgba(229, 72, 77, 0.08);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.ytcs-failtext { flex: 1 1 360px; color: var(--txt); }
+.ytcs-failtext strong { font-weight: 600; }
+.ytcs-failacts { display: flex; align-items: center; gap: 14px; }
+.ytcs-failacts .ytcs-ghost { font-size: 13px; padding: 4px 0; }
+
+/* Export: a header button that opens the same menu as the filters. */
+.ytcs-actmenu { height: auto; border-radius: 0; }
+.ytcs-actmenu .ytcs-ghost { white-space: nowrap; }
+.ytcs-actmenu .ytcs-menu { min-width: 248px; }

@@ -1,15 +1,16 @@
 # Privacy policy
 
-Last updated: 30 September 2026
+Last updated: 5 October 2026
 
 Needle for YouTube (formerly Channel Search+ for YouTube) does not collect,
 transmit, or sell any data. There is no server, no account, and no analytics. Everything the extension reads stays
 inside your own browser.
 
 It reads your YouTube account and never changes it, with one exception you
-have to ask for: removing videos from your Watch Later, from the panel. That
-is off until you turn it on, asks before every removal, and can be undone.
-[It has its own section below.](#removing-videos-from-watch-later)
+have to ask for: tidying your own lists from the panel, meaning removing videos
+from your Watch Later or your own playlists, and unliking videos. That is off
+until you turn it on, asks before every change, and can be undone.
+[It has its own section below.](#changing-your-own-lists)
 
 ## What it reads
 
@@ -86,8 +87,8 @@ It does two things.
   every visitor. It identifies the website, not you. Alongside them it copies
   which of your signed-in accounts the page is showing: its position (0 for the
   first account signed in, 1 for the second) and, if you use a brand account,
-  that account's page id. Signed requests (deep reading, removing from Watch
-  Later) send those two numbers so they act for the same account the page
+  that account's page id. Signed requests (deep reading, and changes to your
+  own lists) send those two numbers so they act for the same account the page
   shows, the way YouTube's own requests do. They are not credentials.
 
 It reads nothing else and stores nothing.
@@ -150,27 +151,75 @@ To be exact about what that means:
 It is written this way because the source is public and somebody will eventually
 read the function that does it. Better that they find it explained here first.
 
-## Removing videos from Watch Later
+## Changing your own lists
 
-The one thing the extension can change on your account, and only this:
-videos in your own Watch Later, taken out when you pick them and ask.
+The only things the extension can change on your account, and only these:
+videos in your own Watch Later, in playlists you own, and on your Liked videos,
+taken out when you pick them and ask.
 
-- **Off until you turn it on.** The switch is in the popup ("Removing from
-  Watch Later"). The first time you press Remove in the panel, it explains what
-  will happen and asks you to allow it there instead.
+- **Off until you turn it on.** The switch is in the popup ("Changing your
+  lists"). The first time you press Remove or Unlike in the panel, it explains
+  what will happen and asks you to allow it there instead.
 - **It asks every time.** You pick videos in the panel's Select mode, press
-  Remove, and confirm the number. Nothing is removed without that confirmation.
-- **It is YouTube's own action.** The request is the one YouTube's own "Remove
-  from Watch later" menu item sends (`ACTION_REMOVE_VIDEO_BY_VIDEO_ID`, to
-  playlist `WL`, at `/youtubei/v1/browse/edit_playlist`), signed exactly like
-  deep reading above, with the same account numbers the page uses. It touches
-  your Watch Later and nothing else: not your other playlists, not your history,
-  not your likes.
-- **Undo puts them back**, straight after, with YouTube's own "Save to Watch
-  later" action (`ACTION_ADD_VIDEO`). YouTube may place them at the top of the
-  list rather than where they were.
-- Nothing about what you removed is kept or sent anywhere. The local copy of
-  your Watch Later that the search bar uses is updated to match.
+  Remove (or Unlike), and confirm the number. Nothing changes without that
+  confirmation.
+- **It is YouTube's own action.** In Watch Later the request is the one
+  YouTube's own "Remove from Watch later" menu item sends
+  (`ACTION_REMOVE_VIDEO_BY_VIDEO_ID`, to playlist `WL`, at
+  `/youtubei/v1/browse/edit_playlist`). In your own playlists and on Liked
+  videos, each video arrives from YouTube with its own menu already filled in,
+  and the extension sends exactly the "Remove from" or "Remove from Liked
+  videos" action that menu carries, unchanged. A playlist that is not yours has
+  no such action, so the extension cannot change it and does not offer to.
+  Every change is signed exactly like deep reading above, with the same account
+  numbers the page uses, and touches only the list you are on.
+- **Deleted and private videos.** YouTube hides them from a list but still
+  counts them. "Find deleted videos" asks YouTube for your list with them shown,
+  the way its own "Show unavailable videos" does (signed, since it is your own
+  list), and offers to remove the ones that are gone. It only reads that list.
+- **Undo puts them back**, straight after, with YouTube's own "Save to
+  playlist" action (`ACTION_ADD_VIDEO`), or by liking the video again. YouTube
+  may place them at the end of the list rather than where they were.
+- **The removal archive.** So that anything can go back later too, not only in
+  the seconds Undo is shown, the extension keeps a short record of what it
+  removed (the video's id, title, channel, length and when it was removed) in
+  your browser, for six months and at most 3,000 videos. "Removed earlier" in
+  the panel shows it and puts videos back. It is never sent anywhere, and Clear
+  cached data deletes it.
+- The local copy of your lists that the search bar uses is updated to match.
+
+## Sharing a filter
+
+"Copy a link to this filter" makes a link to a page on the extension's own
+website. Everything that link carries (which list, and the filters as you typed
+them) sits after a `#` in the address, and the part of an address after `#` is
+never sent to any server, the website's or YouTube's. The page reads it in your
+browser only, to show what the filter is.
+
+That page then opens YouTube with the filters after `#needle=`. A small script,
+`arrive.js`, runs as the YouTube page starts loading, copies those filters into
+the tab's session storage, and the panel applies them once and deletes them. A
+link made on your Watch Later or history shares only the filters: it opens the
+other person's own list, never yours.
+
+## Play, copy and export
+
+Play opens YouTube's own `watch_videos` address with the ids of the videos you
+filtered (up to 50), which YouTube turns into a temporary playlist. Copying
+writes links or titles to your clipboard only when you press it. CSV and JSON
+downloads are made in your browser. None of this involves any server but
+YouTube's.
+
+## When something breaks
+
+If YouTube changes how it sends a list and the panel cannot read it, the panel
+says so and offers a short report to copy. The report holds the extension's
+version, your browser's major version and language, which kind of page it was,
+how far the read got, and the names and counts of the building blocks YouTube's
+reply was made of. It holds no titles, videos, channels, addresses or search
+words. It is only ever copied to your clipboard when you press Copy report;
+nothing is sent automatically. "Report it" opens the project's issue page on
+GitHub for you to paste it into, if you choose to.
 
 ## Watched videos on Home and Subscriptions
 
@@ -200,6 +249,8 @@ All of it is local to your browser. Nothing leaves your machine.
 | Your other playlists' videos, once you have searched them with `in:playlists` | IndexedDB, with the lists above | So that search is instant for the next twelve hours |
 | Whether you prefer the panel as a grid or a list, whether the search bar's intro line has been seen, and whether "What's new" has been read | `chrome.storage.local` | So each one is remembered on this device |
 | Filters you just typed into the search bar | `sessionStorage`, for two minutes | So the results page can apply them after YouTube loads it |
+| Filters from a shared link you opened | `sessionStorage`, for one minute, deleted once used | So the panel can apply them after YouTube loads the page |
+| What the extension removed from your lists: id, title, channel, length, when | IndexedDB, six months, at most 3,000 | So "Removed earlier" can put them back |
 | How many times you have found something with it, and whether you answered the review prompt | `chrome.storage.local` | So the prompt appears once and never again after you answer |
 | How far you watched those videos | IndexedDB, inside the catalogue above | So the watch filters can hide what you have finished |
 | View-count snapshots with timestamps | IndexedDB | So growth can be measured between visits |
@@ -227,7 +278,8 @@ device.
 
 - No data is sent to the author or to any third party.
 - Nothing on your YouTube account is changed, except removing videos from your
-  Watch Later when you have turned that on and confirmed it.
+  Watch Later or your own playlists, and unliking videos, when you have turned
+  that on and confirmed it.
 - No analytics, telemetry, crash reporting, or advertising.
 - No tracking across sites. The extension only runs on youtube.com.
 - Nothing is sold or shared, because nothing is collected.
@@ -236,7 +288,8 @@ device.
 
 Open the popup on any YouTube tab and use **Clear cached data**. That deletes
 every cached catalogue, every snapshot, your watchlist, your library copy, the
-record of what you were shown, and what followed searches have found. Followed
+record of what you were shown, what followed searches have found, and the
+removal archive. Followed
 searches and muted channels are removed one by one in the popup's own lists. It asks once before
 doing it, and it cannot be undone. Settings are left alone; Reset next to it
 restores those.
@@ -260,8 +313,8 @@ that, since it is a choice you made rather than a cache.
 - **Access to youtube.com** is what lets the panel read a channel's listings and
   draw itself on the page. It is limited to `www.youtube.com` and no other site.
 
-No additional permission is requested for deep watch history or for removing
-from Watch Later. Both use the youtube.com access the extension already has,
+No additional permission is requested for deep watch history or for changing
+your own lists. Both use the youtube.com access the extension already has,
 which is why their switches exist at all: the capability could not be gated by
 the browser, so it is gated by you.
 

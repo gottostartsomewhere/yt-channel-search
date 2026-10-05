@@ -731,7 +731,8 @@ function applyOmniFilters(f) {
   // A scoped search shows the whole list, so the words go in the keyword box.
   // Search results are already about the words, and YouTube matches on more
   // than titles, so filtering them by title again would throw good ones away.
-  ui.kw.value = f.scope ? f.clean : "";
+  // A shared link's words were the sender's keyword box, so they go back there.
+  ui.kw.value = f.scope || f.keepWords ? f.clean : "";
 }
 
 // Custom options and typed-only filters belong to the search that made them,

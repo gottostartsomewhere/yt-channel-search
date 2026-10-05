@@ -45,8 +45,15 @@ const state = {
   listTitle: "",
   // Cards as a grid or as a list, remembered on this device.
   listView: false,
-  // Select mode, Watch Later only: see startSelecting in panel.js.
+  // Select mode, on lists the panel can change: see editorHere in panel.js.
+  // confirming is which question the bar is asking ("remove", "restore",
+  // "find", "hidden"), or false.
   selecting: false, selected: new Set(), confirming: false,
+  // The removal archive while it is showing, how many it holds for this list,
+  // and the hidden dead videos a search turned up.
+  archive: null, archiveCount: 0, hiddenFound: null,
+  // A read that failed: its report, and how many videos came from the page.
+  failure: null,
   // What the filters last left, so the selection bar can offer "all shown".
   lastRows: null,
 };
@@ -401,20 +408,20 @@ function renderGrid(rows) {
     t.textContent = v.title;
     t.title = v.title;
     const chName = showChannel && v.channel ? v.channel : "";
-    const meta = factsInto(document.createElement("div"), [chName, fmtCompact(v.views) + " views", cap(v.publishedText)]);
+    const meta = factsInto(document.createElement("div"), [chName, (v.views == null ? "" : fmtCompact(v.views) + " views"), cap(v.publishedText)]);
     meta.className = "ytcs-cmeta";
     if (chName) meta.firstChild.classList.add("ytcs-cchan");
-    // Which of your playlists it came from, when searching them all at once.
-    if (v.list && state.omniScope === "pl") {
-      const from = document.createElement("div");
-      from.className = "ytcs-cmeasured";
-      from.textContent = "In " + v.list;
-      info.appendChild(t);
-      info.appendChild(meta);
-      info.appendChild(from);
-    } else {
-      info.appendChild(t);
-      info.appendChild(meta);
+    info.appendChild(t);
+    info.appendChild(meta);
+    // Which of your playlists it came from, when searching them all at once,
+    // or when Needle took it out, in the removal archive.
+    const from = v.list && state.omniScope === "pl" ? "In " + v.list
+      : v.removedAt ? "Removed " + fmtAgo(v.removedAt) : "";
+    if (from) {
+      const line = document.createElement("div");
+      line.className = "ytcs-cmeasured";
+      line.textContent = from;
+      info.appendChild(line);
     }
     if (v.gained > 0 && v.sinceDays) {
       const span = v.sinceDays < 1
@@ -447,7 +454,8 @@ function renderGrid(rows) {
   }
   ui.grid.innerHTML = "";
   ui.grid.appendChild(frag);
-  if (!shown.length && !state.loading) {
+  if (state.failure && typeof renderFailure === "function") renderFailure(ui.grid);
+  if (!shown.length && !state.loading && !state.failure) {
     const empty = document.createElement("div");
     empty.className = "ytcs-empty";
     empty.textContent = state.catalog.length ? "No videos match these filters." : "Nothing loaded yet. Press refresh to read it.";

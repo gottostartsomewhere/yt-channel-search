@@ -19,12 +19,17 @@ YOUR HISTORY AND WATCH LATER
 - Everything you started and never finished
 - Filter by channel, length, views or when you watched it
 - Find that video you know you watched, without scrolling
-- Clean up Watch Later: pick what goes, remove it, undo if you change your mind
 
 ANY PLAYLIST AND YOUR SUBSCRIPTIONS
 - Search and filter any playlist, yours or anyone's, all of it
 - Your subscriptions, unwatched and under 20 minutes
 - Dim or hide the videos you've already watched on Home and Subscriptions
+
+CLEAN UP, PLAY, SHARE
+- Clean up Watch Later and your own playlists, unlike in bulk, and clear out deleted videos, with undo and an archive to put things back
+- Play what you filtered, in order, or copy the links for NotebookLM
+- Share a filter as a link: it opens the same list with the same filters for anyone with Needle
+- Keyboard: / to search, j and k to move, x to pick
 
 INSIGHTS
 - A channel's best-performing video lengths and years

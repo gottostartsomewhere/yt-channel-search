@@ -17,6 +17,15 @@
         "*://www.youtube.com/*"
       ],
       "js": [
+        "src/arrive.js"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "*://www.youtube.com/*"
+      ],
+      "js": [
         "src/core.js",
         "src/grid.js",
         "src/store.js",

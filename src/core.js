@@ -444,7 +444,7 @@ function mapLockup(lvm) {
   const durationText = lockupDuration(lvm);
   const seconds = parseDuration(durationText);
   const { viewsText, publishedText, channelText, handle } = lockupMeta(lvm);
-  return {
+  const v = {
     id,
     title,
     channel: cleanChannel(channelText),
@@ -456,6 +456,13 @@ function mapLockup(lvm) {
     days: parseRelativeDays(publishedText),
     progress: lockupProgress(lvm),
   };
+  /*
+   * A deleted or private video, in a list read with those shown, arrives with no
+   * title and no length (checked on a real playlist, October 2026). One that is
+   * only blocked in some countries keeps both, so it is never mistaken for one.
+   */
+  if (!(lmv && lmv.title && lmv.title.content) && !durationText) v.playable = false;
+  return v;
 }
 
 // ---- video mapping (shortsLockupViewModel, the /shorts tab) --------------
@@ -553,6 +560,17 @@ function channelVideosUrl() {
  * the second. The underlying error still reaches the console for anyone
  * debugging.
  */
+/*
+ * A read that stops for an ordinary reason: signed out, history paused, not a
+ * channel. Marked, so the panel says it plainly instead of treating it as
+ * YouTube having changed something and offering a bug report.
+ */
+function expectedError(message) {
+  const e = new Error(message);
+  e.expected = true;
+  return e;
+}
+
 async function fetchContinuation(apiKey, clientVersion, token) {
   const res = await fetch(
     location.origin + "/youtubei/v1/browse?key=" + apiKey + "&prettyPrint=false",
@@ -579,8 +597,9 @@ async function fetchCatalog(onProgress) {
 
 // Fetch the full uploads catalogue for any channel's /videos URL (used by compare too).
 async function fetchCatalogFrom(url, onProgress) {
-  if (!url) throw new Error("That is not a channel page.");
+  if (!url) throw expectedError("That is not a channel page.");
 
+  traceRead("channel", "first page");
   const html = await (await fetch(url, { credentials: "same-origin" })).text();
   const apiKey = (html.match(/"INNERTUBE_API_KEY":"([^"]+)"/) || [])[1];
   if (!apiKey) throw new Error("Could not read this channel. Try reloading the page.");
@@ -590,9 +609,10 @@ async function fetchCatalogFrom(url, onProgress) {
     FALLBACK_VER;
 
   const data = findJson(html, "ytInitialData");
+  traceRead("", "first page", data);
   if (!data) throw new Error("Could not read this channel. Try reloading the page.");
   const grid = deepFind(data, "richGridRenderer");
-  if (!grid || !grid.contents) throw new Error("This channel has no videos tab to read.");
+  if (!grid || !grid.contents) throw expectedError("This channel has no videos tab to read.");
 
   let { videos, token } = parseItemArray(grid.contents);
   const all = videos.slice();
@@ -614,6 +634,7 @@ async function fetchCatalogFrom(url, onProgress) {
   const maxPages = Math.max(1, Math.ceil(cfg.maxVideos / 30));
   while (token && pages < maxPages) {
     pages++;
+    tracePage();
     let json;
     try {
       json = await fetchContinuation(apiKey, clientVersion, token);
@@ -815,6 +836,7 @@ async function fetchHistoryContinuation(apiKey, clientVersion, token, auth) {
  */
 async function fetchHistory(onProgress, signed) {
   const now = new Date();
+  traceRead("watch history", "first page");
   const html = await (await fetch(HISTORY_PATH, { credentials: "same-origin" })).text();
   const apiKey = (html.match(/"INNERTUBE_API_KEY":"([^"]+)"/) || [])[1];
   const clientVersion =
@@ -823,12 +845,13 @@ async function fetchHistory(onProgress, signed) {
     FALLBACK_VER;
 
   const data = findJson(html, "ytInitialData");
+  traceRead("", "first page", data);
   if (!data) throw new Error("Could not read your history. Try reloading the page.");
 
   const carry = { label: "" };
   const first = deepFind(data, "sectionListRenderer");
   const all = parseHistorySections((first && first.contents) || [], carry, now);
-  if (!all.length) throw new Error("No watch history to read. It may be paused or cleared.");
+  if (!all.length) throw expectedError("No watch history to read. It may be paused or cleared.");
   onProgress(all.length);
 
   const auth = signed ? await sapisidHash() : null;
@@ -839,6 +862,7 @@ async function fetchHistory(onProgress, signed) {
   const maxPages = Math.max(1, Math.ceil(cfg.maxVideos / 180));
   while (token && pages < maxPages) {
     pages++;
+    tracePage();
     let json;
     try {
       json = await fetchHistoryContinuation(apiKey, clientVersion, token, auth);
@@ -930,6 +954,89 @@ function innertubeConfig(html) {
 }
 
 /*
+ * ---- what the last read saw, for a bug report ---------------------------------
+ *
+ * When YouTube changes how it sends a list, the first sign is a read that finds
+ * nothing. The panel then offers a report to copy, and this is what goes in it:
+ * which of YouTube's building blocks the page arrived in and how many of each,
+ * and how far the read got. Names and counts only. Never a title, a video, a
+ * channel or an address, so a report says what broke and nothing about whoever
+ * sends it.
+ */
+const readTrace = { kind: "", step: "", pages: 0, shape: "" };
+
+function traceRead(kind, step, data) {
+  if (kind) {
+    readTrace.kind = kind;
+    readTrace.pages = 0;
+    readTrace.shape = "";
+  }
+  readTrace.step = step;
+  if (data !== undefined) readTrace.shape = shapeOf(data);
+}
+
+function tracePage() {
+  readTrace.pages++;
+  readTrace.step = "page " + (readTrace.pages + 1);
+}
+
+// "richGridRenderer 1, lockupViewModel 30, ..." for whatever arrived. Bounded,
+// since a page is tens of thousands of nodes and this only needs the gist.
+function shapeOf(data) {
+  if (!data || typeof data !== "object") return data === null ? "nothing" : typeof data;
+  const counts = new Map();
+  let budget = 40000;
+  (function walk(o) {
+    if (!o || typeof o !== "object" || --budget < 0) return;
+    for (const k in o) {
+      if (/(Renderer|ViewModel)$/.test(k)) counts.set(k, (counts.get(k) || 0) + 1);
+      walk(o[k]);
+    }
+  })(data);
+  return Array.from(counts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 24)
+    .map(([k, n]) => k + " " + n)
+    .join(", ") || "no known parts";
+}
+
+/*
+ * ---- what YouTube's own menu would send -----------------------------------------
+ *
+ * Every video in a list arrives with its ⋮ menu already filled in, actions and
+ * all (checked October 2026: "Add to queue", "Save to playlist" and "Share" on
+ * every item of a public list). On a list you own, that menu also carries
+ * "Remove from" with the exact edit YouTube's page sends; on Liked videos it
+ * carries the exact unlike. Taking them off the item means Needle sends what
+ * YouTube would, rather than a reconstruction. Their presence is also how the
+ * panel knows a list is yours: nobody else's copy of a playlist offers them.
+ *
+ * Only removals for this list count. Every item also carries a Watch Later
+ * toggle, which removes from "WL" and must never be taken for this list's own.
+ */
+function itemRemoveCommand(node, listId) {
+  let found = null;
+  (function walk(o) {
+    if (found || !o || typeof o !== "object") return;
+    const pe = o.playlistEditEndpoint;
+    if (pe && pe.playlistId === listId && Array.isArray(pe.actions) && pe.actions.length &&
+        pe.actions.every((a) => a && /^ACTION_REMOVE/.test(a.action || ""))) {
+      found = { kind: "edit", actions: pe.actions };
+      if (pe.params) found.params = pe.params;
+      return;
+    }
+    const le = o.likeEndpoint;
+    if (le && le.status === "INDIFFERENT" && le.target && le.target.videoId) {
+      found = { kind: "unlike", target: le.target };
+      if (le.removeLikeParams) found.params = le.removeLikeParams;
+      return;
+    }
+    for (const k in o) walk(o[k]);
+  })(node);
+  return found;
+}
+
+/*
  * ---- your own playlists: Watch Later and Liked ------------------------------
  *
  * Same wall as history. Page one comes back with the HTML, which the browser
@@ -977,13 +1084,22 @@ function mapPlaylistVideo(pvr) {
   };
 }
 
-function parsePlaylistItems(arr) {
+// With a list id, each video also keeps the removal its own menu offers for that
+// list, if any: see itemRemoveCommand. Only the panel asks; the search bar's
+// copy of your lists has no use for it.
+function parsePlaylistItems(arr, listId) {
   const videos = [];
   for (const it of arr || []) {
     let v = null;
     if (it.playlistVideoRenderer) v = mapPlaylistVideo(it.playlistVideoRenderer);
     else if (it.lockupViewModel) v = mapLockup(it.lockupViewModel);
-    if (v) videos.push(v);
+    if (!v) continue;
+    if (listId) {
+      const rm = itemRemoveCommand(it, listId);
+      // An unlike only ever means something on Liked videos itself.
+      if (rm && (rm.kind === "edit" || listId === "LL")) v.rm = rm;
+    }
+    videos.push(v);
   }
   return videos;
 }
@@ -1022,12 +1138,15 @@ function playlistTitle(data) {
 // past their first page needs the signed request. Everyone else's are public.
 const PRIVATE_LISTS = new Set(["WL", "LL"]);
 
-async function fetchPlaylist(listId, signed, onProgress) {
+async function fetchPlaylist(listId, signed, onProgress, opts) {
+  const withActions = opts && opts.actions ? listId : "";
+  traceRead(PRIVATE_LISTS.has(listId) ? "your " + (listId === "WL" ? "Watch Later" : "Liked videos") : "playlist", "first page");
   const html = await (await fetch("/playlist?list=" + encodeURIComponent(listId), { credentials: "same-origin" })).text();
   const { apiKey, clientVersion } = innertubeConfig(html);
   const data = findJson(html, "ytInitialData");
+  traceRead("", "first page", data);
   const root = playlistRoot(data);
-  const all = parsePlaylistItems(playlistEntries(root));
+  const all = parsePlaylistItems(playlistEntries(root), withActions);
   all.title = playlistTitle(data);
   // Signed out, or a list that does not exist: nothing to read, not an error.
   if (!all.length) return all;
@@ -1045,6 +1164,7 @@ async function fetchPlaylist(listId, signed, onProgress) {
   const maxPages = Math.max(1, Math.ceil(cfg.maxVideos / 100));
   while (token && pages < maxPages) {
     pages++;
+    tracePage();
     let json;
     try {
       json = await fetchHistoryContinuation(apiKey, clientVersion, token, auth);
@@ -1054,7 +1174,7 @@ async function fetchPlaylist(listId, signed, onProgress) {
     const items = continuationItems(json);
     if (!items) break;
     let added = 0;
-    for (const v of parsePlaylistItems(items)) {
+    for (const v of parsePlaylistItems(items, withActions)) {
       if (seen.has(v.id)) continue;
       seen.add(v.id);
       all.push(v);
@@ -1090,11 +1210,13 @@ function isSubscriptionsPage() {
 }
 
 async function fetchSubscriptions(onProgress, signed) {
+  traceRead("subscriptions", "first page");
   const html = await (await fetch(SUBS_PATH, { credentials: "same-origin" })).text();
   const { apiKey, clientVersion } = innertubeConfig(html);
   const data = findJson(html, "ytInitialData");
+  traceRead("", "first page", data);
   const grid = data && deepFind(data, "richGridRenderer");
-  if (!grid || !grid.contents) throw new Error("Could not read your subscriptions. Are you signed in?");
+  if (!grid || !grid.contents) throw expectedError("Could not read your subscriptions. Are you signed in?");
   let { videos, token } = parseItemArray(grid.contents);
   const all = videos.filter((v) => !v.isShort);
   onProgress(all.length);
@@ -1106,6 +1228,7 @@ async function fetchSubscriptions(onProgress, signed) {
   const maxPages = Math.min(SUBS_MAX_PAGES, Math.max(1, Math.ceil(cfg.maxVideos / 30)));
   while (token && pages < maxPages) {
     pages++;
+    tracePage();
     let json;
     try {
       json = await fetchHistoryContinuation(apiKey, clientVersion, token, auth);
@@ -1193,47 +1316,160 @@ async function fetchPlaylistVideos(signed) {
  */
 const WL_EDIT_BATCH = 25;
 
-async function editWatchLater(ids, add, onProgress) {
+// The API key and client version for a signed call: the page's own when it has
+// published them, otherwise read off a fresh copy of the list's page.
+async function signedConfig(listId) {
   let it = typeof pageInnertube === "function" ? pageInnertube() : null;
   if (!it) {
-    const cfgPage = innertubeConfig(await (await fetch("/playlist?list=WL", { credentials: "same-origin" })).text());
+    const cfgPage = innertubeConfig(await (await fetch("/playlist?list=" + encodeURIComponent(listId || "WL"), { credentials: "same-origin" })).text());
     if (cfgPage.apiKey) it = cfgPage;
   }
   if (!it) throw new Error("Could not reach YouTube. Try reloading the page.");
   const auth = await sapisidHash();
-  if (!auth) throw new Error("Sign in to YouTube first.");
+  if (!auth) throw expectedError("Sign in to YouTube first.");
+  return { apiKey: it.apiKey, clientVersion: it.clientVersion, auth };
+}
+
+async function signedPost(sc, api, body) {
+  const res = await fetch(location.origin + api + "?key=" + sc.apiKey + "&prettyPrint=false", {
+    method: "POST",
+    credentials: "same-origin",
+    headers: Object.assign({
+      "Content-Type": "application/json",
+      "X-YouTube-Client-Name": "1",
+      "X-YouTube-Client-Version": sc.clientVersion,
+      "Authorization": sc.auth,
+      "X-Origin": HISTORY_ORIGIN,
+    }, accountHeaders()),
+    body: JSON.stringify(Object.assign({ context: { client: { clientName: "WEB", clientVersion: sc.clientVersion } } }, body)),
+  });
+  let json = null;
+  try { json = await res.json(); } catch (e) { /* a refusal, judged by the caller */ }
+  return { ok: res.ok, json };
+}
+
+function editRefusal(done) {
+  const err = new Error(done.length ? "YouTube stopped after " + done.length + ". Try the rest again." : "YouTube refused the change. Are you signed in?");
+  err.done = done;
+  return err;
+}
+
+/*
+ * Changes one list, in batches, stopping at the first batch YouTube refuses.
+ * `actionsFor` turns one item into the actions that edit it. `keyOf` names an
+ * item in the list of what went through, which is what the caller gets back.
+ */
+async function editList(listId, items, actionsFor, keyOf, onProgress, params) {
+  const sc = await signedConfig(listId);
   const done = [];
-  for (let i = 0; i < ids.length; i += WL_EDIT_BATCH) {
-    const batch = ids.slice(i, i + WL_EDIT_BATCH);
-    const res = await fetch(location.origin + "/youtubei/v1/browse/edit_playlist?key=" + it.apiKey + "&prettyPrint=false", {
-      method: "POST",
-      credentials: "same-origin",
-      headers: Object.assign({
-        "Content-Type": "application/json",
-        "X-YouTube-Client-Name": "1",
-        "X-YouTube-Client-Version": it.clientVersion,
-        "Authorization": auth,
-        "X-Origin": HISTORY_ORIGIN,
-      }, accountHeaders()),
-      body: JSON.stringify({
-        context: { client: { clientName: "WEB", clientVersion: it.clientVersion } },
-        playlistId: "WL",
-        actions: batch.map((id) => (add
-          ? { addedVideoId: id, action: "ACTION_ADD_VIDEO" }
-          : { action: "ACTION_REMOVE_VIDEO_BY_VIDEO_ID", removedVideoId: id })),
-      }),
-    });
-    let json = null;
-    try { json = await res.json(); } catch (e) { /* treated as a refusal below */ }
-    if (!res.ok || !json || json.status !== "STATUS_SUCCEEDED") {
-      const err = new Error(done.length ? "YouTube stopped after " + done.length + ". Try the rest again." : "YouTube refused the change. Are you signed in?");
-      err.done = done;
-      throw err;
-    }
-    done.push(...batch);
+  for (let i = 0; i < items.length; i += WL_EDIT_BATCH) {
+    const batch = items.slice(i, i + WL_EDIT_BATCH);
+    const body = { playlistId: listId, actions: [].concat(...batch.map(actionsFor)) };
+    if (params) body.params = params;
+    const { ok, json } = await signedPost(sc, "/youtubei/v1/browse/edit_playlist", body);
+    if (!ok || !json || json.status !== "STATUS_SUCCEEDED") throw editRefusal(done);
+    done.push(...batch.map(keyOf));
     if (onProgress) onProgress(done.length);
   }
   return done;
+}
+
+async function editWatchLater(ids, add, onProgress) {
+  return editList("WL", ids, (id) => [add
+    ? { addedVideoId: id, action: "ACTION_ADD_VIDEO" }
+    : { action: "ACTION_REMOVE_VIDEO_BY_VIDEO_ID", removedVideoId: id }], (id) => id, onProgress);
+}
+
+/*
+ * ---- your own playlists, and Liked videos ------------------------------------------
+ *
+ * Removal sends, for each video, the edit its own "Remove from" menu item
+ * carries (see itemRemoveCommand). Putting one back is YouTube's ordinary
+ * "Save to playlist", the same ACTION_ADD_VIDEO Watch Later's undo uses, so it
+ * returns to the end of the list rather than its old place.
+ */
+async function removeFromList(listId, videos, onProgress) {
+  const usable = videos.filter((v) => v.rm && v.rm.kind === "edit");
+  const params = usable.length && usable[0].rm.params;
+  return editList(listId, usable, (v) => v.rm.actions, (v) => v.id, onProgress, params);
+}
+
+async function addToList(listId, ids, onProgress) {
+  return editList(listId, ids, (id) => [{ addedVideoId: id, action: "ACTION_ADD_VIDEO" }], (id) => id, onProgress);
+}
+
+/*
+ * Unliking is one call per video, the call YouTube's own "Remove from Liked
+ * videos" makes, read off the item. Liking again is YouTube's ordinary like.
+ * A short pause between calls, since a hundred at once is not something a
+ * person's browser would ever send.
+ */
+const LIKE_GAP_MS = 150;
+
+async function setLikes(videos, like, onProgress) {
+  const sc = await signedConfig("LL");
+  const done = [];
+  for (const v of videos) {
+    const body = like ? { target: { videoId: v.id } } : { target: (v.rm && v.rm.target) || { videoId: v.id } };
+    if (!like && v.rm && v.rm.params) body.params = v.rm.params;
+    const { ok, json } = await signedPost(sc, like ? "/youtubei/v1/like/like" : "/youtubei/v1/like/removelike", body);
+    if (!ok || !json || json.error) throw editRefusal(done);
+    done.push(v.id);
+    if (onProgress) onProgress(done.length);
+    await sleep(LIKE_GAP_MS);
+  }
+  return done;
+}
+
+/*
+ * ---- the videos YouTube hides --------------------------------------------------------
+ *
+ * A list's deleted and private videos are left out of it by default, with a
+ * note saying "Unavailable videos are hidden", but they still sit in the list
+ * and still count. YouTube's own "Show unavailable videos" asks for the list
+ * with one fixed parameter, read off a real playlist page's menu in October
+ * 2026. Reading with it and keeping only the dead ones finds them.
+ */
+const SHOW_UNAVAILABLE = "wgYCCAA=";
+
+async function fetchUnavailable(listId, onProgress) {
+  const sc = await signedConfig(listId);
+  traceRead("hidden videos", "first page");
+  const first = await signedPost(sc, "/youtubei/v1/browse", { browseId: "VL" + listId, params: SHOW_UNAVAILABLE });
+  traceRead("", "first page", first.json);
+  if (!first.ok || !first.json) throw new Error("YouTube would not show this list's hidden videos.");
+  const root = playlistRoot(first.json);
+  const all = parsePlaylistItems(playlistEntries(root), listId);
+  let token = findContinuationToken(root);
+  const seen = new Set(all.map((v) => v.id));
+  let pages = 0;
+  const maxPages = Math.max(1, Math.ceil(cfg.maxVideos / 100));
+  while (token && pages < maxPages) {
+    pages++;
+    tracePage();
+    let json;
+    try {
+      json = await fetchHistoryContinuation(sc.apiKey, sc.clientVersion, token, sc.auth);
+    } catch (e) {
+      break;
+    }
+    const items = continuationItems(json);
+    if (!items) break;
+    let added = 0;
+    for (const v of parsePlaylistItems(items, listId)) {
+      if (seen.has(v.id)) continue;
+      seen.add(v.id);
+      all.push(v);
+      added++;
+    }
+    token = findContinuationToken(items);
+    if (onProgress) onProgress(all.length);
+    if (added === 0) break;
+  }
+  const dead = all.filter((v) => v.playable === false);
+  dead.checked = all.length;
+  dead.complete = !token;
+  return dead;
 }
 
 /*
@@ -1528,6 +1764,7 @@ async function searchMore(ctx, plan, want, all, onProgress) {
             const html = await (await fetch(url, { credentials: "same-origin" })).text();
             Object.assign(ctx, innertubeConfig(html));
             const data = findJson(html, "ytInitialData");
+            traceRead("", "first page", data);
             const list = data && deepFind(data, "sectionListRenderer");
             if (!ctx.apiKey || !list) throw new Error("Could not read these results. Try reloading the page.");
             items = list.contents;
@@ -1584,7 +1821,8 @@ function searchCanGrow(ctx, plan, have) {
  * can ask for more from the same sessions later.
  */
 async function fetchSearch(query, onProgress, signed, plan) {
-  if (!query.trim()) throw new Error("Nothing was searched for.");
+  if (!query.trim()) throw expectedError("Nothing was searched for.");
+  traceRead("search results", "first page");
   const ctx = {
     query, apiKey: "", clientVersion: FALLBACK_VER, sessions: {}, seen: new Set(), partial: false,
     auth: signed ? await sapisidHash() : null,

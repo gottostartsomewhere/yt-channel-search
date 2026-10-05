@@ -38,6 +38,42 @@ function ghostBtn(label, title) {
   return b;
 }
 
+/*
+ * A button that opens the same menu the filter pills use, for a list of
+ * actions rather than values. The hidden select is only there because the menu
+ * reads its options from one; nothing stays selected, so the menu never marks
+ * an action as current, and each pick runs once.
+ */
+function actionMenu(name, title, items, onPick) {
+  const sel = document.createElement("select");
+  for (const [value, label] of items) {
+    const o = document.createElement("option");
+    o.value = value;
+    o.textContent = label;
+    sel.appendChild(o);
+  }
+  sel.selectedIndex = -1;
+  sel.hidden = true;
+  sel.tabIndex = -1;
+  sel.addEventListener("change", () => {
+    const v = sel.value;
+    sel.selectedIndex = -1;
+    if (v) onPick(v);
+  });
+  const slot = document.createElement("div");
+  slot.className = "ytcs-f ytcs-actmenu";
+  const label = ghostBtn(name + " ▾", title);
+  label.setAttribute("aria-haspopup", "listbox");
+  label.onclick = (e) => {
+    e.preventDefault();
+    sel.selectedIndex = -1;
+    toggleMenu(slot, sel, name, label);
+  };
+  slot.appendChild(label);
+  slot.appendChild(sel);
+  return slot;
+}
+
 function icon(path, size) {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", "0 0 24 24");
@@ -326,14 +362,30 @@ function buildUi() {
   restore.title = "Close the panel and put YouTube's page back";
   restore.onclick = () => disable();
 
-  const csv = ghostBtn("CSV", "Download the filtered videos as CSV");
-  csv.onclick = () => exportCSV();
-  const json = ghostBtn("JSON", "Download the filtered videos as JSON");
-  json.onclick = () => exportJSON();
+  /*
+   * What to do with the result: play it, or take it somewhere. Both act on the
+   * picked videos when there are any, otherwise on everything the filters left.
+   * One menu rather than six buttons, since the header already holds a lot.
+   */
+  const play = ghostBtn("Play", "Play these in order, up to " + PLAY_MAX + ", as a temporary YouTube playlist");
+  play.onclick = () => playRows();
+  const exportMenu = actionMenu("Export", "Copy, share or download these videos", [
+    ["links", "Copy links, for NotebookLM"],
+    ["list", "Copy titles and links"],
+    ["md", "Copy as a Markdown list"],
+    ["share", "Copy a link to this filter"],
+    ["csv", "Download CSV"],
+    ["json", "Download JSON"],
+  ], (v) => {
+    if (v === "share") copyShareLink();
+    else if (v === "csv") exportCSV();
+    else if (v === "json") exportJSON();
+    else copyRows(v);
+  });
   const exports = document.createElement("span");
   exports.className = "ytcs-exports";
-  exports.appendChild(csv);
-  exports.appendChild(json);
+  exports.appendChild(play);
+  exports.appendChild(exportMenu);
 
   // Grid or list. A list fits three times as many videos on screen, which is
   // what a long Watch Later or history needs; a grid is for browsing a channel.
@@ -669,7 +721,7 @@ function buildUi() {
 
   const foot = document.createElement("div");
   foot.className = "ytcs-foot";
-  foot.textContent = "Reads public data through YouTube's own endpoints. Not affiliated with YouTube.";
+  foot.textContent = "Press ? for keys. Reads public data through YouTube's own endpoints. Not affiliated with YouTube.";
 
   // Both rows stick as one block. Two separately-sticky rows would need their
   // tops kept in sync with the header's rendered height, which does not survive
@@ -801,34 +853,111 @@ function refreshChannelFacet() {
   ui.chanSlot.slot.style.display = !isChannelPage() && counts.size > 1 ? "" : "none";
 }
 
-// ---- select and remove, in Watch Later ---------------------------------------------
+// ---- select and change: Watch Later, your own playlists, Liked videos -------------
 /*
- * The one place the panel changes anybody's account. Select mode turns every
+ * The only places the panel changes anybody's account. Select mode turns every
  * card into a checkbox; the bar above the grid says how many are picked and
  * offers the two picks people actually want (everything the filters left, and
  * everything already finished) before the one that acts.
  *
- * Removing always asks first, in the bar, not in a browser dialog. The first
+ * Changing always asks first, in the bar, not in a browser dialog. The first
  * time it also asks for the switch that allows it at all (allowEdits), which is
- * off until then. After it runs, the toast offers Undo, which puts every one of
- * them back through YouTube's own "Save to Watch later" action.
+ * off until then. After it runs, the toast offers Undo, and everything removed
+ * goes into the removal archive, so it can still go back after the toast is gone.
+ *
+ * What can be changed, and how, depends on the list. Watch Later always. A
+ * playlist only when its videos arrive carrying YouTube's own "Remove from"
+ * action, which only its owner's copy does (see itemRemoveCommand). Liked
+ * videos the same way, as an unlike.
  */
+function editorHere() {
+  if (state.archive) return state.archive.editor;
+  const list = playlistId();
+  if (!list) return null;
+  const own = ownListScope();
+  if (own === "wl") {
+    return {
+      key: "WL", lib: "wl", noun: "Watch Later", picks: "Pick videos to remove from your Watch Later",
+      action: "Remove from Watch Later", verb: "Removing", go: (n) => "Remove " + n,
+      ask: (n) => "Remove " + plural(n, "video") + " from your Watch Later?",
+      consent: "Needle will remove these from your Watch Later on YouTube, with your own sign-in, the way YouTube's page does.",
+      did: (n) => "Removed " + plural(n, "video") + " from Watch Later",
+      remove: (vs, p) => editWatchLater(vs.map((v) => v.id), false, p),
+      restore: (vs, p) => editWatchLater(vs.map((v) => v.id), true, p),
+      back: "Put back in Watch Later", backed: (n) => "Put " + plural(n, "video") + " back in Watch Later",
+    };
+  }
+  if (!state.catalog.some((v) => v.rm)) return null;
+  if (own === "liked") {
+    return {
+      key: "LL", lib: "liked", noun: "Liked videos", picks: "Pick videos to unlike",
+      action: "Unlike", verb: "Unliking", go: (n) => "Unlike " + n,
+      ask: (n) => "Unlike " + plural(n, "video") + "?",
+      consent: "Needle will unlike these on YouTube, with your own sign-in, the way YouTube's own button does.",
+      did: (n) => "Unliked " + plural(n, "video"),
+      remove: (vs, p) => (vs.some((v) => v.rm && v.rm.kind === "unlike") ? setLikes(vs, false, p) : removeFromList("LL", vs, p)),
+      restore: (vs, p) => setLikes(vs, true, p),
+      back: "Like again", backed: (n) => "Liked " + plural(n, "video") + " again",
+    };
+  }
+  const name = state.listTitle || "this playlist";
+  return {
+    key: list, lib: null, noun: name, picks: "Pick videos to remove from " + name,
+    action: "Remove from playlist", verb: "Removing", go: (n) => "Remove " + n,
+    ask: (n) => "Remove " + plural(n, "video") + " from " + name + "?",
+    consent: "Needle will remove these from your playlist on YouTube, with your own sign-in, the way YouTube's page does.",
+    did: (n) => "Removed " + plural(n, "video") + " from " + name,
+    remove: (vs, p) => removeFromList(list, vs, p),
+    restore: (vs, p) => addToList(list, vs.map((v) => v.id), p),
+    back: "Put back in " + name, backed: (n) => "Put " + plural(n, "video") + " back in " + name,
+  };
+}
+
+// The switch the first change turns on, saved so the next one does not ask.
+function grantEdits() {
+  if (cfg.allowEdits) return;
+  cfg.allowEdits = true;
+  try { chrome.storage.sync.set({ allowEdits: true }); } catch (e) { /* on for this tab regardless */ }
+}
+
+// Select appears once a list turns out to be changeable, which for your own
+// playlists is only known after its videos have been read.
+function syncEditButton() {
+  if (!ui) return;
+  const ed = editorHere();
+  ui.selectBtn.style.display = ed ? "" : "none";
+  if (ed) ui.selectBtn.title = ed.picks;
+  else endSelecting();
+}
+
 function startSelecting() {
   state.selecting = true;
   state.selected = new Set();
   state.confirming = false;
+  state.archiveCount = 0;
   ui.selectBtn.textContent = "Done";
   ui.selectBtn.classList.add("ytcs-on");
   ui.grid.classList.add("ytcs-selecting");
   renderSelbar();
   applyView();
+  const ed = editorHere();
+  const gen = state.navGen;
+  if (ed) {
+    archiveFor(ed.key).then((list) => {
+      if (pageGone(gen) || !state.selecting) return;
+      state.archiveCount = list.length;
+      renderSelbar();
+    });
+  }
 }
 
 function endSelecting() {
   const was = state.selecting;
+  if (state.archive) closeArchive();
   state.selecting = false;
   state.selected = new Set();
   state.confirming = false;
+  state.hiddenFound = null;
   if (!ui) return;
   ui.selectBtn.textContent = "Select";
   ui.selectBtn.classList.remove("ytcs-on");
@@ -862,34 +991,62 @@ function selBtn(label, cls, onClick, title) {
   return b;
 }
 
+function selMsg(bar, text) {
+  const msg = document.createElement("span");
+  msg.className = "ytcs-selmsg";
+  msg.textContent = text;
+  bar.appendChild(msg);
+  return msg;
+}
+
 function renderSelbar() {
   const bar = ui.selbar;
   bar.hidden = !state.selecting;
   if (!state.selecting) return;
   bar.textContent = "";
+  const ed = editorHere();
+  if (!ed) return;
+  const arch = state.archive;
   const n = state.selected.size;
   const shown = state.lastRows || filterAndSort();
-  const finished = shown.filter((v) => watchState(v) === "done");
+  const finished = arch ? [] : shown.filter((v) => watchState(v) === "done");
+  const cancel = () => selBtn("Cancel", "ytcs-ghost", () => { state.confirming = false; state.hiddenFound = null; renderSelbar(); });
+  const allow = cfg.allowEdits ? "" : " Allow it? You can undo straight after, and turn it off in the popup.";
 
-  if (state.confirming) {
-    const msg = document.createElement("span");
-    msg.className = "ytcs-selmsg";
-    msg.textContent = cfg.allowEdits
-      ? "Remove " + plural(n, "video") + " from your Watch Later? You can undo straight after."
-      : "Needle will remove these from your Watch Later on YouTube, with your own sign-in, the way YouTube's page does. Allow it? You can undo straight after, and turn it off in the popup.";
-    bar.appendChild(msg);
-    bar.appendChild(selBtn(cfg.allowEdits ? "Remove " + n : "Allow and remove " + n, "ytcs-danger", () => removeSelected()));
-    bar.appendChild(selBtn("Cancel", "ytcs-ghost", () => { state.confirming = false; renderSelbar(); }));
+  if (state.confirming === "remove" || state.confirming === "restore") {
+    const putBack = state.confirming === "restore";
+    selMsg(bar, cfg.allowEdits
+      ? (putBack ? ed.back + ": " + plural(n, "video") + "?" : ed.ask(n) + " You can undo straight after.")
+      : ed.consent + allow);
+    const label = putBack ? ed.back + " (" + n + ")" : ed.go(n);
+    bar.appendChild(selBtn(cfg.allowEdits ? label : "Allow and " + label.charAt(0).toLowerCase() + label.slice(1),
+      putBack ? "ytcs-primarybtn" : "ytcs-danger", () => (putBack ? restoreSelected() : removeSelected())));
+    bar.appendChild(cancel());
+    return;
+  }
+  if (state.confirming === "find") {
+    selMsg(bar, "To find them, Needle asks YouTube for your " + ed.noun + " with hidden videos shown, using your own sign-in, " +
+      "the way YouTube's own \"Show unavailable videos\" does. Allow it? Nothing is removed until you say so.");
+    bar.appendChild(selBtn("Allow and look", "ytcs-primarybtn", () => findHidden()));
+    bar.appendChild(cancel());
+    return;
+  }
+  if (state.confirming === "hidden" && state.hiddenFound) {
+    const k = state.hiddenFound.length;
+    selMsg(bar, plural(k, "deleted or private video") + (k === 1 ? " is" : " are") + " still in your " + ed.noun +
+      ", hidden by YouTube but still counted. Remove " + (k === 1 ? "it" : "them") + "?");
+    bar.appendChild(selBtn("Remove " + k, "ytcs-danger", () => removeSelected(state.hiddenFound)));
+    bar.appendChild(cancel());
     return;
   }
 
   const count = document.createElement("span");
   count.className = "ytcs-selcount";
-  count.textContent = n ? plural(n, "video") + " picked" : "Click videos to pick them";
+  count.textContent = n ? plural(n, "video") + " picked" : arch ? "Pick what should go back" : "Click videos to pick them";
   bar.appendChild(count);
   if (shown.length && n !== shown.length) {
     bar.appendChild(selBtn("Pick all " + shown.length + " shown", "ytcs-ghost", () => selectIds(shown.map((v) => v.id)),
-      "Everything the filters left, so a filter decides what goes"));
+      arch ? "Everything the filters left" : "Everything the filters left, so a filter decides what goes"));
   }
   if (finished.length) {
     bar.appendChild(selBtn("Pick the " + finished.length + " finished", "ytcs-ghost", () => selectIds(finished.map((v) => v.id))));
@@ -898,71 +1055,104 @@ function renderSelbar() {
   const spacer = document.createElement("span");
   spacer.className = "ytcs-spacer";
   bar.appendChild(spacer);
-  const go = selBtn("Remove from Watch Later", "ytcs-danger", () => { state.confirming = true; renderSelbar(); });
+
+  if (arch) {
+    bar.appendChild(selBtn("Back to " + ed.noun, "ytcs-ghost", () => closeArchive()));
+    const go = selBtn(ed.back, "ytcs-primarybtn", () => { state.confirming = "restore"; renderSelbar(); });
+    go.disabled = !n;
+    bar.appendChild(go);
+    return;
+  }
+  // Unlikes cannot be hidden: a deleted video drops out of Liked videos by itself.
+  if (ed.key !== "LL") {
+    bar.appendChild(selBtn("Find deleted videos", "ytcs-ghost", () => {
+      if (cfg.allowEdits) findHidden();
+      else { state.confirming = "find"; renderSelbar(); }
+    }, "Deleted and private videos YouTube hides from this list but still counts"));
+  }
+  if (state.archiveCount) {
+    bar.appendChild(selBtn("Removed earlier (" + state.archiveCount + ")", "ytcs-ghost", () => openArchive(),
+      "Everything Needle removed from here in the last six months, to put back"));
+  }
+  const go = selBtn(ed.action, "ytcs-danger", () => { state.confirming = "remove"; renderSelbar(); });
   go.disabled = !n;
   bar.appendChild(go);
 }
 
-async function removeSelected() {
-  const ids = Array.from(state.selected);
-  if (!ids.length) return;
-  if (!cfg.allowEdits) {
-    cfg.allowEdits = true;
-    try { chrome.storage.sync.set({ allowEdits: true }); } catch (e) { /* on for this tab regardless */ }
-  }
+/*
+ * Takes the picked videos out of the list (or the hidden dead ones, when
+ * given). Stops at the first batch YouTube refuses and says how far it got.
+ * Everything that went is archived, except dead videos, which could never be
+ * put back anyway.
+ */
+async function removeSelected(given) {
+  const ed = editorHere();
+  if (!ed) return;
+  const hidden = !!given;
+  const videos = given || state.catalog.filter((v) => state.selected.has(v.id));
+  if (!videos.length) return;
+  grantEdits();
   const gen = state.navGen;
   // Where each one sat, so Undo can put the panel back exactly as it was.
   const at = new Map(state.catalog.map((v, i) => [v.id, i]));
-  const gone = state.catalog.filter((v) => state.selected.has(v.id));
+  state.confirming = false;
+  state.hiddenFound = null;
   ui.selbar.textContent = "";
-  const msg = document.createElement("span");
-  msg.className = "ytcs-selmsg";
-  msg.textContent = "Removing… 0 of " + ids.length;
-  ui.selbar.appendChild(msg);
+  const msg = selMsg(ui.selbar, ed.verb + "… 0 of " + videos.length);
 
   let done = [];
   let error = null;
   try {
-    done = await editWatchLater(ids, false, (k) => { msg.textContent = "Removing… " + k + " of " + ids.length; });
+    done = await ed.remove(videos, (k) => { msg.textContent = ed.verb + "… " + k + " of " + videos.length; });
   } catch (e) {
     error = e;
     done = e.done || [];
   }
   const doneSet = new Set(done);
-  if (done.length) {
-    await libraryRemove("wl", done);
+  const gone = videos.filter((v) => doneSet.has(v.id));
+  if (gone.length) {
+    if (ed.lib) await libraryRemove(ed.lib, done);
+    const keep = gone.filter((v) => v.playable !== false);
+    if (keep.length) await archiveAdd(ed.key, ed.noun, keep);
     countUse();
   }
   if (pageGone(gen)) return;
   state.catalog = state.catalog.filter((v) => !doneSet.has(v.id));
   facetFor = null;
   if (error) {
-    state.selected = new Set(ids.filter((id) => !doneSet.has(id)));
-    state.confirming = false;
+    if (!hidden) state.selected = new Set(videos.filter((v) => !doneSet.has(v.id)).map((v) => v.id));
     renderSelbar();
     setStatus([plural(state.catalog.length, "video"), error.message]);
     applyView();
     return;
   }
+  if (hidden) {
+    renderSelbar();
+    toast(gone.length < videos.length
+      ? "Removed " + gone.length + " of " + videos.length + ". YouTube offered no way to remove the rest"
+      : "Removed " + plural(gone.length, "deleted or private video"));
+    return;
+  }
   endSelecting();
   setStatus([plural(state.catalog.length, "video")]);
   applyView();
-  const back = gone.filter((v) => doneSet.has(v.id));
-  toast("Removed " + plural(back.length, "video") + " from Watch Later", "Undo", () => undoRemove(back, at, gen), 12000);
+  toast(ed.did(gone.length), "Undo", () => undoRemove(ed, gone, at, gen), 12000);
 }
 
-async function undoRemove(videos, at, gen) {
-  const ids = videos.map((v) => v.id);
+async function undoRemove(ed, videos, at, gen) {
   let done = [];
   try {
-    done = await editWatchLater(ids, true);
+    done = await ed.restore(videos);
   } catch (e) {
     done = e.done || [];
-    toast(done.length ? "Put back " + done.length + " of " + ids.length + ". " + e.message : e.message);
+    toast(done.length ? "Put back " + done.length + " of " + videos.length + ". " + e.message : e.message);
   }
   const doneSet = new Set(done);
   const back = videos.filter((v) => doneSet.has(v.id));
-  if (back.length) await libraryRestore("wl", back);
+  if (back.length) {
+    if (ed.lib) await libraryRestore(ed.lib, back);
+    await archiveDrop(ed.key, done);
+  }
   if (pageGone(gen) || !back.length) return;
   // Into their old places, in order, so the list reads as it did before.
   const merged = state.catalog.slice();
@@ -971,8 +1161,506 @@ async function undoRemove(videos, at, gen) {
   facetFor = null;
   setStatus([plural(state.catalog.length, "video")]);
   applyView();
-  if (done.length === ids.length) toast("Put " + plural(back.length, "video") + " back in Watch Later");
+  if (done.length === videos.length) toast(ed.backed(back.length));
 }
+
+// ---- the hidden dead videos -------------------------------------------------------
+async function findHidden() {
+  const ed = editorHere();
+  const list = playlistId();
+  if (!ed || !list) return;
+  grantEdits();
+  const gen = state.navGen;
+  state.confirming = false;
+  ui.selbar.textContent = "";
+  const msg = selMsg(ui.selbar, "Looking for deleted and private videos…");
+  let dead;
+  try {
+    dead = await fetchUnavailable(list, (k) => { msg.textContent = "Looking for deleted and private videos… checked " + k; });
+  } catch (e) {
+    if (pageGone(gen)) return;
+    renderSelbar();
+    toast(e.message);
+    return;
+  }
+  if (pageGone(gen) || !state.selecting) return;
+  // Watch Later removes by video id. Anywhere else, only what its own menu offers.
+  const removable = ed.key === "WL" ? dead : dead.filter((v) => v.rm);
+  if (!removable.length) {
+    renderSelbar();
+    toast(dead.length ? "Found " + dead.length + ", but YouTube offers no way to remove them here"
+      : "No deleted or private videos in your " + ed.noun + (dead.complete ? "" : ", as far as Needle read"));
+    return;
+  }
+  state.hiddenFound = removable;
+  state.confirming = "hidden";
+  renderSelbar();
+}
+
+// ---- the removal archive, in the panel ---------------------------------------------
+/*
+ * The same grid, showing what Needle removed from this list instead of the
+ * list, newest first, with the same filters and the same select. Going back
+ * re-reads the list if anything was put back, since only YouTube knows where
+ * a re-added video landed.
+ */
+async function openArchive() {
+  const ed = editorHere();
+  if (!ed || state.archive) return;
+  const gen = state.navGen;
+  const list = await archiveFor(ed.key);
+  if (pageGone(gen) || !state.selecting) return;
+  state.archive = { editor: ed, prev: state.catalog, changed: false };
+  state.catalog = list;
+  state.selected = new Set();
+  state.confirming = false;
+  facetFor = null;
+  ui.source.textContent = "Removed from " + (ed.key === "LL" ? "your Liked videos" : ed.key === "WL" ? "your Watch Later" : ed.noun);
+  setStatus([plural(list.length, "video"), "Newest first", "Kept six months"]);
+  renderSelbar();
+  applyView();
+}
+
+function closeArchive() {
+  const a = state.archive;
+  if (!a) return;
+  state.archive = null;
+  state.catalog = a.prev;
+  state.selected = new Set();
+  state.confirming = false;
+  facetFor = null;
+  if (!ui) return;
+  ui.source.textContent = sourceName();
+  setStatus([plural(state.catalog.length, "video")]);
+  if (a.changed) {
+    refreshCatalog();
+  } else {
+    renderSelbar();
+    applyView();
+  }
+}
+
+async function restoreSelected() {
+  const a = state.archive;
+  if (!a) return;
+  const ed = a.editor;
+  const videos = state.catalog.filter((v) => state.selected.has(v.id));
+  if (!videos.length) return;
+  grantEdits();
+  const gen = state.navGen;
+  state.confirming = false;
+  ui.selbar.textContent = "";
+  const msg = selMsg(ui.selbar, "Putting back… 0 of " + videos.length);
+  let done = [];
+  let error = null;
+  try {
+    done = await ed.restore(videos, (k) => { msg.textContent = "Putting back… " + k + " of " + videos.length; });
+  } catch (e) {
+    error = e;
+    done = e.done || [];
+  }
+  const doneSet = new Set(done);
+  const back = videos.filter((v) => doneSet.has(v.id));
+  if (back.length) {
+    await archiveDrop(ed.key, done);
+    if (ed.lib) await libraryRestore(ed.lib, back);
+    a.changed = true;
+  }
+  if (pageGone(gen) || state.archive !== a) return;
+  state.catalog = state.catalog.filter((v) => !doneSet.has(v.id));
+  state.selected = new Set(videos.filter((v) => !doneSet.has(v.id)).map((v) => v.id));
+  facetFor = null;
+  state.archiveCount = state.catalog.length;
+  renderSelbar();
+  applyView();
+  toast(error ? (back.length ? "Put back " + back.length + " of " + videos.length + ". " : "") + error.message : ed.backed(back.length));
+}
+
+// ---- when a read fails -----------------------------------------------------------------
+/*
+ * A read that throws, or that finds nothing on a page plainly showing videos,
+ * almost always means YouTube changed how it sends this list. Saying so, with a
+ * report to copy, is the difference between a bug report and an uninstall.
+ *
+ * And the videos YouTube already drew are still on the page, in the grid the
+ * panel hid. Reading those gives the panel something true to filter while the
+ * fix ships: fewer videos, but the right ones, instead of an empty box.
+ */
+const SCREEN_CARDS = "ytd-rich-item-renderer, ytd-playlist-video-renderer, ytd-video-renderer, ytd-grid-video-renderer, yt-lockup-view-model";
+const ISSUES_URL = "https://github.com/gottostartsomewhere/yt-channel-search/issues/new";
+
+// Every piece of text in a card, one per element that holds text directly.
+// textContent, not innerText: the grid is hidden, so nothing in it has layout.
+function leafTexts(el) {
+  const out = [];
+  for (const n of el.querySelectorAll("*")) {
+    if (n.children.length) continue;
+    const t = (n.textContent || "").replace(/\s+/g, " ").trim();
+    if (t) out.push(t);
+  }
+  return out;
+}
+
+function readScreenCards() {
+  const roots = state.hiddenGrids.map((h) => h.el).filter((el) => el.isConnected);
+  if (!roots.length) {
+    const g = findNativeGrid();
+    if (g) roots.push(g);
+  }
+  const out = [];
+  const seen = new Set();
+  for (const root of roots) {
+    for (const card of root.querySelectorAll(SCREEN_CARDS)) {
+      // A rich item wraps a lockup: read the outer one only.
+      if (card.parentElement && card.parentElement.closest(SCREEN_CARDS)) continue;
+      const a = card.querySelector("a[href*='/watch?v=']");
+      const m = a && (a.getAttribute("href") || "").match(/[?&]v=([\w-]{6,20})/);
+      if (!m || seen.has(m[1])) continue;
+      seen.add(m[1]);
+      const texts = leafTexts(card);
+      const durationText = texts.find((t) => /^\d{1,2}(:\d{2})+$/.test(t)) || "";
+      const viewsText = texts.find((t) => /\bviews?$/i.test(t) || /^no views$/i.test(t)) || "";
+      const publishedText = texts.find((t) => /\bago$|^streamed|^premiered/i.test(t)) || "";
+      // The heading when there is one; failing that, the longest text on the
+      // card that is not its length, its views or its date.
+      const titleEl = card.querySelector("#video-title, h3 a, h3");
+      const stats = new Set([durationText, viewsText, publishedText]);
+      const longest = texts.filter((t) => !stats.has(t)).sort((p, q) => q.length - p.length)[0] || "";
+      const title = ((titleEl && (titleEl.getAttribute("title") || titleEl.textContent)) || longest).replace(/\s+/g, " ").trim();
+      const ch = card.querySelector("a[href^='/@'], a[href^='/channel/']");
+      const hm = ch && (ch.getAttribute("href") || "").match(/^\/@([^/?]+)/);
+      out.push({
+        id: m[1],
+        title: title || "(no title)",
+        channel: ch ? cleanChannel(ch.textContent.replace(/\s+/g, " ").trim()) : "",
+        handle: hm ? hm[1].toLowerCase() : "",
+        durationText,
+        seconds: parseDuration(durationText),
+        // Unknown, not zero, when the card did not say.
+        views: viewsText ? parseViews(viewsText) : null,
+        publishedText,
+        days: parseRelativeDays(publishedText),
+        progress: typeof barPercent === "function" ? barPercent(card) : null,
+      });
+    }
+  }
+  return out;
+}
+
+function pageKind() {
+  if (isHistoryPage()) return "watch history";
+  if (ownListScope() === "wl") return "Watch Later";
+  if (ownListScope() === "liked") return "Liked videos";
+  if (playlistId()) return "a playlist";
+  if (isSubscriptionsPage()) return "subscriptions";
+  if (isSearchPage()) return state.omniScope ? "search bar library" : "search results";
+  return "a channel's videos";
+}
+
+/*
+ * The report. Names and counts only: which page kind, which part of YouTube's
+ * reply the read reached, what that reply was built from. No title, video,
+ * channel, address or search words, so it can be pasted anywhere.
+ */
+function diagnostics(err, onScreen) {
+  const ua = navigator.userAgent.match(/Chrome\/(\d+)/);
+  let version = "?";
+  try { version = chrome.runtime.getManifest().version; } catch (e) { /* reloaded extension */ }
+  return [
+    "Needle " + version + ", read failure",
+    "When: " + new Date().toISOString().slice(0, 16).replace("T", " ") + " UTC",
+    "Browser: " + (ua ? "Chrome " + ua[1] : "not Chrome") + ", language " + (navigator.language || "?"),
+    "Page: " + pageKind(),
+    "Read: " + (readTrace.kind || "?") + ", reached " + (readTrace.step || "?"),
+    "Problem: " + (err ? err.name + ": " + err.message : "the read came back empty"),
+    "On screen: " + plural(onScreen, "video"),
+    "Settings: deep reading " + (cfg.deepHistory ? "on" : "off") + ", video limit " + cfg.maxVideos,
+    "Reply shape: " + (readTrace.shape || "not reached"),
+  ].join("\n");
+}
+
+function showReadFailure(err) {
+  const screen = readScreenCards();
+  state.failure = { report: diagnostics(err, screen.length), onScreen: screen.length };
+  state.catalog = screen;
+  state.newIds = new Set();
+  facetFor = null;
+  recomputeMedians();
+  setStatus([screen.length ? plural(screen.length, "video") + " from the page" : "Could not read this page"]);
+  setView("search");
+  applyView();
+}
+
+// Drawn by renderGrid above the cards while a failure stands.
+function renderFailure(container) {
+  const f = state.failure;
+  if (!f) return;
+  const box = document.createElement("div");
+  box.className = "ytcs-failnote";
+  const head = document.createElement("strong");
+  head.textContent = "Needle couldn't read this page.";
+  const text = document.createElement("span");
+  text.textContent = " YouTube may have changed how it sends it. " + (f.onScreen
+    ? "These are the " + plural(f.onScreen, "video") + " already on the page, so the filters still work on them."
+    : "Reloading the page sometimes helps.") + " A report helps get it fixed fast.";
+  const copy = selBtn("Copy report", "ytcs-primarybtn", () => copyText(f.report, () => toast("Report copied. Nothing personal in it: no titles, videos or addresses")),
+    "A few lines about what broke, with nothing about you or what you watch");
+  const open = selBtn("Report it", "ytcs-ghost", () => {
+    copyText(f.report, () => {});
+    window.open(ISSUES_URL + "?title=" + encodeURIComponent("Read failure on " + pageKind()) +
+      "&body=" + encodeURIComponent("The report is on your clipboard. Paste it here:\n\n"), "_blank", "noopener");
+  }, "Opens a GitHub issue; the report is copied for you to paste");
+  const msg = document.createElement("div");
+  msg.className = "ytcs-failtext";
+  msg.appendChild(head);
+  msg.appendChild(text);
+  const acts = document.createElement("div");
+  acts.className = "ytcs-failacts";
+  acts.appendChild(copy);
+  acts.appendChild(open);
+  box.appendChild(msg);
+  box.appendChild(acts);
+  container.insertBefore(box, container.firstChild);
+}
+
+// ---- doing something with the result ------------------------------------------------
+/*
+ * Play, copy, share, download: the things people do once a list is narrowed.
+ * They act on the picked videos when there are any, otherwise on everything the
+ * filters left, never on the first 600 the grid happens to draw.
+ */
+function targetRows() {
+  if (state.selecting && state.selected.size) return state.catalog.filter((v) => state.selected.has(v.id));
+  return state.lastRows || filterAndSort();
+}
+
+function copyText(text, done) {
+  const fallback = () => {
+    const t = document.createElement("textarea");
+    t.value = text;
+    t.setAttribute("readonly", "");
+    t.style.cssText = "position:fixed;left:-9999px;top:0";
+    document.body.appendChild(t);
+    t.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { /* reported below */ }
+    t.remove();
+    if (ok) done();
+    else toast("Your browser would not let Needle copy. Try again");
+  };
+  try {
+    navigator.clipboard.writeText(text).then(done, fallback);
+  } catch (e) {
+    fallback();
+  }
+}
+
+const watchUrl = (id) => "https://www.youtube.com/watch?v=" + id;
+
+function copyRows(kind) {
+  const rows = targetRows().filter((v) => v.playable !== false);
+  if (!rows.length) {
+    toast("Nothing to copy. Loosen the filters first");
+    return;
+  }
+  const bits = (v) => [v.channel, fmtDuration(v.seconds)].filter(Boolean).join(", ");
+  let text;
+  if (kind === "links") {
+    text = rows.map((v) => watchUrl(v.id)).join("\n");
+  } else if (kind === "md") {
+    text = rows.map((v) => "- [" + v.title.replace(/([\[\]])/g, "\\$1") + "](" + watchUrl(v.id) + ")" + (bits(v) ? " (" + bits(v) + ")" : "")).join("\n");
+  } else {
+    text = rows.map((v) => v.title + (bits(v) ? " (" + bits(v) + ")" : "") + "\n" + watchUrl(v.id)).join("\n\n");
+  }
+  copyText(text, () => toast("Copied " + plural(rows.length, kind === "links" ? "link" : "video") + (kind === "links" ? ", one per line" : "")));
+  countUse();
+}
+
+/*
+ * YouTube's own watch_videos address takes up to 50 ids and turns them into a
+ * temporary playlist, played in order (checked September 2026). So Play hands
+ * over the list as it stands, filters and sort included.
+ */
+const PLAY_MAX = 50;
+
+function playRows() {
+  const rows = targetRows().filter((v) => v.playable !== false);
+  if (!rows.length) {
+    toast("Nothing to play. Loosen the filters first");
+    return;
+  }
+  countUse();
+  location.href = "https://www.youtube.com/watch_videos?video_ids=" + rows.slice(0, PLAY_MAX).map((v) => v.id).join(",");
+}
+
+// ---- sharing a filter -------------------------------------------------------------------
+/*
+ * A link to a page on Needle's site that carries the list and the filters after
+ * its "#". That page explains what it is, offers Needle to anyone without it,
+ * and opens YouTube with the filters riding along after a "#needle=", which
+ * arrive.js catches before YouTube tidies the address. The part after a "#" is
+ * never sent to any server, Needle's or YouTube's.
+ *
+ * Your own lists share as filters, not contents: a link made on your Watch
+ * Later opens the other person's own Watch Later, filtered the same way.
+ */
+const SHARE_BASE = "https://gottostartsomewhere.github.io/needle/f/";
+const SHARE_KEY = "ytcsShare";
+const SHARE_TTL = 60 * 1000;
+
+function shareKind() {
+  if (isHistoryPage()) return "history";
+  if (isSubscriptionsPage()) return "subs";
+  if (ownListScope() === "wl") return "wl";
+  if (ownListScope() === "liked") return "liked";
+  if (playlistId()) return "list";
+  if (isSearchPage()) return state.omniScope ? "" : "search";
+  return channelBasePath() ? "channel" : "";
+}
+
+function shareSource() {
+  const kind = shareKind();
+  if (kind === "history") return "/feed/history";
+  if (kind === "subs") return "/feed/subscriptions";
+  if (kind === "wl" || kind === "liked" || kind === "list") return "/playlist?list=" + playlistId();
+  if (kind === "search") {
+    const sp = new URLSearchParams(location.search).get("sp");
+    return "/results?search_query=" + encodeURIComponent(searchQuery()).replace(/%20/g, "+") + (sp ? "&sp=" + encodeURIComponent(sp) : "");
+  }
+  if (kind === "channel") return channelBasePath() + "/videos";
+  return "";
+}
+
+function shareLink() {
+  const p = shareSource();
+  if (!p) return "";
+  const kind = shareKind();
+  const q = [panelQueryString(false), ui.kw.value.trim()].filter(Boolean).join(" ");
+  const params = new URLSearchParams({ k: kind, p, q });
+  const name = kind === "channel" ? sourceName() : kind === "list" ? state.listTitle : "";
+  if (name) params.set("n", name.slice(0, 80));
+  return SHARE_BASE + "#" + params.toString();
+}
+
+function copyShareLink() {
+  const link = shareLink();
+  if (!link) {
+    toast("This list cannot be shared as a link");
+    return;
+  }
+  const kind = shareKind();
+  const whose = { wl: "their own Watch Later", liked: "their own Liked videos", history: "their own history", subs: "their own subscriptions" }[kind];
+  copyText(link, () => toast(whose ? "Link copied. It opens " + whose + " with these filters" : "Link copied. It opens this list with these filters"));
+  countUse();
+}
+
+// A shared link's filters, caught at page start by arrive.js. Used once.
+function takeShared() {
+  let p = null;
+  try { p = JSON.parse(sessionStorage.getItem(SHARE_KEY) || "null"); } catch (e) { return null; }
+  if (!p || typeof p.q !== "string" || Date.now() - p.at > SHARE_TTL) return null;
+  if ((p.path || "").replace(/\/$/, "") !== location.pathname.replace(/\/$/, "")) return null;
+  if ((p.list || "") !== (playlistId() || "")) return null;
+  try { sessionStorage.removeItem(SHARE_KEY); } catch (e) { /* ignore */ }
+  // YouTube sometimes leaves "#needle=" in the address; take it out, so a
+  // reload does not apply the shared filters all over again. Its own history
+  // state is kept as it is.
+  if (/^#needle=/.test(location.hash)) {
+    try { history.replaceState(history.state, "", location.pathname + location.search); } catch (e) { /* harmless */ }
+  }
+  return p.q;
+}
+
+function shareArrive() {
+  if (state.active || state.enabling || !canRunHere()) return;
+  const q = takeShared();
+  if (q === null) return;
+  const f = parseOmniQuery(q);
+  f.keepWords = true;
+  state.pendingOmni = f;
+  enable();
+}
+
+// ---- the keyboard --------------------------------------------------------------------------
+/*
+ * While the panel is open: / to search, j and k (or the arrows, once a card has
+ * focus) to move, Enter to open, x to pick in select mode, s for select mode,
+ * Esc to finish. Typing into any box is never intercepted, and nothing happens
+ * unless the keypress lands on the panel or on the page itself, so YouTube's
+ * player and its own boxes keep their keys.
+ */
+const KEYS_HELP = "Keys: / to search, j and k to move, Enter to open, x to pick, s to select, Esc to finish";
+
+function cardsInGrid() {
+  return ui ? Array.from(ui.grid.querySelectorAll("a.ytcs-card")) : [];
+}
+
+function focusCard(cards, i) {
+  const c = cards[Math.max(0, Math.min(cards.length - 1, i))];
+  if (!c) return;
+  c.focus();
+  c.scrollIntoView({ block: "nearest" });
+}
+
+// The card in the next or previous row closest to this one's column.
+function cardInRow(cards, from, dir) {
+  const r = cards[from].getBoundingClientRect();
+  let best = -1, bestScore = Infinity;
+  for (let i = 0; i < cards.length; i++) {
+    const q = cards[i].getBoundingClientRect();
+    const dy = (q.top - r.top) * dir;
+    if (dy < 4) continue;
+    const score = dy * 4 + Math.abs(q.left - r.left);
+    if (score < bestScore) { bestScore = score; best = i; }
+  }
+  return best === -1 ? from : best;
+}
+
+document.addEventListener("keydown", (e) => {
+  if (!state.active || !ui || e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+  const t = e.target;
+  const typing = t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
+  if (typing) {
+    if (e.key === "Escape" && t === ui.kw) { ui.kw.blur(); e.preventDefault(); }
+    return;
+  }
+  const inPanel = ui.wrap.contains(t) || t === document.body || t === document.documentElement;
+  if (!inPanel) return;
+  const cards = cardsInGrid();
+  const at = cards.indexOf(document.activeElement);
+  let handled = true;
+  switch (e.key) {
+    case "/": ui.kw.focus(); break;
+    case "j": focusCard(cards, at + 1); break;
+    case "k": focusCard(cards, at < 0 ? 0 : at - 1); break;
+    case "ArrowRight": if (at < 0) handled = false; else focusCard(cards, at + 1); break;
+    case "ArrowLeft": if (at < 0) handled = false; else focusCard(cards, at - 1); break;
+    case "ArrowDown": if (at < 0) handled = false; else focusCard(cards, cardInRow(cards, at, 1)); break;
+    case "ArrowUp": if (at < 0) handled = false; else focusCard(cards, cardInRow(cards, at, -1)); break;
+    case "x":
+    case " ":
+      if (state.selecting && at >= 0) toggleSelected(cards[at].dataset.id, cards[at]);
+      else handled = false;
+      break;
+    case "s":
+      if (canEditHere()) (state.selecting ? endSelecting() : startSelecting());
+      else handled = false;
+      break;
+    case "Escape":
+      if (openMenu) closeMenu(true);
+      else if (state.confirming) { state.confirming = false; state.hiddenFound = null; renderSelbar(); }
+      else if (state.selecting) endSelecting();
+      else if (at >= 0) cards[at].blur();
+      else handled = false;
+      break;
+    case "?": toast(KEYS_HELP, null, null, 9000); break;
+    default: handled = false;
+  }
+  if (handled) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+}, true);
 
 // ---- grid takeover lifecycle ---------------------------------------------
 /*
@@ -1007,9 +1695,9 @@ function sourceKey() {
   return isHistoryPage() ? "__history" : channelBasePath();
 }
 
-// Watch Later is the one list the panel can change, so it gets Select.
+// Watch Later, and your own lists once their videos show they are yours.
 function canEditHere() {
-  return ownListScope() === "wl";
+  return !!editorHere();
 }
 
 // History's watch dates, whether on its own page or reached with in:history.
@@ -1075,9 +1763,9 @@ function labelForSource() {
   ui.watched.title = hist ? "How far you got through these"
     : search || list || subs ? "What you have already watched" : "Your watch history on this channel";
 
-  // Select only where the panel can change the list: your Watch Later.
-  ui.selectBtn.style.display = canEditHere() ? "" : "none";
-  if (!canEditHere()) endSelecting();
+  // Select only where the panel can change the list. Your own playlists show
+  // it once read, since only their videos say whose they are.
+  syncEditButton();
 
   /*
    * Results arrive in YouTube's relevance order and a list arrives in its own,
@@ -1351,8 +2039,10 @@ function openCustom(name) {
  * anything typed into the bar. YouTube's own filters on the page are written
  * out too, as the operators that would have set them.
  */
-function panelQueryString() {
-  const toks = [searchQuery().trim()];
+// The panel's filters as typed text. A share link leaves the search's own words
+// out, since its address already carries them.
+function panelQueryString(withQuery) {
+  const toks = withQuery === false ? [] : [searchQuery().trim()];
   const len = (s) => (s % 60 ? s + "s" : s / 60 + "m");
   const [minD, maxD] = rangeVal(ui.duration);
   if (minD) toks.push(">" + len(minD));
@@ -1609,6 +2299,7 @@ async function refreshCatalog() {
   if (cold) { setView("search"); renderLoading(0); }
   else ui.grid.classList.add("ytcs-busy");
   setStatus(["Loading…"]);
+  state.failure = null;
   const key = sourceKey();
   const history = isHistoryPage();
   const search = isSearchPage();
@@ -1624,7 +2315,8 @@ async function refreshCatalog() {
     };
     const read = history
       ? await fetchHistory(onProgress, cfg.deepHistory)
-      : list ? await fetchPlaylist(list, cfg.deepHistory, onProgress)
+      // Each video's own menu actions, kept on lists that might be yours.
+      : list ? await fetchPlaylist(list, cfg.deepHistory, onProgress, { actions: own !== "wl" })
       : subs ? await fetchSubscriptions(onProgress, cfg.deepHistory)
       : scope ? await libraryCatalog(scope)
       : search ? await fetchSearch(searchQuery(), onProgress, cfg.deepHistory, currentSearchPlan())
@@ -1632,6 +2324,12 @@ async function refreshCatalog() {
     // Deleted and private videos sit in playlists as unplayable stubs.
     const cat = list ? Object.assign(read.filter((v) => v.playable !== false), { truncated: read.truncated, shallow: read.shallow }) : read;
     if (pageGone(gen)) return;
+    // Nothing read from a page that is plainly showing videos: YouTube changed
+    // something. Say so, and filter what is on screen meanwhile.
+    if (!cat.length && !scope && readScreenCards().length) {
+      showReadFailure(null);
+      return;
+    }
     if (list) {
       state.listTitle = read.title || "";
       ui.source.textContent = sourceName();
@@ -1700,10 +2398,14 @@ async function refreshCatalog() {
       }
       setStatus(bits);
     }
+    syncEditButton();
     applyView();
   } catch (e) {
     console.error("[Needle]", e);
-    if (!pageGone(gen)) setStatus(["Error: " + e.message]);
+    if (!pageGone(gen)) {
+      if (e.expected && !readScreenCards().length) setStatus([e.message]);
+      else showReadFailure(e);
+    }
   } finally {
     // After a navigation the flag belongs to the next page's read, which the
     // navigation already released, so an old read must not touch it.
@@ -2110,6 +2812,8 @@ function ensureUi() {
    * every lazy load and scroll. Worst case a stray grid shows for 1.5s.
    */
   if (state.active) hideNativeGrids();
+  // Opened from a shared filter link: open with its filters, once.
+  if (launcher) shareArrive();
 }
 
 window.addEventListener("yt-navigate-finish", () => {
@@ -2127,6 +2831,9 @@ window.addEventListener("yt-navigate-finish", () => {
   state.insight = "overview";
   state.listTitle = "";
   state.lastRows = null;
+  // Belongs to the page being left: dropped, not shown again here.
+  state.archive = null;
+  state.failure = null;
   endSelecting();
   setTimeout(ensureUi, 300);
 });

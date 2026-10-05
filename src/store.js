@@ -105,9 +105,11 @@ async function idbDelete(keys) {
  * costs one re-fetch, which is what a cache is for.
  */
 const INDEX_KEY = "__index";
+const ARCHIVE_KEY = "__removed";
 // The library is exempt for the same reason as the watchlist: it is one record
 // per install, refreshed in place, so it can never be what makes the cache big.
-const META_KEYS = ["__watchlist", "__library", INDEX_KEY];
+// The removal archive too: it is the safety net, and it has its own limits.
+const META_KEYS = ["__watchlist", "__library", INDEX_KEY, ARCHIVE_KEY];
 
 async function touchIndex(key, at) {
   const idx = (await idbGet(INDEX_KEY)) || {};
@@ -132,6 +134,49 @@ async function pruneCache() {
 async function clearCache() {
   const keys = await idbKeys();
   await idbDelete(keys);
+}
+
+/*
+ * ---- the removal archive -----------------------------------------------------------
+ *
+ * Everything Needle has taken out of one of your lists, kept in this browser so
+ * any of it can go back later, not only in the twelve seconds Undo is offered.
+ * Enough to show a card and nothing more: no thumbnails, no history. Six months
+ * and three thousand entries at most, oldest dropped first. Clearing cached
+ * data in the popup clears this with everything else.
+ */
+const ARCHIVE_MAX = 3000;
+const ARCHIVE_DAYS = 180;
+
+function archiveFresh(list) {
+  const cutoff = Date.now() - ARCHIVE_DAYS * 86400000;
+  return (list || []).filter((e) => e && e.at >= cutoff);
+}
+
+// `from` is the list's key ("WL", "LL" or a playlist id); `fromName` its name.
+async function archiveAdd(from, fromName, videos) {
+  const at = Date.now();
+  const ids = new Set(videos.map((v) => v.id));
+  const kept = archiveFresh(await idbGet(ARCHIVE_KEY)).filter((e) => !(e.from === from && ids.has(e.id)));
+  const added = videos.map((v) => ({
+    id: v.id, title: v.title, channel: v.channel || "", handle: v.handle || "",
+    seconds: v.seconds || 0, views: v.views || 0, publishedText: v.publishedText || "", days: v.days,
+    from, fromName, at,
+  }));
+  await idbPut(ARCHIVE_KEY, added.concat(kept).slice(0, ARCHIVE_MAX));
+}
+
+// One list's removals, newest first, shaped like the videos the panel shows.
+async function archiveFor(from) {
+  return archiveFresh(await idbGet(ARCHIVE_KEY))
+    .filter((e) => e.from === from)
+    .map((e) => Object.assign({}, e, { removedAt: e.at }));
+}
+
+async function archiveDrop(from, ids) {
+  const gone = new Set(ids);
+  const kept = archiveFresh(await idbGet(ARCHIVE_KEY)).filter((e) => !(e.from === from && gone.has(e.id)));
+  await idbPut(ARCHIVE_KEY, kept);
 }
 function fmtAgo(ms) {
   if (!ms) return "";

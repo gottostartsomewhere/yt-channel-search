@@ -681,6 +681,98 @@ function welcomePage() {
 }
 
 /*
+ * A shared filter. The panel's "Copy a link to this filter" points here with
+ * everything after the "#": which list (k), its YouTube address (p), the
+ * filters as typed (q) and sometimes a name (n). The part of an address after
+ * "#" never reaches any server, this one included, so the page reads it in the
+ * browser, explains it in words, and opens YouTube with the filters after
+ * "#needle=", where the extension's arrive.js picks them up. Anyone without
+ * Needle gets the store link instead of a puzzle.
+ *
+ * Only YouTube addresses of the five shapes the panel makes are accepted, so a
+ * hand-made link cannot use this page to send anyone anywhere else.
+ */
+function sharePage() {
+  const body = `
+<main>
+  <section class="band band-article">
+    <div class="article">
+      ${eyebrow("", "A shared Needle filter")}
+      <h1 id="fh">Someone shared a filter<span class="red">.</span></h1>
+      <p id="fsrc" class="mono small"></p>
+      <div id="fchips" class="fchips"></div>
+      <p id="fnote" class="small"></p>
+      <p style="margin-top:36px"><a id="fopen" class="btn" href="https://www.youtube.com/">Open on YouTube ${ARROW}</a></p>
+      <p class="mono small" style="margin-top:28px">Needle is a free Chrome extension, and the filter needs it. Without it, YouTube opens the same page unfiltered.</p>
+      <p><a class="btn-line btn-sm" href="${store("share")}">Get Needle, free</a></p>
+    </div>
+  </section>
+</main>
+<style>
+  .fchips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+  .fchips span { display: inline-flex; align-items: center; height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--hot-line); background: var(--chip); color: #ffd9da; font: 600 15px var(--sans); }
+  .fchips span.word { color: var(--text); background: var(--card); border-color: var(--line-2); }
+</style>
+<script>
+(function () {
+  var h = new URLSearchParams(location.hash.slice(1));
+  var k = h.get("k") || "", p = h.get("p") || "", q = (h.get("q") || "").slice(0, 600), n = (h.get("n") || "").slice(0, 80);
+  var ok = /^\\/(@[^\\/?#\\s]+\\/videos|channel\\/UC[\\w-]{22}\\/videos|c\\/[^\\/?#\\s]+\\/videos|user\\/[^\\/?#\\s]+\\/videos|playlist\\?list=[\\w-]+|results\\?search_query=[^#\\s]*|feed\\/(history|subscriptions))$/.test(p);
+  var $ = function (id) { return document.getElementById(id); };
+  if (!ok) {
+    $("fh").innerHTML = "This link is broken<span class=\\"red\\">.</span>";
+    $("fsrc").textContent = "It doesn't point at a YouTube list Needle can open.";
+    $("fopen").textContent = "Open YouTube";
+    return;
+  }
+  var search = (p.match(/search_query=([^&]*)/) || [])[1];
+  var src = {
+    channel: "Videos from " + (n || decodeURIComponent(p.split("/")[1] || "a channel")),
+    list: n ? "The playlist \\u201c" + n + "\\u201d" : "A YouTube playlist",
+    search: "YouTube results for \\u201c" + decodeURIComponent((search || "").replace(/\\+/g, " ")) + "\\u201d",
+    wl: "Your own Watch Later", liked: "Your own Liked videos", history: "Your own watch history", subs: "Your own subscriptions"
+  }[k] || "A YouTube list";
+  $("fsrc").textContent = src;
+  if (/^(wl|liked|history|subs)$/.test(k)) $("fnote").textContent = "Only the filters are shared. It opens your own list, never the sender's.";
+  // The filters, in words.
+  var len = function (t) { var m = /^(\\d+(?:\\.\\d+)?)([smh])?$/.exec(t); if (!m) return t; var u = m[2] || "m"; return m[1] + (u === "s" ? " sec" : u === "h" ? " hr" : " min"); };
+  var cnt = function (t) { return t.replace(/\\s*views?$/i, "").toUpperCase(); };
+  var label = function (t) {
+    var m;
+    if ((m = /^([<>])(\\d[\\d.,]*\\s*[kmb]?\\s+views?|\\d[\\d.,]*\\s*[kb])$/i.exec(t))) return (m[1] === "<" ? "Under " : "Over ") + cnt(m[2]) + " views";
+    if ((m = /^([<>])(\\d+(?:\\.\\d+)?[smh]?)$/i.exec(t))) return (m[1] === "<" ? "Under " : "Over ") + len(m[2]);
+    var fixed = { "is:unwatched": "Not watched yet", "is:started": "Started", "is:watched": "Watched", "is:fresh": "Not shown to you before",
+      "date:today": "Uploaded today", "date:week": "This week", "date:month": "This month", "date:year": "This year",
+      "sort:views": "Most viewed first", "sort:newest": "Newest first", "sort:oldest": "Oldest first", "sort:longest": "Longest first", "sort:shortest": "Shortest first" };
+    if (fixed[t.toLowerCase()]) return fixed[t.toLowerCase()];
+    if ((m = /^(after|before):(\\S+)$/i.exec(t))) return (m[1].toLowerCase() === "after" ? "After " : "Before ") + m[2];
+    if ((m = /^-@(\\S+)$/.exec(t))) return "Not from @" + m[1];
+    if ((m = /^@(\\S+)$/.exec(t))) return "From @" + m[1];
+    if ((m = /^lang:(\\S+)$/i.exec(t))) return "Language: " + m[1];
+    if ((m = /^-(\\S+)$/.exec(t))) return "Without \\u201c" + m[1] + "\\u201d";
+    return null;
+  };
+  var toks = q.match(/-?@\\S+|[<>]\\d[\\d.,]*\\s*[kmb]?\\s+views?|\\S+/gi) || [];
+  var box = $("fchips"), words = [];
+  toks.forEach(function (t) {
+    var l = label(t);
+    if (l === null) { words.push(t); return; }
+    var s = document.createElement("span"); s.textContent = l; box.appendChild(s);
+  });
+  if (words.length) { var w = document.createElement("span"); w.className = "word"; w.textContent = "Title has \\u201c" + words.join(" ") + "\\u201d"; box.appendChild(w); }
+  if (!toks.length) $("fnote").textContent = ($("fnote").textContent + " No filters, just the list.").trim();
+  $("fopen").href = "https://www.youtube.com" + p + (q ? "#needle=" + encodeURIComponent(q) : "");
+})();
+</script>`;
+  return shell({
+    slug: "",
+    title: "A shared Needle filter",
+    description: "Open this YouTube list with the filters someone shared, using Needle.",
+    body, jsonld: { "@context": "https://schema.org", "@type": "WebPage", name: "Shared filter" }, depth: 1, robots: "noindex",
+  });
+}
+
+/*
  * The page the browser opens when Needle is removed. One question, each answer
  * a link, and nothing about the person on the way in: the extension opens a
  * fixed address with no parameters.
@@ -740,6 +832,7 @@ GUIDES.forEach((g, i) => write(g.slug + "/index.html", guidePage(g, i)));
 write("404.html", notFound());
 write("welcome/index.html", welcomePage());
 write("bye/index.html", byePage());
+write("f/index.html", sharePage());
 write("robots.txt", `User-agent: *\nAllow: /\n\nSitemap: ${BASE}sitemap.xml\n`);
 write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
