@@ -1084,11 +1084,20 @@ function renderMuteNote(n) {
     if (note) note.remove();
     return;
   }
+  /*
+   * Unchanged, left alone. The note sits inside what watchForCards observes,
+   * so rebuilding it on every pass was itself a change that scheduled the next
+   * pass: four full scans a second for as long as a search with muted results
+   * stayed open.
+   */
+  const sig = (omni.showMuted ? "shown" : "hidden") + "|" + n;
+  if (note && note.dataset.sig === sig && note.nextElementSibling === list) return;
   if (!note) {
     note = document.createElement("div");
     note.className = "ytcs-mutenote";
-    list.parentElement.insertBefore(note, list);
   }
+  if (note.nextElementSibling !== list) list.parentElement.insertBefore(note, list);
+  note.dataset.sig = sig;
   note.textContent = "";
   note.appendChild(omniIcon("mute", 14));
   const t = document.createElement("span");

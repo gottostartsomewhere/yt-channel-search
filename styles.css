@@ -2,19 +2,39 @@
  * Needle for YouTube
  * A restrained, monochrome UI with a single accent. Surfaces and text follow
  * YouTube's own theme tokens so it sits naturally in light and dark.
+ *
+ * YouTube renamed those tokens (color-version v2_0, seen October 2026): the
+ * --yt-spec-* names are gone and --yt-sys-color-baseline--* replaced them.
+ * With only the old names, every one fell through to the dark fallbacks, so in
+ * light mode the panel drew white titles on YouTube's white page. The new name
+ * comes first, the old one stays for anyone still served the old styles.
  */
 
 .ytcs-launcher,
 .ytcs-wrap {
   --ac: #e5484d;
   --ac-soft: rgba(229, 72, 77, 0.16);
-  --bg: var(--yt-spec-base-background, #0f0f0f);
-  --surface: var(--yt-spec-badge-chip-background, #1c1c1c);
-  --line: var(--yt-spec-10-percent-layer, #2a2a2a);
-  --txt: var(--yt-spec-text-primary, #f1f1f1);
-  --dim: var(--yt-spec-text-secondary, #a0a0a0);
+  --bg: var(--yt-sys-color-baseline--base-background, var(--yt-spec-base-background, #0f0f0f));
+  --surface: var(--yt-sys-color-baseline--additive-background, var(--yt-spec-badge-chip-background, #1c1c1c));
+  --line: var(--yt-sys-color-baseline--outline, var(--yt-spec-10-percent-layer, #2a2a2a));
+  --txt: var(--yt-sys-color-baseline--text-primary, var(--yt-spec-text-primary, #f1f1f1));
+  --dim: var(--yt-sys-color-baseline--text-secondary, var(--yt-spec-text-secondary, #a0a0a0));
+  /* Solid, for anything floating over thumbnails: the new chip colour is see-through. */
+  --raised: var(--yt-sys-color-baseline--raised-background, var(--yt-spec-raised-background, #212121));
   font-family: "Roboto", system-ui, sans-serif;
 }
+
+/*
+ * On YouTube's white page the accent is also small text ("87 of 152", "Removed
+ * 3d ago", links), and #e5484d on white is 3.9:1, under the 4.5:1 that small
+ * text needs. A deeper red there reads 5.2:1, and white on it does too. Dark
+ * pages keep the brighter one, which is 4.9:1 on #0f0f0f.
+ */
+html:not([dark]) .ytcs-launcher,
+html:not([dark]) .ytcs-wrap,
+html:not([dark]) .ytcs-omni,
+html:not([dark]) .ytcs-libstrip,
+html:not([dark]) .ytcs-mutenote { --ac: #cc2f36; }
 
 /* launcher */
 .ytcs-launcher {
@@ -26,7 +46,7 @@
   padding: 0 20px;
   border: 1px solid var(--line);
   border-radius: 14px;
-  background: var(--surface);
+  background: var(--raised);
   color: var(--txt);
   font-size: 14px;
   font-weight: 600;
@@ -628,6 +648,17 @@ html[dark] .ytcs-fsel option { background: #1c1c1c; color: #f1f1f1; }
   color: var(--dim);
   font-size: 13px;
 }
+.ytcs-empty .ytcs-emptyclear {
+  margin-left: 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--txt);
+  font-size: 13px;
+}
+.ytcs-empty .ytcs-emptyclear:hover { border-color: var(--ac); color: var(--ac); }
+/* A notice has no spinner, so it needs less room above it. */
+.ytcs-notice { padding: 56px 20px; gap: 10px; }
 
 /* insights */
 .ytcs-insights { padding-bottom: 48px; }
@@ -986,10 +1017,10 @@ html[dark] .ytcs-fsel option { background: #1c1c1c; color: #f1f1f1; }
 .ytcs-libstrip,
 .ytcs-badge {
   --ac: #e5484d;
-  --line: var(--yt-spec-10-percent-layer, #2a2a2a);
-  --txt: var(--yt-spec-text-primary, #f1f1f1);
-  --dim: var(--yt-spec-text-secondary, #a0a0a0);
-  --hover: var(--yt-spec-badge-chip-background, rgba(255, 255, 255, 0.1));
+  --line: var(--yt-sys-color-baseline--outline, var(--yt-spec-10-percent-layer, #2a2a2a));
+  --txt: var(--yt-sys-color-baseline--text-primary, var(--yt-spec-text-primary, #f1f1f1));
+  --dim: var(--yt-sys-color-baseline--text-secondary, var(--yt-spec-text-secondary, #a0a0a0));
+  --hover: var(--yt-sys-color-baseline--additive-background, var(--yt-spec-badge-chip-background, rgba(255, 255, 255, 0.1)));
   font-family: "Roboto", system-ui, sans-serif;
 }
 .ytcs-omni,
@@ -1306,10 +1337,10 @@ mark.ytcs-hl {
 .ytcs-toast,
 .ytcs-omni-follow {
   --ac: #e5484d;
-  --line: var(--yt-spec-10-percent-layer, #2a2a2a);
-  --txt: var(--yt-spec-text-primary, #f1f1f1);
-  --dim: var(--yt-spec-text-secondary, #a0a0a0);
-  --hover: var(--yt-spec-badge-chip-background, rgba(255, 255, 255, 0.1));
+  --line: var(--yt-sys-color-baseline--outline, var(--yt-spec-10-percent-layer, #2a2a2a));
+  --txt: var(--yt-sys-color-baseline--text-primary, var(--yt-spec-text-primary, #f1f1f1));
+  --dim: var(--yt-sys-color-baseline--text-secondary, var(--yt-spec-text-secondary, #a0a0a0));
+  --hover: var(--yt-sys-color-baseline--additive-background, var(--yt-spec-badge-chip-background, rgba(255, 255, 255, 0.1)));
   font-family: "Roboto", system-ui, sans-serif;
 }
 
@@ -1538,7 +1569,7 @@ a:hover > .ytcs-mutebtn,
   padding: 6px;
   border: 1px solid var(--line);
   border-radius: 12px;
-  background: var(--yt-spec-menu-background, #282828);
+  background: var(--yt-sys-color-baseline--menu-background, var(--yt-spec-menu-background, #282828));
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
   animation: ytcs-menu-in 0.12s ease-out;
 }
@@ -1703,7 +1734,7 @@ a:hover > .ytcs-mutebtn,
   margin: 2px 12px 6px;
   padding: 9px 12px;
   border-radius: 10px;
-  background: var(--yt-spec-badge-chip-background, #272727);
+  background: var(--yt-sys-color-baseline--additive-background, var(--yt-spec-badge-chip-background, #272727));
   font-size: 12.5px;
   line-height: 1.4;
 }

@@ -616,7 +616,9 @@ async function fetchCatalogFrom(url, onProgress) {
 
   let { videos, token } = parseItemArray(grid.contents);
   const all = videos.slice();
-  onProgress(all.length);
+  // The list so far goes along with the count, so the panel can show the
+  // first page while the rest is still being read. Every reader does this.
+  onProgress(all.length, all);
 
   /*
    * The walk is bounded three ways: a page cap from the user's video limit, a
@@ -652,7 +654,7 @@ async function fetchCatalogFrom(url, onProgress) {
       added++;
     }
     token = res.token;
-    onProgress(all.length);
+    onProgress(all.length, all);
     if (added === 0) break;
   }
   /*
@@ -706,6 +708,12 @@ async function sapisidHash() {
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
   return "SAPISIDHASH " + ts + "_" + hex;
+}
+
+// Signed in to YouTube at all: the same cookie the hash above is made from,
+// which YouTube's own page needs for anything personal. Only its presence.
+function signedIn() {
+  return /(?:^|;\s*)(SAPISID|__Secure-3PAPISID)=/.test(document.cookie);
 }
 
 const MONTHS = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
@@ -852,7 +860,7 @@ async function fetchHistory(onProgress, signed) {
   const first = deepFind(data, "sectionListRenderer");
   const all = parseHistorySections((first && first.contents) || [], carry, now);
   if (!all.length) throw expectedError("No watch history to read. It may be paused or cleared.");
-  onProgress(all.length);
+  onProgress(all.length, all);
 
   const auth = signed ? await sapisidHash() : null;
   let token = auth ? findContinuationToken(data) : null;
@@ -879,7 +887,7 @@ async function fetchHistory(onProgress, signed) {
       added++;
     }
     token = findContinuationToken(json);
-    onProgress(all.length);
+    onProgress(all.length, all);
     if (added === 0) break;
   }
 
@@ -1150,7 +1158,7 @@ async function fetchPlaylist(listId, signed, onProgress, opts) {
   all.title = playlistTitle(data);
   // Signed out, or a list that does not exist: nothing to read, not an error.
   if (!all.length) return all;
-  if (onProgress) onProgress(all.length);
+  if (onProgress) onProgress(all.length, all);
 
   /*
    * A public playlist pages without any signature, the same as a channel's
@@ -1181,7 +1189,7 @@ async function fetchPlaylist(listId, signed, onProgress, opts) {
       added++;
     }
     token = findContinuationToken(items);
-    if (onProgress) onProgress(all.length);
+    if (onProgress) onProgress(all.length, all);
     if (added === 0) break;
   }
   all.truncated = !!token && pages >= maxPages;
@@ -1219,7 +1227,7 @@ async function fetchSubscriptions(onProgress, signed) {
   if (!grid || !grid.contents) throw expectedError("Could not read your subscriptions. Are you signed in?");
   let { videos, token } = parseItemArray(grid.contents);
   const all = videos.filter((v) => !v.isShort);
-  onProgress(all.length);
+  onProgress(all.length, all);
 
   const auth = signed && apiKey ? await sapisidHash() : null;
   if (!auth) token = null;
@@ -1246,7 +1254,7 @@ async function fetchSubscriptions(onProgress, signed) {
       added++;
     }
     token = res.token;
-    onProgress(all.length);
+    onProgress(all.length, all);
     if (added === 0) break;
   }
   all.shallow = !auth;

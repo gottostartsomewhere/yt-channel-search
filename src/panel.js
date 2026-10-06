@@ -525,7 +525,9 @@ function buildUi() {
       el.classList.add("ytcs-dim");
     }
     state.extra = freshExtra();
-    ui.sort.value = "newest";
+    // Back to the order this page opened in, which is not "newest" on history
+    // or for anyone who picked another opening sort in the popup.
+    ui.sort.value = ui.sort.dataset.def || "newest";
     applyView();
   };
   searchBox.appendChild(count);
@@ -787,10 +789,19 @@ function buildUi() {
   };
   nicheRefresh.onclick = () => refreshWatchlist();
 
-  for (const el of [kw, duration, views, uploaded, watched, fits, sort]) {
-    el.addEventListener("input", applyView);
-    el.addEventListener("change", applyView);
-  }
+  /*
+   * One redraw per change. The menus used to listen for both input and change,
+   * which a pick fires together, so every pick drew the grid twice. Typing
+   * waits for a short pause once the list is big enough for a redraw to be
+   * felt: 600 cards took ~25ms on a fast desktop, every key, more on a laptop.
+   */
+  kw.addEventListener("input", () => {
+    clearTimeout(typingTimer);
+    typingTimer = 0;
+    if (state.catalog.length < 300) applyView();
+    else typingTimer = setTimeout(flushTyping, 120);
+  });
+  for (const el of [duration, views, uploaded, watched, fits, sort]) el.addEventListener("change", applyView);
   // In select mode a click on a card picks it rather than opening the video.
   grid.addEventListener("click", (e) => {
     if (!state.selecting) return;
@@ -799,16 +810,42 @@ function buildUi() {
     e.preventDefault();
     toggleSelected(card.dataset.id, card);
   });
-  setListView(state.listView, true);
+  setListView(viewPrefs[viewKind()], true);
   layoutTokens();
+}
+
+// A redraw the search box is holding back until typing pauses, run now.
+let typingTimer = 0;
+function flushTyping() {
+  if (!typingTimer) return;
+  clearTimeout(typingTimer);
+  typingTimer = 0;
+  applyView();
 }
 
 // ---- grid or list ----------------------------------------------------------------
 const ICON_GRID = "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z";
 const ICON_LIST = "M4 6h16M4 12h16M4 18h16";
 
+/*
+ * Lists (Watch Later, Liked, playlists, history) open as a list, the way
+ * YouTube shows them; channels, subscriptions and search open as a grid. Each
+ * remembers its own switch.
+ */
+const viewPrefs = { lists: true, feeds: false };
+const VIEW_KEYS = { lists: "listViewLists", feeds: "listView" };
+
+function viewKind() {
+  return playlistId() || isHistoryPage() ? "lists" : "feeds";
+}
+
 function setListView(on, quiet) {
   state.listView = !!on;
+  if (!quiet) {
+    const kind = viewKind();
+    viewPrefs[kind] = state.listView;
+    try { chrome.storage.local.set({ [VIEW_KEYS[kind]]: state.listView }); } catch (e) { /* it still switches */ }
+  }
   if (!ui) return;
   ui.grid.classList.toggle("ytcs-listview", state.listView);
   ui.viewBtn.textContent = "";
@@ -817,9 +854,6 @@ function setListView(on, quiet) {
   const label = state.listView ? "Show as a grid" : "Show as a list";
   ui.viewBtn.title = label;
   ui.viewBtn.setAttribute("aria-label", label);
-  if (!quiet) {
-    try { chrome.storage.local.set({ listView: state.listView }); } catch (e) { /* it still switches */ }
-  }
 }
 
 // ---- the channel picker --------------------------------------------------------------
@@ -875,6 +909,8 @@ function editorHere() {
   const list = playlistId();
   if (!list) return null;
   const own = ownListScope();
+  // Nothing to change signed out, and YouTube would refuse it anyway.
+  if (own === "wl" && !signedIn()) return null;
   if (own === "wl") {
     return {
       key: "WL", lib: "wl", noun: "Watch Later", picks: "Pick videos to remove from your Watch Later",
@@ -1029,6 +1065,11 @@ function renderSelbar() {
       "the way YouTube's own \"Show unavailable videos\" does. Allow it? Nothing is removed until you say so.");
     bar.appendChild(selBtn("Allow and look", "ytcs-primarybtn", () => findHidden()));
     bar.appendChild(cancel());
+    return;
+  }
+  if (state.confirming === "nohidden") {
+    selMsg(bar, state.hiddenNote || "");
+    bar.appendChild(selBtn("OK", "ytcs-ghost", () => { state.confirming = false; renderSelbar(); }));
     return;
   }
   if (state.confirming === "hidden" && state.hiddenFound) {
@@ -1186,10 +1227,15 @@ async function findHidden() {
   if (pageGone(gen) || !state.selecting) return;
   // Watch Later removes by video id. Anywhere else, only what its own menu offers.
   const removable = ed.key === "WL" ? dead : dead.filter((v) => v.rm);
+  // The answer stays in the bar until dismissed: a toast was easy to miss,
+  // which made the whole look feel like a reload that did nothing.
   if (!removable.length) {
+    state.hiddenNote = dead.length
+      ? "Found " + plural(dead.length, "deleted or private video") + ", but YouTube offers no way to remove them here."
+      : "No deleted or private videos in your " + ed.noun + ". Checked " + plural(dead.checked, "video") +
+        (dead.complete ? "." : ", as far as Needle reads.");
+    state.confirming = "nohidden";
     renderSelbar();
-    toast(dead.length ? "Found " + dead.length + ", but YouTube offers no way to remove them here"
-      : "No deleted or private videos in your " + ed.noun + (dead.complete ? "" : ", as far as Needle read"));
     return;
   }
   state.hiddenFound = removable;
@@ -1387,6 +1433,8 @@ function showReadFailure(err) {
   facetFor = null;
   recomputeMedians();
   setStatus([screen.length ? plural(screen.length, "video") + " from the page" : "Could not read this page"]);
+  // Not the moment to ask for a review.
+  ui.rate.hidden = true;
   setView("search");
   applyView();
 }
@@ -1626,6 +1674,8 @@ document.addEventListener("keydown", (e) => {
   }
   const inPanel = ui.wrap.contains(t) || t === document.body || t === document.documentElement;
   if (!inPanel) return;
+  // Moving straight from the search box to the cards: draw what was typed first.
+  flushTyping();
   const cards = cardsInGrid();
   const at = cards.indexOf(document.activeElement);
   let handled = true;
@@ -1778,8 +1828,17 @@ function labelForSource() {
   if ((search || list || subs) && !hist) {
     const rest = SORTS.filter(([v]) => v !== "newest" && v !== "oldest" && v !== "starthere");
     const asCame = scope || list ? "List order" : subs ? "Feed order" : "Relevance";
-    setOptions(ui.sort, [["newest", asCame], ["upload_new", "Newest upload"], ["upload_old", "Oldest upload"]].concat(rest));
+    /*
+     * A list page can also be read back to front, which "oldest" already does.
+     * Sorting it the way YouTube's own Sort does is not possible without
+     * changing it: on your own lists that Sort saves a new order to the list
+     * (ACTION_SET_PLAYLIST_VIDEO_ORDER), so the panel reverses what it read.
+     */
+    const order = [["newest", asCame]];
+    if (list) order.push(["oldest", "List order, reversed"]);
+    setOptions(ui.sort, order.concat([["upload_new", "Newest upload"], ["upload_old", "Oldest upload"]], rest));
     ui.sort.value = "newest";
+    ui.sort.dataset.def = "newest";
     return;
   }
   setOptions(ui.sort, hist ? WATCH_SORTS.concat(SORTS) : SORTS);
@@ -1789,6 +1848,8 @@ function labelForSource() {
   // A saved default that is no longer offered (Views per day was removed)
   // leaves the menu blank rather than falling back, so fall back here.
   if (!ui.sort.value) ui.sort.value = "newest";
+  // What Clear goes back to, and what does not count as a change.
+  ui.sort.dataset.def = ui.sort.value;
 }
 
 // ---- tokens ------------------------------------------------------------------
@@ -2308,11 +2369,34 @@ async function refreshCatalog() {
   const subs = isSubscriptionsPage();
   const scope = search && state.omniScope;
   try {
-    const onProgress = (n) => {
+    /*
+     * A first read shows what it has as it goes, so a big channel puts its
+     * first page up within a second or two instead of a counter for as long as
+     * the whole read takes (TED's 1,800 videos: 20 seconds). At most one redraw
+     * every 1.2s, since each rebuilds up to 600 cards. Search keeps its own
+     * batches, and the library scopes arrive in one piece anyway.
+     */
+    const early = cold && !search && !scope;
+    let drawnAt = 0;
+    const onProgress = (n, sofar) => {
       if (pageGone(gen)) return;
+      if (early && sofar && sofar.length && Date.now() - drawnAt > 1200) {
+        drawnAt = Date.now();
+        state.catalog = list ? sofar.filter((v) => v.playable !== false) : sofar.slice();
+        recomputeMedians();
+        applyView();
+      } else if (cold && !drawnAt) {
+        renderLoading(n);
+      }
       setStatus(["Loading… " + n]);
-      if (cold) renderLoading(n);
     };
+    // Your own lists, history and subscriptions are nothing signed out. Say so
+    // plainly, rather than read YouTube's signed-out page and call it empty.
+    if ((history || own || subs) && !signedIn()) {
+      const e = expectedError("Sign in to YouTube to search your " + (history ? "watch history" : subs ? "subscriptions" : LIB_NAMES[own]));
+      e.hint = "Needle reads it with your own sign-in, in this browser. Nothing goes anywhere else.";
+      throw e;
+    }
     const read = history
       ? await fetchHistory(onProgress, cfg.deepHistory)
       // Each video's own menu actions, kept on lists that might be yours.
@@ -2401,10 +2485,14 @@ async function refreshCatalog() {
     syncEditButton();
     applyView();
   } catch (e) {
-    console.error("[Needle]", e);
+    // Signed out, history paused and the like are states, not faults.
+    if (!e.expected) console.error("[Needle]", e);
     if (!pageGone(gen)) {
-      if (e.expected && !readScreenCards().length) setStatus([e.message]);
-      else showReadFailure(e);
+      if (e.expected && !readScreenCards().length) {
+        setStatus([]);
+        renderNotice(e.message, e.hint || "");
+        syncEditButton();
+      } else showReadFailure(e);
     }
   } finally {
     // After a navigation the flag belongs to the next page's read, which the
@@ -2441,7 +2529,8 @@ function searchStatus() {
   const yt = spLabels(pageSp());
   if (yt.length) bits.push("YouTube filters: " + yt.join(", "));
   let title = "";
-  if (ctx && ctx.partial) {
+  // Signed out there is no watch progress to be partial about.
+  if (ctx && ctx.partial && signedIn()) {
     bits.push("Watch progress partial");
     title = "Watch progress is only known for the first page of results. Deep reading, in the popup, covers the rest.";
   }
@@ -2620,7 +2709,7 @@ async function countUse() {
   // ever run", which is the question that cost a day of guessing.
   rateCache = { opens: (st.opens || 0) + 1, done: false, at: Date.now() };
   saveRateState(rateCache);
-  if (rateAskReady() && ui) ui.rate.hidden = false;
+  if (rateAskReady() && ui && !state.failure) ui.rate.hidden = false;
 }
 
 // grid.js calls it by this name, after a filter narrows the panel's list.
@@ -2835,6 +2924,7 @@ window.addEventListener("yt-navigate-finish", () => {
   state.archive = null;
   state.failure = null;
   endSelecting();
+  setListView(viewPrefs[viewKind()], true);
   setTimeout(ensureUi, 300);
 });
 // Keyboard shortcut, relayed from the service worker.
@@ -2895,8 +2985,11 @@ function bootstrap() {
   // Per-device state the panel and the search bar both read without waiting.
   rateState().then((st) => { if (st) rateCache = st; });
   try {
-    chrome.storage.local.get({ listView: false }, (got) => {
-      if (got && !chrome.runtime.lastError) setListView(!!got.listView, true);
+    chrome.storage.local.get({ listView: false, listViewLists: true }, (got) => {
+      if (!got || chrome.runtime.lastError) return;
+      viewPrefs.feeds = !!got.listView;
+      viewPrefs.lists = !!got.listViewLists;
+      setListView(viewPrefs[viewKind()], true);
     });
   } catch (e) { /* grid it is */ }
 

@@ -50,8 +50,8 @@ const state = {
   // "find", "hidden"), or false.
   selecting: false, selected: new Set(), confirming: false,
   // The removal archive while it is showing, how many it holds for this list,
-  // and the hidden dead videos a search turned up.
-  archive: null, archiveCount: 0, hiddenFound: null,
+  // and the hidden dead videos a search turned up (or what it said when none).
+  archive: null, archiveCount: 0, hiddenFound: null, hiddenNote: "",
   // A read that failed: its report, and how many videos came from the page.
   failure: null,
   // What the filters last left, so the selection bar can offer "all shown".
@@ -235,7 +235,7 @@ function applyView() {
   const narrowed = rows.length !== state.catalog.length;
   const x = state.extra;
   const touched = !!(ui.kw.value.trim() || ui.duration.value || ui.views.value ||
-    ui.uploaded.value || ui.watched.value || ui.fits.value || ui.sort.value !== "newest" ||
+    ui.uploaded.value || ui.watched.value || ui.fits.value || ui.sort.value !== (ui.sort.dataset.def || "newest") ||
     extraTokens().length);
   ui.clear.style.display = touched ? "" : "none";
   ui.count.classList.toggle("ytcs-filtered", narrowed);
@@ -315,9 +315,36 @@ function renderLoading(n) {
   ui.grid.appendChild(box);
 }
 
+/*
+ * A read that ended in an ordinary state (signed out, history paused, nothing
+ * here): said where the videos would be, in place of the spinner, which
+ * otherwise stayed up forever beside a status line nobody was looking at.
+ */
+function renderNotice(head, sub) {
+  ui.grid.innerHTML = "";
+  ui.stats.textContent = "";
+  ui.count.textContent = "";
+  const box = document.createElement("div");
+  box.className = "ytcs-loading ytcs-notice";
+  const h = document.createElement("div");
+  h.className = "ytcs-loadhead";
+  h.textContent = head;
+  box.appendChild(h);
+  if (sub) {
+    const s = document.createElement("div");
+    s.className = "ytcs-loadsub";
+    s.textContent = sub;
+    box.appendChild(s);
+  }
+  ui.grid.appendChild(box);
+}
+
 function renderStats(rows) {
-  // Nothing loaded is not a channel with zero views.
-  ui.stats.style.display = state.catalog.length ? "" : "none";
+  // Nothing loaded is not a channel with zero views, and nothing matching is
+  // not "Total views 0": the empty grid already says so.
+  // Videos taken off the screen after a failed read carry no counts at all,
+  // and "Total views 0" would state one.
+  ui.stats.style.display = state.catalog.length && rows.some((v) => v.views != null) ? "" : "none";
   const n = rows.length;
   const totalViews = rows.reduce((s, v) => s + v.views, 0);
   // An even count puts the median between two videos, and "209.5 views" is a
@@ -333,7 +360,8 @@ function renderStats(rows) {
     ["Average length", fmtDuration(avgDur) || "–"],
   ];
   // Only meaningful when this account actually has history on the channel.
-  if (state.catalog.some((v) => typeof v.progress === "number")) {
+  // Signed out there is none, whatever the read filled in.
+  if (signedIn() && state.catalog.some((v) => typeof v.progress === "number")) {
     tiles.push(["Not started", String(rows.filter((v) => watchState(v) === "new").length)]);
   }
   ui.stats.innerHTML = "";
@@ -455,10 +483,23 @@ function renderGrid(rows) {
   ui.grid.innerHTML = "";
   ui.grid.appendChild(frag);
   if (state.failure && typeof renderFailure === "function") renderFailure(ui.grid);
-  if (!shown.length && !state.loading && !state.failure) {
+  // While a first read is still filling the grid, an empty result only means
+  // nothing has matched yet.
+  if (!shown.length && !state.failure && (!state.loading || state.catalog.length)) {
     const empty = document.createElement("div");
     empty.className = "ytcs-empty";
-    empty.textContent = state.catalog.length ? "No videos match these filters." : "Nothing loaded yet. Press refresh to read it.";
+    empty.textContent = state.loading ? "Nothing matches yet. Still reading the rest…"
+      : state.catalog.length ? "No videos match these filters." : "Nothing loaded yet. Press refresh to read it.";
+    // The way back, right where the dead end is. A loaded list showing nothing
+    // can only mean filters, since a sort never removes anything.
+    if (state.catalog.length && !state.loading && ui.clear) {
+      const back = document.createElement("button");
+      back.type = "button";
+      back.className = "ytcs-ghost ytcs-emptyclear";
+      back.textContent = "Clear filters";
+      back.onclick = () => ui.clear.click();
+      empty.appendChild(back);
+    }
     ui.grid.appendChild(empty);
   }
   if (typeof renderLoadMore === "function") renderLoadMore(ui.grid);
