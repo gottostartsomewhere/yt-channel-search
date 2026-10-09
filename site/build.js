@@ -773,16 +773,19 @@ function sharePage() {
 }
 
 /*
- * The page the browser opens when Needle is removed. One question, each answer
- * a link, and nothing about the person on the way in: the extension opens a
- * fixed address with no parameters.
+ * The page the browser opens when Needle is removed. One question, and nothing
+ * about the person on the way in: the extension opens a fixed address with no
+ * parameters.
+ *
+ * A click records the reason, and only the reason, in a Google Form ("Needle
+ * uninstall reasons", one multiple-choice question). It goes in the background,
+ * so the page never changes and nobody sees the form. Its options have to stay
+ * word for word the same as REASONS, or Google refuses the answer.
  */
-const FEEDBACK_FORM = ""; // a Google Form link, once there is one; GitHub issues until then
+const BYE_FORM = "https://docs.google.com/forms/d/e/1FAIpQLSc6ms97mbbSeMcz_FeuruCT252Zi9g7744ruHodOLFuo_oFmQ/formResponse";
+const BYE_ENTRY = "entry.1386162577";
+const REASONS = ["It didn't work on a page", "It was slow", "I didn't need it", "Something was missing", "A privacy worry", "Something else"];
 function byePage() {
-  const reasons = ["It didn't work on a page", "It was slow", "I didn't need it", "Something was missing", "A privacy worry", "Something else"];
-  const link = (r) => FEEDBACK_FORM
-    ? FEEDBACK_FORM
-    : REPO + "/issues/new?title=" + encodeURIComponent("Removed Needle: " + r) + "&body=" + encodeURIComponent("What happened, if you'd like to say more:\n\n");
   const body = `
 <main>
   <section class="band band-article">
@@ -790,13 +793,40 @@ function byePage() {
       ${eyebrow("", "Needle was removed")}
       <h1>Sorry to see it go<span class="red">.</span></h1>
       <p>One question, if you have ten seconds. It's the only way to find out, since Needle never sent anything anywhere. What made you remove it?</p>
-      <div class="cards cards-2 bye">
-        ${reasons.map((r) => `<a class="card card-link" href="${link(r)}"><h3>${esc(r)}</h3></a>`).join("\n        ")}
+      <div class="cards cards-2 bye" id="reasons">
+        ${REASONS.map((r) => `<a class="card card-link" href="#" role="button" data-reason="${esc(r)}"><h3>${esc(r)}</h3></a>`).join("\n        ")}
       </div>
+      <p class="mono small" id="thanks" style="margin-top:22px" hidden>Thanks, noted. Only the reason you picked was sent.</p>
       <p class="mono small" style="margin-top:32px">Removed it by accident? <a href="${store("bye")}">Add it back</a>.</p>
     </div>
   </section>
-</main>`;
+</main>
+<style>
+  .bye .card.chosen { border-color: var(--red, #e5484d); box-shadow: 0 0 0 1px var(--red, #e5484d) inset; }
+  .bye.sent .card:not(.chosen) { opacity: .45; pointer-events: none; }
+  .bye.sent .card.chosen { pointer-events: none; }
+</style>
+<script>
+(function () {
+  var box = document.getElementById("reasons"), sent = false;
+  box.addEventListener("click", function (e) {
+    var card = e.target.closest("[data-reason]");
+    if (!card) return;
+    e.preventDefault();
+    if (sent) return;
+    sent = true;
+    var body = new URLSearchParams();
+    body.append(${JSON.stringify(BYE_ENTRY)}, card.getAttribute("data-reason"));
+    // In the background: sendBeacon survives the tab being closed straight after.
+    var ok = false;
+    try { ok = navigator.sendBeacon(${JSON.stringify(BYE_FORM)}, body); } catch (x) { ok = false; }
+    if (!ok) { try { fetch(${JSON.stringify(BYE_FORM)}, { method: "POST", mode: "no-cors", body: body, keepalive: true }); } catch (x) {} }
+    card.classList.add("chosen");
+    box.classList.add("sent");
+    document.getElementById("thanks").hidden = false;
+  });
+})();
+</script>`;
   return shell({
     slug: "",
     title: "Needle was removed",
