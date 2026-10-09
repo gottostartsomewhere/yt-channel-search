@@ -1621,6 +1621,16 @@ function takeShared() {
 
 function shareArrive() {
   if (state.active || state.enabling || !canRunHere()) return;
+  /*
+   * The filters are applied by omnibar.js, which loads after this file. The
+   * first call comes from bootstrap, while this file is still running, and on a
+   * fast page the panel used to mount before omnibar.js existed: enableNow
+   * found no applyOmniFilters, skipped the filters, and the link opened the
+   * whole list unfiltered (two runs in five on a live channel, October 2026).
+   * Leaving the link untaken until then costs nothing: ensureUi calls again
+   * once settings load and every 1.5s after, well inside SHARE_TTL.
+   */
+  if (typeof applyOmniFilters !== "function") return;
   const q = takeShared();
   if (q === null) return;
   const f = parseOmniQuery(q);
