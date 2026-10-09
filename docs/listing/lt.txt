@@ -3,6 +3,7 @@ YouTube paieška nežino, ką jau žiūrėjote, negali filtruoti pagal trukmę a
 PAIEŠKOS JUOSTOJE
 - Žiūrėti vėliau, patikę vaizdo įrašai ir istorija pasirodo jau rašant
 - Rašykite filtrus: <20m, >100k, unwatched, date:week, @kanalas
+- in:playlists ieško visuose jūsų išsaugotuose grojaraščiuose
 - is:fresh paslepia tai, kas jums jau buvo parodyta
 - Sekite paiešką, nutildykite kanalą ir kiekvienoje miniatiūroje matykite, ką jau žiūrėjote
 
@@ -16,6 +17,17 @@ ISTORIJA IR ŽIŪRĖTI VĖLIAU
 - Viskas, ką pradėjote ir niekada nebaigėte
 - Filtruokite pagal kanalą, trukmę, peržiūras ar žiūrėjimo laiką
 - Raskite tą vaizdo įrašą, kurį tikrai žiūrėjote, be begalinio slinkimo
+
+BET KURIS GROJARAŠTIS IR JŪSŲ PRENUMERATOS
+- Ieškokite ir filtruokite bet kurį grojaraštį, savo ar svetimą, visą
+- Jūsų prenumeratos, tik nežiūrėti ir trumpesni nei 20 minučių vaizdo įrašai
+- Pritemdykite arba paslėpkite jau žiūrėtus vaizdo įrašus pagrindiniame puslapyje ir Prenumeratose
+
+TVARKYKITE, LEISKITE, BENDRINKITE
+- Sutvarkykite Žiūrėti vėliau ir savo grojaraščius, pašalinkite patiktukus vienu kartu ir išvalykite ištrintus vaizdo įrašus, su atšaukimu ir archyvu, iš kurio viską grąžinsite
+- Leiskite iš eilės tai, ką išfiltravote, arba nukopijuokite nuorodas NotebookLM
+- Bendrinkite filtrą kaip nuorodą: ji atidaro tą patį sąrašą su tais pačiais filtrais kiekvienam, kas turi Needle
+- Klaviatūra: / paieškai, j ir k judėti, x pasirinkti
 
 STATISTIKA
 - Vaizdo įrašų trukmės ir metai, kai kanalui sekasi geriausiai

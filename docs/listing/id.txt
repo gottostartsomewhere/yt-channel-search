@@ -3,6 +3,7 @@ Pencarian YouTube tidak tahu apa yang sudah kamu tonton, tidak bisa memfilter me
 DI BILAH PENCARIAN
 - Video Tonton Nanti, video yang kamu sukai, dan riwayatmu muncul saat kamu mengetik
 - Ketik filter: <20m, >100k, unwatched, date:week, @channel
+- in:playlists mencari di semua playlist yang kamu simpan
 - is:fresh menyembunyikan apa yang sudah pernah ditampilkan kepadamu
 - Ikuti sebuah pencarian, bisukan channel, dan lihat video yang sudah kamu tonton di setiap thumbnail
 
@@ -16,6 +17,17 @@ RIWAYAT DAN TONTON NANTI
 - Semua yang kamu mulai tapi tidak pernah selesai
 - Filter menurut channel, durasi, tayangan, atau kapan kamu menontonnya
 - Temukan video yang kamu yakin pernah ditonton, tanpa menggulir tanpa akhir
+
+PLAYLIST APA PUN DAN SUBSCRIPTION KAMU
+- Cari dan filter playlist apa pun, milikmu atau milik orang lain, seluruhnya
+- Subscription kamu, hanya yang belum ditonton dan di bawah 20 menit
+- Redupkan atau sembunyikan video yang sudah kamu tonton di Beranda dan Subscription
+
+BERESKAN, PUTAR, BAGIKAN
+- Bereskan Tonton Nanti dan playlist milikmu, batalkan suka sekaligus, dan buang video yang sudah dihapus, dengan urungkan dan arsip untuk mengembalikannya
+- Putar hasil filtermu secara berurutan, atau salin tautannya untuk NotebookLM
+- Bagikan filter sebagai tautan: tautan itu membuka daftar yang sama dengan filter yang sama untuk siapa pun yang punya Needle
+- Keyboard: / untuk mencari, j dan k untuk berpindah, x untuk memilih
 
 WAWASAN
 - Durasi video dan tahun dengan performa terbaik sebuah channel

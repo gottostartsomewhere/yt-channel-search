@@ -3,6 +3,7 @@ Wyszukiwarka YouTube nie wie, co już obejrzano, nie filtruje według długości
 W PASKU WYSZUKIWANIA
 - Filmy z Do obejrzenia, polubione i historia pojawiają się już podczas pisania
 - Wpisuj filtry: <20m, >100k, unwatched, date:week, @kanał
+- in:playlists przeszukuje wszystkie zapisane playlisty
 - is:fresh ukrywa to, co było już Ci pokazane
 - Obserwuj wyszukiwanie, wycisz kanał i zobacz na każdej miniaturze, co już obejrzano
 
@@ -16,6 +17,17 @@ HISTORIA I DO OBEJRZENIA
 - Wszystko, co zostało zaczęte i nigdy nie skończone
 - Filtruj według kanału, długości, wyświetleń lub daty obejrzenia
 - Znajdź ten jeden obejrzany film bez przewijania bez końca
+
+DOWOLNA PLAYLISTA I TWOJE SUBSKRYPCJE
+- Przeszukuj i filtruj dowolną playlistę, swoją lub cudzą, w całości
+- Twoje subskrypcje, tylko nieobejrzane i krótsze niż 20 minut
+- Przyciemnij lub ukryj obejrzane filmy na stronie głównej i w Subskrypcjach
+
+PORZĄDKI, ODTWARZANIE, UDOSTĘPNIANIE
+- Porządkuj Do obejrzenia i własne playlisty, usuwaj polubienia hurtem i czyść usunięte filmy, z cofaniem i archiwum, z którego wszystko przywrócisz
+- Odtwarzaj po kolei to, co przefiltrowano, albo skopiuj linki do NotebookLM
+- Udostępnij filtr jako link: otwiera tę samą listę z tymi samymi filtrami każdemu, kto ma Needle
+- Klawiatura: / do wyszukiwania, j i k do przechodzenia, x do zaznaczania
 
 STATYSTYKI
 - Długości filmów i lata, w których kanał radzi sobie najlepiej

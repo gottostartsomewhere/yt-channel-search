@@ -3,6 +3,7 @@ A busca do YouTube não sabe o que você já assistiu, não filtra por duração
 NA BARRA DE BUSCA
 - Seus vídeos de Assistir mais tarde, curtidos e do histórico aparecem enquanto você digita
 - Digite filtros: <20m, >100k, unwatched, date:week, @canal
+- in:playlists busca em todas as playlists que você salvou
 - is:fresh esconde o que já apareceu para você antes
 - Siga uma busca, silencie um canal e veja o que você já assistiu em cada miniatura
 
@@ -16,6 +17,17 @@ SEU HISTÓRICO E ASSISTIR MAIS TARDE
 - Tudo que você começou e nunca terminou
 - Filtre por canal, duração, visualizações ou por quando você assistiu
 - Ache aquele vídeo que você sabe que assistiu, sem ficar rolando a página
+
+QUALQUER PLAYLIST E SUAS INSCRIÇÕES
+- Pesquise e filtre qualquer playlist, sua ou de outra pessoa, inteira
+- Suas inscrições, só o que você ainda não viu e com menos de 20 minutos
+- Esmaeça ou esconda os vídeos que você já assistiu no Início e em Inscrições
+
+LIMPAR, REPRODUZIR, COMPARTILHAR
+- Limpe o Assistir mais tarde e suas próprias playlists, remova curtidas em massa e tire os vídeos excluídos, com desfazer e um arquivo para devolver o que quiser
+- Reproduza o que você filtrou, em ordem, ou copie os links para o NotebookLM
+- Compartilhe um filtro como link: ele abre a mesma lista com os mesmos filtros para qualquer pessoa com o Needle
+- Teclado: / para buscar, j e k para navegar, x para selecionar
 
 ANÁLISE
 - As durações e os anos em que um canal vai melhor

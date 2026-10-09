@@ -8,6 +8,7 @@ module.exports = {
 В СТРОКЕ ПОИСКА
 - «Смотреть позже», понравившиеся видео и история появляются, пока вы печатаете
 - Вводите фильтры: <20m, >100k, unwatched, date:week, @канал
+- in:playlists ищет по всем сохранённым плейлистам
 - is:fresh скрывает то, что вам уже показывали
 - Подписывайтесь на поиск, скрывайте каналы и смотрите на каждой миниатюре, что уже просмотрено
 
@@ -21,6 +22,17 @@ module.exports = {
 - Всё, что вы начали и так и не досмотрели
 - Фильтруйте по каналу, длительности, просмотрам или времени просмотра
 - Найдите то самое видео, которое точно смотрели, без бесконечной прокрутки
+
+ЛЮБОЙ ПЛЕЙЛИСТ И ВАШИ ПОДПИСКИ
+- Ищите и фильтруйте любой плейлист, свой или чужой, целиком
+- Ваши подписки: только непросмотренное и короче 20 минут
+- Приглушайте или скрывайте уже просмотренные видео на главной и в подписках
+
+НАВЕСТИ ПОРЯДОК, ВОСПРОИЗВЕСТИ, ПОДЕЛИТЬСЯ
+- Наводите порядок в «Смотреть позже» и своих плейлистах, снимайте лайки пачкой и убирайте удалённые видео, с отменой и архивом, чтобы всё вернуть
+- Воспроизводите отфильтрованное по порядку или копируйте ссылки для NotebookLM
+- Делитесь фильтром как ссылкой: у любого, у кого есть Needle, откроется тот же список с теми же фильтрами
+- Клавиатура: / для поиска, j и k для перемещения, x для выбора
 
 АНАЛИТИКА
 - Длительность и годы, в которые у канала лучшие результаты
@@ -42,6 +54,7 @@ module.exports = {
 У РЯДКУ ПОШУКУ
 - «Переглянути пізніше», вподобані відео та історія з'являються, поки ви друкуєте
 - Вводьте фільтри: <20m, >100k, unwatched, date:week, @канал
+- in:playlists шукає в усіх збережених плейлистах
 - is:fresh приховує те, що вам уже показували
 - Стежте за пошуком, приховуйте канали й бачте на кожній мініатюрі, що вже переглянуто
 
@@ -55,6 +68,17 @@ module.exports = {
 - Усе, що ви почали й так і не додивилися
 - Фільтруйте за каналом, тривалістю, переглядами або часом перегляду
 - Знайдіть те саме відео, яке точно дивилися, без нескінченного прокручування
+
+БУДЬ-ЯКИЙ ПЛЕЙЛИСТ І ВАШІ ПІДПИСКИ
+- Шукайте й фільтруйте будь-який плейлист, свій чи чужий, повністю
+- Ваші підписки: лише непереглянуте й коротше за 20 хвилин
+- Приглушуйте або приховуйте вже переглянуті відео на головній і в підписках
+
+НАВЕСТИ ЛАД, ВІДТВОРИТИ, ПОДІЛИТИСЯ
+- Наводьте лад у «Переглянути пізніше» та власних плейлистах, знімайте вподобання гуртом і прибирайте видалені відео, з відміною та архівом, щоб усе повернути
+- Відтворюйте відфільтроване по черзі або копіюйте посилання для NotebookLM
+- Діліться фільтром як посиланням: у будь-кого з Needle відкриється той самий список з тими самими фільтрами
+- Клавіатура: / для пошуку, j і k для переміщення, x для вибору
 
 АНАЛІТИКА
 - Тривалість і роки, у які канал має найкращі результати
@@ -76,6 +100,7 @@ module.exports = {
 В ЛЕНТАТА ЗА ТЪРСЕНЕ
 - „Гледайте по-късно“, харесаните видеоклипове и историята се появяват, докато пишете
 - Въвеждайте филтри: <20m, >100k, unwatched, date:week, @канал
+- in:playlists търси във всички запазени плейлисти
 - is:fresh скрива това, което вече ви е било показано
 - Следете търсене, заглушете канал и вижте на всяка миниатюра какво вече сте гледали
 
@@ -89,6 +114,17 @@ module.exports = {
 - Всичко, което сте започнали и никога не сте довършили
 - Филтрирайте по канал, продължителност, гледания или кога сте гледали
 - Намерете онзи видеоклип, който със сигурност сте гледали, без безкрайно превъртане
+
+ВСЕКИ ПЛЕЙЛИСТ И ВАШИТЕ АБОНАМЕНТИ
+- Търсете и филтрирайте всеки плейлист, ваш или чужд, целия
+- Абонаментите ви, само негледаното и под 20 минути
+- Затъмнете или скрийте вече гледаните видеоклипове в Начало и Абонаменти
+
+ПОДРЕДЕТЕ, ПУСНЕТЕ, СПОДЕЛЕТЕ
+- Подредете „Гледайте по-късно“ и собствените си плейлисти, премахнете харесвания наведнъж и изчистете изтритите видеоклипове, с отмяна и архив, от който да върнете всичко
+- Пуснете филтрираното по ред или копирайте връзките за NotebookLM
+- Споделете филтър като връзка: той отваря същия списък със същите филтри за всеки, който има Needle
+- Клавиатура: / за търсене, j и k за движение, x за избор
 
 СТАТИСТИКА
 - Продължителностите и годините, в които каналът се представя най-добре
@@ -110,6 +146,7 @@ module.exports = {
 У ТРАЦИ ЗА ПРЕТРАГУ
 - „Погледај касније“, видео снимци који вам се допадају и историја појављују се док куцате
 - Укуцајте филтере: <20m, >100k, unwatched, date:week, @канал
+- in:playlists претражује све плејлисте које сте сачували
 - is:fresh сакрива оно што вам је већ приказано
 - Пратите претрагу, утишајте канал и видите на свакој сличици шта сте већ гледали
 
@@ -123,6 +160,17 @@ module.exports = {
 - Све што сте почели и никад нисте завршили
 - Филтрирајте по каналу, трајању, прегледима или времену гледања
 - Пронађите онај снимак који сте сигурно гледали, без бесконачног скроловања
+
+БИЛО КОЈА ПЛЕЈЛИСТА И КАНАЛИ КОЈЕ ПРАТИТЕ
+- Претражујте и филтрирајте било коју плејлисту, своју или туђу, целу
+- Канали које пратите, само неодгледано и краће од 20 минута
+- Затамните или сакријте већ одгледане снимке на почетној страници и међу каналима које пратите
+
+СРЕДИТЕ, ПУСТИТЕ, ПОДЕЛИТЕ
+- Средите „Погледај касније“ и своје плејлисте, уклоните лајкове одједном и почистите избрисане снимке, уз опозивање и архиву из које све враћате
+- Пустите филтрирано редом или копирајте линкове за NotebookLM
+- Поделите филтер као линк: свако ко има Needle отвориће исту листу са истим филтерима
+- Тастатура: / за претрагу, j и k за кретање, x за избор
 
 СТАТИСТИКА
 - Трајања и године у којима канал пролази најбоље
@@ -144,6 +192,7 @@ module.exports = {
 ARAMA ÇUBUĞUNDA
 - Daha sonra izle, beğendiğiniz videolar ve geçmişiniz siz yazarken görünür
 - Filtre yazın: <20m, >100k, unwatched, date:week, @kanal
+- in:playlists kaydettiğiniz tüm oynatma listelerinde arar
 - is:fresh size daha önce gösterilenleri gizler
 - Bir aramayı takip edin, bir kanalı sessize alın ve her küçük resimde neyi izlediğinizi görün
 
@@ -157,6 +206,17 @@ GEÇMİŞİNİZ VE DAHA SONRA İZLE
 - Başlayıp hiç bitirmediğiniz her şey
 - Kanala, süreye, görüntülenmeye veya ne zaman izlediğinize göre filtreleyin
 - İzlediğinizden emin olduğunuz o videoyu, durmadan kaydırmadan bulun
+
+HER OYNATMA LİSTESİ VE ABONELİKLERİNİZ
+- Sizin ya da başkasının, her oynatma listesini baştan sona arayın ve filtreleyin
+- Abonelikleriniz, yalnızca izlenmemiş ve 20 dakikadan kısa olanlar
+- Ana Sayfa'da ve Abonelikler'de zaten izlediğiniz videoları soluklaştırın veya gizleyin
+
+TEMİZLE, OYNAT, PAYLAŞ
+- Daha sonra izle listenizi ve kendi oynatma listelerinizi temizleyin, beğenileri toplu kaldırın ve silinmiş videoları ayıklayın; geri alma ve her şeyi geri koyabileceğiniz bir arşiv de var
+- Filtrelediklerinizi sırayla oynatın ya da bağlantıları NotebookLM için kopyalayın
+- Bir filtreyi bağlantı olarak paylaşın: Needle'ı olan herkes için aynı listeyi aynı filtrelerle açar
+- Klavye: aramak için /, gezinmek için j ve k, seçmek için x
 
 İSTATİSTİKLER
 - Bir kanalın en iyi performans gösterdiği video süreleri ve yıllar
@@ -178,6 +238,7 @@ YouTube veya Google ile bağlantılı değildir.`,
 VE VYHLEDÁVACÍM ŘÁDKU
 - Videa z Na později, videa, která se vám líbí, a historie se zobrazují už při psaní
 - Pište filtry: <20m, >100k, unwatched, date:week, @kanál
+- in:playlists prohledá všechny playlisty, které jste si uložili
 - is:fresh skryje to, co vám už bylo ukázáno
 - Sledujte vyhledávání, ztlumte kanál a na každé miniatuře uvidíte, co už jste viděli
 
@@ -191,6 +252,17 @@ HISTORIE A NA POZDĚJI
 - Všechno, co jste začali a nikdy nedokončili
 - Filtrujte podle kanálu, délky, zhlédnutí nebo podle toho, kdy jste to viděli
 - Najděte to video, které jste určitě viděli, bez nekonečného posouvání
+
+LIBOVOLNÝ PLAYLIST A VAŠE ODBĚRY
+- Prohledávejte a filtrujte libovolný playlist, svůj i cizí, celý
+- Vaše odběry, jen nezhlédnutá videa kratší než 20 minut
+- Ztlumte nebo skryjte už zhlédnutá videa na domovské stránce a v Odběrech
+
+ÚKLID, PŘEHRÁVÁNÍ, SDÍLENÍ
+- Ukliďte Na později a vlastní playlisty, hromadně odeberte označení Líbí se a vyhoďte smazaná videa, s možností vrátit zpět a archivem, ze kterého vše obnovíte
+- Přehrajte popořadě, co jste vyfiltrovali, nebo zkopírujte odkazy pro NotebookLM
+- Sdílejte filtr jako odkaz: každému, kdo má Needle, otevře stejný seznam se stejnými filtry
+- Klávesnice: / pro hledání, j a k pro pohyb, x pro výběr
 
 STATISTIKY
 - Délky videí a roky, kdy se kanálu daří nejlépe
@@ -212,6 +284,7 @@ Není přidruženo k YouTube ani ke Googlu.`,
 VO VYHĽADÁVACOM RIADKU
 - Videá z Pozrieť neskôr, videá, ktoré sa vám páčia, a história sa zobrazujú už pri písaní
 - Píšte filtre: <20m, >100k, unwatched, date:week, @kanál
+- in:playlists prehľadá všetky playlisty, ktoré ste si uložili
 - is:fresh skryje to, čo vám už bolo ukázané
 - Sledujte vyhľadávanie, stlmte kanál a na každej miniatúre uvidíte, čo ste už videli
 
@@ -225,6 +298,17 @@ HISTÓRIA A POZRIEŤ NESKÔR
 - Všetko, čo ste začali a nikdy nedokončili
 - Filtrujte podľa kanála, dĺžky, zhliadnutí alebo podľa toho, kedy ste to videli
 - Nájdite to video, ktoré ste určite videli, bez nekonečného posúvania
+
+ĽUBOVOĽNÝ PLAYLIST A VAŠE ODBERY
+- Prehľadávajte a filtrujte ľubovoľný playlist, svoj aj cudzí, celý
+- Vaše odbery, len nepozreté videá kratšie ako 20 minút
+- Stlmte alebo skryte už pozreté videá na domovskej stránke a v Odberoch
+
+UPRATOVANIE, PREHRÁVANIE, ZDIEĽANIE
+- Upracte Pozrieť neskôr a vlastné playlisty, hromadne odoberte označenia Páči sa mi a vyhoďte odstránené videá, s možnosťou vrátiť späť a archívom, z ktorého všetko obnovíte
+- Prehrajte postupne, čo ste vyfiltrovali, alebo skopírujte odkazy pre NotebookLM
+- Zdieľajte filter ako odkaz: každému, kto má Needle, otvorí rovnaký zoznam s rovnakými filtrami
+- Klávesnica: / na hľadanie, j a k na pohyb, x na výber
 
 ŠTATISTIKY
 - Dĺžky videí a roky, keď sa kanálu darí najlepšie
@@ -246,6 +330,7 @@ Nie je pridružené k YouTube ani ku Googlu.`,
 U TRACI ZA PRETRAŽIVANJE
 - Gledaj kasnije, videozapisi koji vam se sviđaju i povijest pojavljuju se dok tipkate
 - Upišite filtre: <20m, >100k, unwatched, date:week, @kanal
+- in:playlists pretražuje sve popise za reprodukciju koje ste spremili
 - is:fresh skriva ono što vam je već prikazano
 - Pratite pretraživanje, utišajte kanal i vidite na svakoj minijaturi što ste već gledali
 
@@ -259,6 +344,17 @@ POVIJEST I GLEDAJ KASNIJE
 - Sve što ste započeli i nikad niste završili
 - Filtrirajte po kanalu, trajanju, pregledima ili vremenu gledanja
 - Pronađite onaj videozapis koji ste sigurno gledali, bez beskonačnog pomicanja
+
+BILO KOJI POPIS ZA REPRODUKCIJU I VAŠE PRETPLATE
+- Pretražujte i filtrirajte bilo koji popis za reprodukciju, svoj ili tuđi, cijeli
+- Vaše pretplate, samo neodgledano i kraće od 20 minuta
+- Zatamnite ili sakrijte već odgledane videozapise na Početnoj i u Pretplatama
+
+POSPREMITE, PUSTITE, PODIJELITE
+- Pospremite Gledaj kasnije i vlastite popise, uklonite oznake sviđanja odjednom i počistite izbrisane videozapise, uz poništavanje i arhivu iz koje sve vraćate
+- Pustite filtrirano redom ili kopirajte veze za NotebookLM
+- Podijelite filtar kao vezu: svakome tko ima Needle otvara isti popis s istim filtrima
+- Tipkovnica: / za pretraživanje, j i k za kretanje, x za odabir
 
 STATISTIKA
 - Trajanja i godine u kojima kanal prolazi najbolje
@@ -280,6 +376,7 @@ Nije povezano s YouTubeom ni Googleom.`,
 V ISKALNI VRSTICI
 - Ogled pozneje, videoposnetki, ki so vam všeč, in zgodovina se prikažejo že med tipkanjem
 - Vpišite filtre: <20m, >100k, unwatched, date:week, @kanal
+- in:playlists išče po vseh seznamih predvajanja, ki ste jih shranili
 - is:fresh skrije, kar vam je bilo že prikazano
 - Spremljajte iskanje, utišajte kanal in na vsaki sličici vidite, kaj ste si že ogledali
 
@@ -293,6 +390,17 @@ ZGODOVINA IN OGLED POZNEJE
 - Vse, kar ste začeli in nikoli dokončali
 - Filtrirajte po kanalu, dolžini, ogledih ali času ogleda
 - Poiščite tisti videoposnetek, ki ste si ga zagotovo ogledali, brez neskončnega drsenja
+
+KATERI KOLI SEZNAM PREDVAJANJA IN VAŠE NAROČNINE
+- Iščite in filtrirajte kateri koli seznam predvajanja, svoj ali tuj, v celoti
+- Vaše naročnine, samo neogledano in krajše od 20 minut
+- Zatemnite ali skrijte že ogledane videoposnetke na domači strani in v Naročninah
+
+POSPRAVITE, PREDVAJAJTE, DELITE
+- Pospravite Ogled pozneje in lastne sezname predvajanja, odstranite všečke naenkrat in počistite izbrisane videoposnetke, z razveljavitvijo in arhivom, iz katerega vse vrnete
+- Predvajajte po vrsti, kar ste filtrirali, ali kopirajte povezave za NotebookLM
+- Delite filter kot povezavo: vsakomur, ki ima Needle, odpre isti seznam z istimi filtri
+- Tipkovnica: / za iskanje, j in k za premikanje, x za izbiro
 
 STATISTIKA
 - Dolžine videoposnetkov in leta, ko je kanalu šlo najbolje
@@ -314,6 +422,7 @@ Ni povezano z YouTubom ali Googlom.`,
 ΣΤΗ ΓΡΑΜΜΗ ΑΝΑΖΗΤΗΣΗΣ
 - Το «Παρακολούθηση αργότερα», τα βίντεο που σας αρέσουν και το ιστορικό σας εμφανίζονται ενώ πληκτρολογείτε
 - Πληκτρολογήστε φίλτρα: <20m, >100k, unwatched, date:week, @κανάλι
+- Το in:playlists ψάχνει σε όλες τις λίστες αναπαραγωγής που έχετε αποθηκεύσει
 - Το is:fresh κρύβει ό,τι σας έχει ήδη εμφανιστεί
 - Ακολουθήστε μια αναζήτηση, κάντε σίγαση σε ένα κανάλι και δείτε σε κάθε μικρογραφία τι έχετε ήδη δει
 
@@ -327,6 +436,17 @@ Ni povezano z YouTubom ali Googlom.`,
 - Ό,τι ξεκινήσατε και δεν τελειώσατε ποτέ
 - Φιλτράρετε κατά κανάλι, διάρκεια, προβολές ή πότε το είδατε
 - Βρείτε εκείνο το βίντεο που σίγουρα έχετε δει, χωρίς ατελείωτη κύλιση
+
+ΟΠΟΙΑΔΗΠΟΤΕ ΛΙΣΤΑ ΚΑΙ ΟΙ ΕΓΓΡΑΦΕΣ ΣΑΣ
+- Αναζητήστε και φιλτράρετε οποιαδήποτε λίστα αναπαραγωγής, δική σας ή κάποιου άλλου, ολόκληρη
+- Οι εγγραφές σας, μόνο όσα δεν έχετε δει και κάτω από 20 λεπτά
+- Θαμπώστε ή κρύψτε τα βίντεο που έχετε ήδη δει στην Αρχική και στις Εγγραφές
+
+ΤΑΚΤΟΠΟΙΗΣΗ, ΑΝΑΠΑΡΑΓΩΓΗ, ΚΟΙΝΟΠΟΙΗΣΗ
+- Τακτοποιήστε το «Παρακολούθηση αργότερα» και τις δικές σας λίστες, αφαιρέστε «μου αρέσει» μαζικά και καθαρίστε τα διαγραμμένα βίντεο, με αναίρεση και ένα αρχείο για να επαναφέρετε ό,τι θέλετε
+- Αναπαράγετε ό,τι φιλτράρατε με τη σειρά, ή αντιγράψτε τους συνδέσμους για το NotebookLM
+- Κοινοποιήστε ένα φίλτρο ως σύνδεσμο: ανοίγει την ίδια λίστα με τα ίδια φίλτρα για όποιον έχει το Needle
+- Πληκτρολόγιο: / για αναζήτηση, j και k για μετακίνηση, x για επιλογή
 
 ΣΤΑΤΙΣΤΙΚΑ
 - Οι διάρκειες και τα έτη στα οποία ένα κανάλι αποδίδει καλύτερα

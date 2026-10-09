@@ -3,6 +3,7 @@ Utafutaji wa YouTube haujui ulichokwisha kutazama, hauwezi kuchuja kwa urefu au 
 KWENYE UPAU WA KUTAFUTA
 - Tazama Baadaye, video ulizopenda na historia yako huonekana unapoandika
 - Andika vichujio: <20m, >100k, unwatched, date:week, @chaneli
+- in:playlists hutafuta katika kila orodha ya kucheza uliyohifadhi
 - is:fresh huficha ulichokwisha kuonyeshwa
 - Fuatilia utafutaji, nyamazisha chaneli na uone kwenye kila picha ndogo ulichokwisha kutazama
 
@@ -16,6 +17,17 @@ HISTORIA YAKO NA TAZAMA BAADAYE
 - Kila kitu ulichoanza na hukukimaliza
 - Chuja kwa chaneli, urefu, watazamaji au wakati ulipotazama
 - Pata ile video unayojua kwa hakika uliitazama, bila kusogeza bila mwisho
+
+ORODHA YOYOTE YA KUCHEZA NA USAJILI WAKO
+- Tafuta na uchuje orodha yoyote ya kucheza, yako au ya mtu mwingine, yote
+- Usajili wako, zile ambazo hujatazama na zilizo chini ya dakika 20 tu
+- Fifisha au ficha video ulizokwisha kutazama kwenye Mwanzo na Usajili
+
+SAFISHA, CHEZA, SHIRIKI
+- Safisha Tazama Baadaye na orodha zako za kucheza, ondoa vipendwa kwa wingi na uondoe video zilizofutwa, pamoja na kutendua na kumbukumbu ya kurudisha chochote
+- Cheza ulichochuja kwa mpangilio, au nakili viungo kwa ajili ya NotebookLM
+- Shiriki kichujio kama kiungo: kinafungua orodha ileile na vichujio vilevile kwa yeyote mwenye Needle
+- Kibodi: / kutafuta, j na k kusogea, x kuchagua
 
 TAKWIMU
 - Urefu wa video na miaka ambayo chaneli hufanya vizuri zaidi

@@ -3,6 +3,7 @@ Hindi alam ng search ng YouTube kung ano na ang napanood mo, hindi ito makapag-f
 SA SEARCH BAR
 - Lumalabas ang Panoorin Mamaya, mga ni-like mo at ang iyong history habang nagta-type ka
 - Mag-type ng filter: <20m, >100k, unwatched, date:week, @channel
+- Hinahanap ng in:playlists ang bawat playlist na na-save mo
 - Itinatago ng is:fresh ang mga naipakita na sa iyo
 - Sundan ang isang search, i-mute ang isang channel at makita sa bawat thumbnail kung ano na ang napanood mo
 
@@ -16,6 +17,17 @@ ANG IYONG HISTORY AT PANOORIN MAMAYA
 - Lahat ng sinimulan mo pero hindi tinapos
 - Mag-filter ayon sa channel, haba, views o kung kailan mo ito pinanood
 - Hanapin ang video na sigurado kang napanood mo na, nang hindi nag-i-scroll nang walang katapusan
+
+KAHIT ANONG PLAYLIST AT ANG IYONG MGA SUBSCRIPTION
+- Maghanap at mag-filter sa kahit anong playlist, sa iyo man o sa iba, buo
+- Ang iyong mga subscription, ang hindi mo pa napapanood at wala pang 20 minuto lang
+- Palabuin o itago ang mga napanood mo na sa Home at sa Mga Subscription
+
+MAGLINIS, MAG-PLAY, MAG-SHARE
+- Linisin ang Panoorin Mamaya at ang sarili mong mga playlist, mag-unlike nang maramihan at alisin ang mga na-delete na video, may undo at archive para maibalik ang anuman
+- I-play ang na-filter mo nang sunud-sunod, o kopyahin ang mga link para sa NotebookLM
+- I-share ang isang filter bilang link: binubuksan nito ang parehong listahan na may parehong filter para sa sinumang may Needle
+- Keyboard: / para maghanap, j at k para gumalaw, x para pumili
 
 INSIGHTS
 - Ang haba ng video at mga taon kung kailan pinakamagaling ang isang channel

@@ -3,6 +3,7 @@ A YouTube keresője nem tudja, mit néztél már meg, nem tud szűrni hosszra va
 A KERESŐSÁVBAN
 - A Megnézendő, a kedvelt videók és az előzmények már gépelés közben megjelennek
 - Írj szűrőket: <20m, >100k, unwatched, date:week, @csatorna
+- Az in:playlists az összes mentett lejátszási listádban keres
 - Az is:fresh elrejti, amit már mutattak neked
 - Kövess egy keresést, némíts el egy csatornát, és minden bélyegképen lásd, mit néztél már meg
 
@@ -16,6 +17,17 @@ ELŐZMÉNYEK ÉS MEGNÉZENDŐ
 - Minden, amit elkezdtél, de sosem fejeztél be
 - Szűrj csatorna, hossz, megtekintések vagy a megnézés ideje szerint
 - Találd meg azt a videót, amit biztosan láttál, végtelen görgetés nélkül
+
+BÁRMELY LEJÁTSZÁSI LISTA ÉS A FELIRATKOZÁSAID
+- Keress és szűrj bármely lejátszási listában, a sajátodban vagy másokéban, teljes egészében
+- A feliratkozásaid, csak a meg nem nézett és 20 percnél rövidebb videók
+- Halványítsd el vagy rejtsd el a már megnézett videókat a Kezdőlapon és a Feliratkozásokban
+
+RENDRAKÁS, LEJÁTSZÁS, MEGOSZTÁS
+- Tegyél rendet a Megnézendő listában és a saját lejátszási listáidban, vond vissza a kedveléseket egyszerre, és takarítsd ki a törölt videókat, visszavonással és egy archívummal, ahonnan bármit visszatehetsz
+- Játszd le sorban, amit kiszűrtél, vagy másold ki a linkeket a NotebookLM-hez
+- Oszd meg a szűrőt linkként: bárkinek, akinek van Needle, ugyanazt a listát nyitja meg ugyanazokkal a szűrőkkel
+- Billentyűzet: / a kereséshez, j és k a mozgáshoz, x a kijelöléshez
 
 STATISZTIKA
 - A videóhosszak és évek, amikor egy csatorna a legjobban teljesít

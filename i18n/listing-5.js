@@ -8,6 +8,7 @@ module.exports = {
 I SÖKFÄLTET
 - Titta senare, videor du gillat och din historik dyker upp medan du skriver
 - Skriv filter: <20m, >100k, unwatched, date:week, @kanal
+- in:playlists söker i alla spellistor du har sparat
 - is:fresh döljer det du redan har visats
 - Följ en sökning, tysta en kanal och se på varje miniatyr vad du redan har sett
 
@@ -21,6 +22,17 @@ DIN HISTORIK OCH TITTA SENARE
 - Allt du har börjat på och aldrig sett klart
 - Filtrera på kanal, längd, visningar eller när du såg det
 - Hitta den där videon du vet att du har sett, utan att scrolla i evighet
+
+VILKEN SPELLISTA SOM HELST OCH DINA PRENUMERATIONER
+- Sök och filtrera i vilken spellista som helst, din egen eller någon annans, hela
+- Dina prenumerationer, bara det du inte sett och under 20 minuter
+- Tona ned eller dölj videor du redan har sett på startsidan och under Prenumerationer
+
+STÄDA, SPELA, DELA
+- Städa Titta senare och dina egna spellistor, ta bort gillamarkeringar i klump och rensa bort borttagna videor, med ångra och ett arkiv för att lägga tillbaka allt
+- Spela upp det du filtrerat, i ordning, eller kopiera länkarna till NotebookLM
+- Dela ett filter som en länk: den öppnar samma lista med samma filter för alla som har Needle
+- Tangentbord: / för att söka, j och k för att flytta, x för att välja
 
 STATISTIK
 - De videolängder och år då en kanal går bäst
@@ -42,6 +54,7 @@ Inte kopplat till YouTube eller Google.`,
 I SØGEFELTET
 - Se senere, videoer du har synes godt om, og din historik dukker op, mens du skriver
 - Skriv filtre: <20m, >100k, unwatched, date:week, @kanal
+- in:playlists søger i alle playlister, du har gemt
 - is:fresh skjuler det, du allerede har fået vist
 - Følg en søgning, slå en kanal fra og se på hver miniature, hvad du allerede har set
 
@@ -55,6 +68,17 @@ DIN HISTORIK OG SE SENERE
 - Alt, hvad du har startet på og aldrig set færdigt
 - Filtrer efter kanal, længde, visninger eller hvornår du så det
 - Find den video, du ved, du har set, uden at scrolle i det uendelige
+
+ENHVER PLAYLISTE OG DINE ABONNEMENTER
+- Søg og filtrer i enhver playliste, din egen eller andres, hele vejen igennem
+- Dine abonnementer, kun det, du ikke har set, og under 20 minutter
+- Dæmp eller skjul videoer, du allerede har set, på forsiden og under Abonnementer
+
+RYD OP, AFSPIL, DEL
+- Ryd op i Se senere og dine egne playlister, fjern synes godt om i bunker og ryd slettede videoer væk, med fortryd og et arkiv til at lægge alt tilbage
+- Afspil det, du har filtreret, i rækkefølge, eller kopiér linkene til NotebookLM
+- Del et filter som et link: det åbner den samme liste med de samme filtre for alle, der har Needle
+- Tastatur: / for at søge, j og k for at flytte, x for at vælge
 
 STATISTIK
 - De videolængder og år, hvor en kanal klarer sig bedst
@@ -76,6 +100,7 @@ Ikke tilknyttet YouTube eller Google.`,
 I SØKEFELTET
 - Se senere, videoer du har likt og historikken din dukker opp mens du skriver
 - Skriv filtre: <20m, >100k, unwatched, date:week, @kanal
+- in:playlists søker i alle spillelister du har lagret
 - is:fresh skjuler det du allerede har fått vist
 - Følg et søk, demp en kanal og se på hvert miniatyrbilde hva du allerede har sett
 
@@ -89,6 +114,17 @@ HISTORIKKEN DIN OG SE SENERE
 - Alt du har begynt på og aldri sett ferdig
 - Filtrer på kanal, lengde, visninger eller når du så det
 - Finn den videoen du vet at du har sett, uten å scrolle i det uendelige
+
+HVILKEN SOM HELST SPILLELISTE OG ABONNEMENTENE DINE
+- Søk og filtrer i hvilken som helst spilleliste, din egen eller andres, hele
+- Abonnementene dine, bare det du ikke har sett og under 20 minutter
+- Demp eller skjul videoer du allerede har sett, på startsiden og under Abonnementer
+
+RYDD, SPILL AV, DEL
+- Rydd i Se senere og dine egne spillelister, fjern likerklikk i bunker og rydd bort slettede videoer, med angre og et arkiv for å legge alt tilbake
+- Spill av det du har filtrert, i rekkefølge, eller kopier lenkene til NotebookLM
+- Del et filter som en lenke: den åpner samme liste med de samme filtrene for alle som har Needle
+- Tastatur: / for å søke, j og k for å flytte, x for å velge
 
 STATISTIKK
 - Videolengdene og årene der en kanal gjør det best
@@ -110,6 +146,7 @@ Ikke tilknyttet YouTube eller Google.`,
 HAKUKENTÄSSÄ
 - Katso myöhemmin, tykkäämäsi videot ja historiasi näkyvät jo kirjoittaessa
 - Kirjoita suodattimia: <20m, >100k, unwatched, date:week, @kanava
+- in:playlists hakee kaikista tallentamistasi soittolistoista
 - is:fresh piilottaa sen, mitä sinulle on jo näytetty
 - Seuraa hakua, mykistä kanava ja näe jokaisesta pikkukuvasta, mitä olet jo katsonut
 
@@ -123,6 +160,17 @@ HISTORIA JA KATSO MYÖHEMMIN
 - Kaikki, minkä aloitit etkä koskaan katsonut loppuun
 - Suodata kanavan, pituuden, katselukertojen tai katseluajan mukaan
 - Löydä se video, jonka tiedät katsoneesi, ilman loputonta vierittämistä
+
+MIKÄ TAHANSA SOITTOLISTA JA TILAUKSESI
+- Hae ja suodata mitä tahansa soittolistaa, omaasi tai jonkun toisen, kokonaan
+- Tilauksesi, vain katsomattomat ja alle 20 minuutin videot
+- Himmennä tai piilota jo katsotut videot etusivulla ja Tilauksissa
+
+SIIVOA, TOISTA, JAA
+- Siivoa Katso myöhemmin ja omat soittolistasi, poista tykkäykset kerralla ja karsi poistetut videot, kumoamisen ja arkiston kanssa, josta kaiken saa takaisin
+- Toista suodattamasi järjestyksessä tai kopioi linkit NotebookLM:ää varten
+- Jaa suodatin linkkinä: se avaa saman listan samoilla suodattimilla kenelle tahansa, jolla on Needle
+- Näppäimistö: / hakuun, j ja k liikkumiseen, x valitsemiseen
 
 TILASTOT
 - Videopituudet ja vuodet, joina kanava menestyy parhaiten
@@ -144,6 +192,7 @@ Ei liity YouTubeen tai Googleen.`,
 OTSINGURIBAL
 - Vaata hiljem, meeldinud videod ja ajalugu ilmuvad juba trükkimise ajal
 - Sisesta filtreid: <20m, >100k, unwatched, date:week, @kanal
+- in:playlists otsib kõigist sinu salvestatud esitusloenditest
 - is:fresh peidab selle, mida sulle on juba näidatud
 - Jälgi otsingut, vaigista kanal ja näe igal pisipildil, mida oled juba vaadanud
 
@@ -157,6 +206,17 @@ AJALUGU JA VAATA HILJEM
 - Kõik, mida alustasid ja kunagi lõpuni ei vaadanud
 - Filtreeri kanali, pikkuse, vaatamiste või vaatamise aja järgi
 - Leia see video, mida tead kindlalt vaadanud olevat, ilma lõputu kerimiseta
+
+MIS TAHES ESITUSLOEND JA SINU TELLIMUSED
+- Otsi ja filtreeri mis tahes esitusloendit, enda oma või kellegi teise oma, tervikuna
+- Sinu tellimused, ainult vaatamata ja alla 20 minuti
+- Tuhmista või peida juba vaadatud videod avalehel ja tellimustes
+
+KORISTA, ESITA, JAGA
+- Korista Vaata hiljem ja oma esitusloendeid, eemalda meeldimised korraga ja vii kustutatud videod minema, koos tagasivõtmise ja arhiiviga, kust kõik tagasi panna
+- Esita filtreeritu järjest või kopeeri lingid NotebookLM-i jaoks
+- Jaga filtrit lingina: see avab sama loendi samade filtritega kõigile, kellel on Needle
+- Klaviatuur: / otsimiseks, j ja k liikumiseks, x valimiseks
 
 STATISTIKA
 - Videopikkused ja aastad, mil kanalil läheb kõige paremini
@@ -178,6 +238,7 @@ Ei ole seotud YouTube'i ega Google'iga.`,
 MEKLĒŠANAS JOSLĀ
 - Skatīties vēlāk, jums patikušie video un vēsture parādās jau rakstīšanas laikā
 - Rakstiet filtrus: <20m, >100k, unwatched, date:week, @kanāls
+- in:playlists meklē visos jūsu saglabātajos atskaņošanas sarakstos
 - is:fresh paslēpj to, kas jums jau ir parādīts
 - Sekojiet meklējumam, izslēdziet kanāla skaņu un katrā sīktēlā redziet, ko jau esat skatījies
 
@@ -191,6 +252,17 @@ VĒSTURE UN SKATĪTIES VĒLĀK
 - Viss, ko sākāt un nekad nepabeidzāt
 - Filtrējiet pēc kanāla, garuma, skatījumiem vai skatīšanās laika
 - Atrodiet to video, ko noteikti esat redzējis, bez bezgalīgas ritināšanas
+
+JEBKURŠ ATSKAŅOŠANAS SARAKSTS UN JŪSU ABONEMENTI
+- Meklējiet un filtrējiet jebkuru atskaņošanas sarakstu, savu vai citu, pilnībā
+- Jūsu abonementi, tikai neskatītais un īsāks par 20 minūtēm
+- Aptumšojiet vai paslēpiet jau skatītos video sākumlapā un abonementos
+
+SAKĀRTOJIET, ATSKAŅOJIET, KOPĪGOJIET
+- Sakārtojiet Skatīties vēlāk un savus atskaņošanas sarakstus, noņemiet atzīmes Patīk vienā reizē un izvāciet dzēstos video, ar atsaukšanu un arhīvu, no kura visu atjaunot
+- Atskaņojiet nofiltrēto pēc kārtas vai kopējiet saites NotebookLM
+- Kopīgojiet filtru kā saiti: tā atver to pašu sarakstu ar tiem pašiem filtriem ikvienam, kam ir Needle
+- Tastatūra: / meklēšanai, j un k pārvietošanai, x atlasei
 
 STATISTIKA
 - Video garumi un gadi, kuros kanālam veicas vislabāk
@@ -212,6 +284,7 @@ Nav saistīts ar YouTube vai Google.`,
 PAIEŠKOS JUOSTOJE
 - Žiūrėti vėliau, patikę vaizdo įrašai ir istorija pasirodo jau rašant
 - Rašykite filtrus: <20m, >100k, unwatched, date:week, @kanalas
+- in:playlists ieško visuose jūsų išsaugotuose grojaraščiuose
 - is:fresh paslepia tai, kas jums jau buvo parodyta
 - Sekite paiešką, nutildykite kanalą ir kiekvienoje miniatiūroje matykite, ką jau žiūrėjote
 
@@ -225,6 +298,17 @@ ISTORIJA IR ŽIŪRĖTI VĖLIAU
 - Viskas, ką pradėjote ir niekada nebaigėte
 - Filtruokite pagal kanalą, trukmę, peržiūras ar žiūrėjimo laiką
 - Raskite tą vaizdo įrašą, kurį tikrai žiūrėjote, be begalinio slinkimo
+
+BET KURIS GROJARAŠTIS IR JŪSŲ PRENUMERATOS
+- Ieškokite ir filtruokite bet kurį grojaraštį, savo ar svetimą, visą
+- Jūsų prenumeratos, tik nežiūrėti ir trumpesni nei 20 minučių vaizdo įrašai
+- Pritemdykite arba paslėpkite jau žiūrėtus vaizdo įrašus pagrindiniame puslapyje ir Prenumeratose
+
+TVARKYKITE, LEISKITE, BENDRINKITE
+- Sutvarkykite Žiūrėti vėliau ir savo grojaraščius, pašalinkite patiktukus vienu kartu ir išvalykite ištrintus vaizdo įrašus, su atšaukimu ir archyvu, iš kurio viską grąžinsite
+- Leiskite iš eilės tai, ką išfiltravote, arba nukopijuokite nuorodas NotebookLM
+- Bendrinkite filtrą kaip nuorodą: ji atidaro tą patį sąrašą su tais pačiais filtrais kiekvienam, kas turi Needle
+- Klaviatūra: / paieškai, j ir k judėti, x pasirinkti
 
 STATISTIKA
 - Vaizdo įrašų trukmės ir metai, kai kanalui sekasi geriausiai
@@ -246,6 +330,7 @@ Nesusijęs su YouTube ar Google.`,
 A KERESŐSÁVBAN
 - A Megnézendő, a kedvelt videók és az előzmények már gépelés közben megjelennek
 - Írj szűrőket: <20m, >100k, unwatched, date:week, @csatorna
+- Az in:playlists az összes mentett lejátszási listádban keres
 - Az is:fresh elrejti, amit már mutattak neked
 - Kövess egy keresést, némíts el egy csatornát, és minden bélyegképen lásd, mit néztél már meg
 
@@ -259,6 +344,17 @@ ELŐZMÉNYEK ÉS MEGNÉZENDŐ
 - Minden, amit elkezdtél, de sosem fejeztél be
 - Szűrj csatorna, hossz, megtekintések vagy a megnézés ideje szerint
 - Találd meg azt a videót, amit biztosan láttál, végtelen görgetés nélkül
+
+BÁRMELY LEJÁTSZÁSI LISTA ÉS A FELIRATKOZÁSAID
+- Keress és szűrj bármely lejátszási listában, a sajátodban vagy másokéban, teljes egészében
+- A feliratkozásaid, csak a meg nem nézett és 20 percnél rövidebb videók
+- Halványítsd el vagy rejtsd el a már megnézett videókat a Kezdőlapon és a Feliratkozásokban
+
+RENDRAKÁS, LEJÁTSZÁS, MEGOSZTÁS
+- Tegyél rendet a Megnézendő listában és a saját lejátszási listáidban, vond vissza a kedveléseket egyszerre, és takarítsd ki a törölt videókat, visszavonással és egy archívummal, ahonnan bármit visszatehetsz
+- Játszd le sorban, amit kiszűrtél, vagy másold ki a linkeket a NotebookLM-hez
+- Oszd meg a szűrőt linkként: bárkinek, akinek van Needle, ugyanazt a listát nyitja meg ugyanazokkal a szűrőkkel
+- Billentyűzet: / a kereséshez, j és k a mozgáshoz, x a kijelöléshez
 
 STATISZTIKA
 - A videóhosszak és évek, amikor egy csatorna a legjobban teljesít
@@ -280,6 +376,7 @@ Nem áll kapcsolatban a YouTube-bal vagy a Google-lel.`,
 ÎN BARA DE CĂUTARE
 - Vizionează mai târziu, videoclipurile apreciate și istoricul apar chiar în timp ce tastezi
 - Tastează filtre: <20m, >100k, unwatched, date:week, @canal
+- in:playlists caută în toate playlisturile pe care le-ai salvat
 - is:fresh ascunde ce ți s-a arătat deja
 - Urmărește o căutare, dezactivează sunetul unui canal și vezi pe fiecare miniatură ce ai văzut deja
 
@@ -293,6 +390,17 @@ ISTORICUL ȘI VIZIONEAZĂ MAI TÂRZIU
 - Tot ce ai început și n-ai terminat niciodată
 - Filtrează după canal, durată, vizionări sau când l-ai văzut
 - Găsește acel videoclip pe care știi sigur că l-ai văzut, fără derulare la nesfârșit
+
+ORICE PLAYLIST ȘI ABONAMENTELE TALE
+- Caută și filtrează orice playlist, al tău sau al altcuiva, în întregime
+- Abonamentele tale, doar ce n-ai văzut și sub 20 de minute
+- Estompează sau ascunde videoclipurile deja văzute pe Pagina principală și în Abonamente
+
+CURĂȚĂ, REDĂ, DISTRIBUIE
+- Curăță Vizionează mai târziu și propriile playlisturi, retrage aprecierile în bloc și scapă de videoclipurile șterse, cu anulare și o arhivă din care pui totul la loc
+- Redă ce ai filtrat, în ordine, sau copiază linkurile pentru NotebookLM
+- Distribuie un filtru ca link: deschide aceeași listă cu aceleași filtre pentru oricine are Needle
+- Tastatură: / pentru căutare, j și k pentru deplasare, x pentru selectare
 
 STATISTICI
 - Duratele și anii în care unui canal îi merge cel mai bine
@@ -314,6 +422,7 @@ Nu este afiliată cu YouTube sau Google.`,
 KWENYE UPAU WA KUTAFUTA
 - Tazama Baadaye, video ulizopenda na historia yako huonekana unapoandika
 - Andika vichujio: <20m, >100k, unwatched, date:week, @chaneli
+- in:playlists hutafuta katika kila orodha ya kucheza uliyohifadhi
 - is:fresh huficha ulichokwisha kuonyeshwa
 - Fuatilia utafutaji, nyamazisha chaneli na uone kwenye kila picha ndogo ulichokwisha kutazama
 
@@ -327,6 +436,17 @@ HISTORIA YAKO NA TAZAMA BAADAYE
 - Kila kitu ulichoanza na hukukimaliza
 - Chuja kwa chaneli, urefu, watazamaji au wakati ulipotazama
 - Pata ile video unayojua kwa hakika uliitazama, bila kusogeza bila mwisho
+
+ORODHA YOYOTE YA KUCHEZA NA USAJILI WAKO
+- Tafuta na uchuje orodha yoyote ya kucheza, yako au ya mtu mwingine, yote
+- Usajili wako, zile ambazo hujatazama na zilizo chini ya dakika 20 tu
+- Fifisha au ficha video ulizokwisha kutazama kwenye Mwanzo na Usajili
+
+SAFISHA, CHEZA, SHIRIKI
+- Safisha Tazama Baadaye na orodha zako za kucheza, ondoa vipendwa kwa wingi na uondoe video zilizofutwa, pamoja na kutendua na kumbukumbu ya kurudisha chochote
+- Cheza ulichochuja kwa mpangilio, au nakili viungo kwa ajili ya NotebookLM
+- Shiriki kichujio kama kiungo: kinafungua orodha ileile na vichujio vilevile kwa yeyote mwenye Needle
+- Kibodi: / kutafuta, j na k kusogea, x kuchagua
 
 TAKWIMU
 - Urefu wa video na miaka ambayo chaneli hufanya vizuri zaidi
@@ -348,6 +468,7 @@ Haihusiani na YouTube wala Google.`,
 በፍለጋ አሞሌው ውስጥ
 - በኋላ ይመልከቱ፣ የወደዷቸው ቪዲዮዎች እና ታሪክዎ በሚተይቡበት ጊዜ ይታያሉ
 - ማጣሪያዎችን ይተይቡ፦ <20m, >100k, unwatched, date:week, @ቻናል
+- in:playlists ያስቀመጧቸውን ሁሉንም የአጫዋች ዝርዝሮች ይፈልጋል
 - is:fresh አስቀድሞ የታየዎትን ይደብቃል
 - ፍለጋን ይከተሉ፣ ቻናልን ድምጸ-ከል ያድርጉ፣ እና በእያንዳንዱ ድንክዬ ላይ ያዩትን ይወቁ
 
@@ -361,6 +482,17 @@ Haihusiani na YouTube wala Google.`,
 - የጀመሩት ግን ያልጨረሱት ሁሉ
 - በቻናል፣ በርዝመት፣ በእይታ ወይም ባዩበት ጊዜ ያጣሩ
 - በእርግጠኝነት ያዩትን ያንን ቪዲዮ ማለቂያ በሌለው ማሸብለል ሳያስፈልግ ያግኙ
+
+ማንኛውም የአጫዋች ዝርዝር እና የደንበኝነት ምዝገባዎችዎ
+- የእርስዎም ሆነ የሌላ ሰው፣ ማንኛውንም የአጫዋች ዝርዝር ሙሉውን ይፈልጉ እና ያጣሩ
+- የደንበኝነት ምዝገባዎችዎ፣ ያላዩት እና ከ20 ደቂቃ በታች የሆነው ብቻ
+- አስቀድመው ያዩትን ቪዲዮ በመነሻ እና በደንበኝነት ምዝገባዎች ላይ ያደብዝዙ ወይም ይደብቁ
+
+ማጽዳት፣ ማጫወት፣ ማጋራት
+- በኋላ ይመልከቱን እና የራስዎን የአጫዋች ዝርዝሮች ያጽዱ፣ መውደዶችን በአንድ ጊዜ ያንሱ፣ የተሰረዙ ቪዲዮዎችን ያስወግዱ፣ በመቀልበስ እና ማንኛውንም መልሶ ለማስገባት በሚያስችል ማህደር
+- ያጣሩትን በቅደም ተከተል ያጫውቱ፣ ወይም ለNotebookLM አገናኞቹን ይቅዱ
+- ማጣሪያን እንደ አገናኝ ያጋሩ፦ Needle ላለው ማንኛውም ሰው ያው ዝርዝር በተመሳሳይ ማጣሪያዎች ይከፈታል
+- የቁልፍ ሰሌዳ፦ / ለመፈለግ፣ j እና k ለመንቀሳቀስ፣ x ለመምረጥ
 
 ግንዛቤዎች
 - አንድ ቻናል በተሻለ የሚሰራባቸው የቪዲዮ ርዝመቶች እና ዓመታት

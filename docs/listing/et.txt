@@ -3,6 +3,7 @@ YouTube'i otsing ei tea, mida sa oled juba vaadanud, ei oska filtreerida pikkuse
 OTSINGURIBAL
 - Vaata hiljem, meeldinud videod ja ajalugu ilmuvad juba trükkimise ajal
 - Sisesta filtreid: <20m, >100k, unwatched, date:week, @kanal
+- in:playlists otsib kõigist sinu salvestatud esitusloenditest
 - is:fresh peidab selle, mida sulle on juba näidatud
 - Jälgi otsingut, vaigista kanal ja näe igal pisipildil, mida oled juba vaadanud
 
@@ -16,6 +17,17 @@ AJALUGU JA VAATA HILJEM
 - Kõik, mida alustasid ja kunagi lõpuni ei vaadanud
 - Filtreeri kanali, pikkuse, vaatamiste või vaatamise aja järgi
 - Leia see video, mida tead kindlalt vaadanud olevat, ilma lõputu kerimiseta
+
+MIS TAHES ESITUSLOEND JA SINU TELLIMUSED
+- Otsi ja filtreeri mis tahes esitusloendit, enda oma või kellegi teise oma, tervikuna
+- Sinu tellimused, ainult vaatamata ja alla 20 minuti
+- Tuhmista või peida juba vaadatud videod avalehel ja tellimustes
+
+KORISTA, ESITA, JAGA
+- Korista Vaata hiljem ja oma esitusloendeid, eemalda meeldimised korraga ja vii kustutatud videod minema, koos tagasivõtmise ja arhiiviga, kust kõik tagasi panna
+- Esita filtreeritu järjest või kopeeri lingid NotebookLM-i jaoks
+- Jaga filtrit lingina: see avab sama loendi samade filtritega kõigile, kellel on Needle
+- Klaviatuur: / otsimiseks, j ja k liikumiseks, x valimiseks
 
 STATISTIKA
 - Videopikkused ja aastad, mil kanalil läheb kõige paremini

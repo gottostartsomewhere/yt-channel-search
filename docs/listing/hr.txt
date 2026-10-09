@@ -3,6 +3,7 @@ YouTube pretraživanje ne zna što ste već gledali, ne filtrira po trajanju ni 
 U TRACI ZA PRETRAŽIVANJE
 - Gledaj kasnije, videozapisi koji vam se sviđaju i povijest pojavljuju se dok tipkate
 - Upišite filtre: <20m, >100k, unwatched, date:week, @kanal
+- in:playlists pretražuje sve popise za reprodukciju koje ste spremili
 - is:fresh skriva ono što vam je već prikazano
 - Pratite pretraživanje, utišajte kanal i vidite na svakoj minijaturi što ste već gledali
 
@@ -16,6 +17,17 @@ POVIJEST I GLEDAJ KASNIJE
 - Sve što ste započeli i nikad niste završili
 - Filtrirajte po kanalu, trajanju, pregledima ili vremenu gledanja
 - Pronađite onaj videozapis koji ste sigurno gledali, bez beskonačnog pomicanja
+
+BILO KOJI POPIS ZA REPRODUKCIJU I VAŠE PRETPLATE
+- Pretražujte i filtrirajte bilo koji popis za reprodukciju, svoj ili tuđi, cijeli
+- Vaše pretplate, samo neodgledano i kraće od 20 minuta
+- Zatamnite ili sakrijte već odgledane videozapise na Početnoj i u Pretplatama
+
+POSPREMITE, PUSTITE, PODIJELITE
+- Pospremite Gledaj kasnije i vlastite popise, uklonite oznake sviđanja odjednom i počistite izbrisane videozapise, uz poništavanje i arhivu iz koje sve vraćate
+- Pustite filtrirano redom ili kopirajte veze za NotebookLM
+- Podijelite filtar kao vezu: svakome tko ima Needle otvara isti popis s istim filtrima
+- Tipkovnica: / za pretraživanje, j i k za kretanje, x za odabir
 
 STATISTIKA
 - Trajanja i godine u kojima kanal prolazi najbolje

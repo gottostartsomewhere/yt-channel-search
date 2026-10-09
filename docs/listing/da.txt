@@ -3,6 +3,7 @@ YouTubes søgning ved ikke, hvad du allerede har set, kan ikke filtrere efter l�
 I SØGEFELTET
 - Se senere, videoer du har synes godt om, og din historik dukker op, mens du skriver
 - Skriv filtre: <20m, >100k, unwatched, date:week, @kanal
+- in:playlists søger i alle playlister, du har gemt
 - is:fresh skjuler det, du allerede har fået vist
 - Følg en søgning, slå en kanal fra og se på hver miniature, hvad du allerede har set
 
@@ -16,6 +17,17 @@ DIN HISTORIK OG SE SENERE
 - Alt, hvad du har startet på og aldrig set færdigt
 - Filtrer efter kanal, længde, visninger eller hvornår du så det
 - Find den video, du ved, du har set, uden at scrolle i det uendelige
+
+ENHVER PLAYLISTE OG DINE ABONNEMENTER
+- Søg og filtrer i enhver playliste, din egen eller andres, hele vejen igennem
+- Dine abonnementer, kun det, du ikke har set, og under 20 minutter
+- Dæmp eller skjul videoer, du allerede har set, på forsiden og under Abonnementer
+
+RYD OP, AFSPIL, DEL
+- Ryd op i Se senere og dine egne playlister, fjern synes godt om i bunker og ryd slettede videoer væk, med fortryd og et arkiv til at lægge alt tilbage
+- Afspil det, du har filtreret, i rækkefølge, eller kopiér linkene til NotebookLM
+- Del et filter som et link: det åbner den samme liste med de samme filtre for alle, der har Needle
+- Tastatur: / for at søge, j og k for at flytte, x for at vælge
 
 STATISTIK
 - De videolængder og år, hvor en kanal klarer sig bedst

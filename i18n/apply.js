@@ -15,6 +15,8 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
+// The paste page's ticks are kept per version, so a new pass starts unticked.
+const VERSION = require(path.join(ROOT, "manifest.json")).version;
 // Chrome's list. Any other folder name is silently ignored by Chrome.
 const SUPPORTED = ("ar am bg bn ca cs da de el es es_419 et fa fi fil fr gu he hi hr hu id it ja kn ko lt " +
   "lv ml mr ms nl no pl pt_BR pt_PT ro ru sk sl sr sv sw ta te th tr uk vi zh_CN zh_TW").split(" ");
@@ -90,14 +92,15 @@ button.ok{border-color:var(--acc);color:var(--acc)}
 details{grid-column:1/-1}summary{color:var(--mute);cursor:pointer;font-size:13px}
 pre{white-space:pre-wrap;font:13px/1.5 system-ui,sans-serif;margin:8px 0 0}
 </style></head><body>
-<h1>Needle store listing, ${entries.length} languages</h1>
+<h1>Needle store listing for ${VERSION}, ${entries.length} languages</h1>
 <p>Dashboard, Store listing, pick the language, paste into Description. Name and summary come from the package.</p>
 <div id="list"></div>
 <script>
 const items = ${data};
+const KEY = "needle-paste-${VERSION}";
 let done = {};
-try { done = JSON.parse(localStorage.getItem("needle-paste") || "{}"); } catch (e) {}
-const save = () => { try { localStorage.setItem("needle-paste", JSON.stringify(done)); } catch (e) {} };
+try { done = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(done)); } catch (e) {} };
 const list = document.getElementById("list");
 for (const it of items) {
   const row = document.createElement("div");

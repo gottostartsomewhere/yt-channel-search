@@ -3,6 +3,7 @@ Carian YouTube tidak tahu apa yang anda sudah tonton, tidak boleh menapis mengik
 DALAM BAR CARIAN
 - Tonton Kemudian, video yang anda suka dan sejarah anda muncul semasa anda menaip
 - Taip penapis: <20m, >100k, unwatched, date:week, @saluran
+- in:playlists mencari dalam setiap senarai main yang anda simpan
 - is:fresh menyembunyikan apa yang sudah ditunjukkan kepada anda
 - Ikuti carian, senyapkan saluran dan lihat apa yang anda sudah tonton pada setiap lakaran kecil
 
@@ -16,6 +17,17 @@ SEJARAH DAN TONTON KEMUDIAN
 - Semua yang anda mula tetapi tidak pernah habiskan
 - Tapis mengikut saluran, tempoh, tontonan atau bila anda menontonnya
 - Cari video yang anda pasti pernah tonton, tanpa menatal tanpa henti
+
+MANA-MANA SENARAI MAIN DAN LANGGANAN ANDA
+- Cari dan tapis mana-mana senarai main, milik anda atau orang lain, sepenuhnya
+- Langganan anda, hanya yang belum ditonton dan bawah 20 minit
+- Malapkan atau sembunyikan video yang sudah anda tonton di Laman Utama dan Langganan
+
+KEMAS, MAIN, KONGSI
+- Kemas Tonton Kemudian dan senarai main anda sendiri, batalkan suka secara pukal dan buang video yang telah dipadam, dengan buat asal dan arkib untuk memulangkannya
+- Mainkan apa yang anda tapis, mengikut urutan, atau salin pautannya untuk NotebookLM
+- Kongsi penapis sebagai pautan: ia membuka senarai yang sama dengan penapis yang sama untuk sesiapa yang ada Needle
+- Papan kekunci: / untuk mencari, j dan k untuk bergerak, x untuk memilih
 
 STATISTIK
 - Tempoh video dan tahun yang paling berjaya bagi sesebuah saluran

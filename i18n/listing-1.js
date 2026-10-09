@@ -1,5 +1,5 @@
 // Store listing translations: n = name (75 max), s = summary (132 max), d = dashboard description.
-// Only features live since 2.0.1, so the text stays true after later updates.
+// Features live in 2.1.0 (keep it to shipped features, so the text stays true after later updates).
 module.exports = {
   pt_BR: {
     n: "Needle para YouTube: Pesquisa no Canal, Histórico e Filtros de Busca",
@@ -9,6 +9,7 @@ module.exports = {
 NA BARRA DE BUSCA
 - Seus vídeos de Assistir mais tarde, curtidos e do histórico aparecem enquanto você digita
 - Digite filtros: <20m, >100k, unwatched, date:week, @canal
+- in:playlists busca em todas as playlists que você salvou
 - is:fresh esconde o que já apareceu para você antes
 - Siga uma busca, silencie um canal e veja o que você já assistiu em cada miniatura
 
@@ -22,6 +23,17 @@ SEU HISTÓRICO E ASSISTIR MAIS TARDE
 - Tudo que você começou e nunca terminou
 - Filtre por canal, duração, visualizações ou por quando você assistiu
 - Ache aquele vídeo que você sabe que assistiu, sem ficar rolando a página
+
+QUALQUER PLAYLIST E SUAS INSCRIÇÕES
+- Pesquise e filtre qualquer playlist, sua ou de outra pessoa, inteira
+- Suas inscrições, só o que você ainda não viu e com menos de 20 minutos
+- Esmaeça ou esconda os vídeos que você já assistiu no Início e em Inscrições
+
+LIMPAR, REPRODUZIR, COMPARTILHAR
+- Limpe o Assistir mais tarde e suas próprias playlists, remova curtidas em massa e tire os vídeos excluídos, com desfazer e um arquivo para devolver o que quiser
+- Reproduza o que você filtrou, em ordem, ou copie os links para o NotebookLM
+- Compartilhe um filtro como link: ele abre a mesma lista com os mesmos filtros para qualquer pessoa com o Needle
+- Teclado: / para buscar, j e k para navegar, x para selecionar
 
 ANÁLISE
 - As durações e os anos em que um canal vai melhor
@@ -43,6 +55,7 @@ Não é afiliada ao YouTube nem ao Google.`,
 NA BARRA DE PESQUISA
 - Os seus vídeos de Ver mais tarde, gostos e histórico aparecem enquanto escreve
 - Escreva filtros: <20m, >100k, unwatched, date:week, @canal
+- in:playlists pesquisa em todas as playlists que guardou
 - is:fresh esconde o que já lhe foi mostrado
 - Siga uma pesquisa, silencie um canal e veja o que já viu em cada miniatura
 
@@ -56,6 +69,17 @@ O SEU HISTÓRICO E VER MAIS TARDE
 - Tudo o que começou e nunca acabou
 - Filtre por canal, duração, visualizações ou pela altura em que viu
 - Encontre aquele vídeo que sabe que viu, sem andar a percorrer a página
+
+QUALQUER PLAYLIST E AS SUAS SUBSCRIÇÕES
+- Pesquise e filtre qualquer playlist, sua ou de outra pessoa, do princípio ao fim
+- As suas subscrições, só o que ainda não viu e com menos de 20 minutos
+- Esbata ou esconda os vídeos que já viu na Página inicial e nas Subscrições
+
+LIMPAR, REPRODUZIR, PARTILHAR
+- Limpe o Ver mais tarde e as suas próprias playlists, retire gostos em massa e elimine vídeos apagados, com anular e um arquivo para repor o que quiser
+- Reproduza o que filtrou, por ordem, ou copie as ligações para o NotebookLM
+- Partilhe um filtro como ligação: abre a mesma lista com os mesmos filtros para quem tiver o Needle
+- Teclado: / para pesquisar, j e k para navegar, x para selecionar
 
 ANÁLISE
 - As durações e os anos em que um canal tem melhores resultados
@@ -77,6 +101,7 @@ Não é afiliada ao YouTube nem à Google.`,
 EN LA BARRA DE BÚSQUEDA
 - Tus vídeos de Ver más tarde, los que te gustan y tu historial aparecen mientras escribes
 - Escribe filtros: <20m, >100k, unwatched, date:week, @canal
+- in:playlists busca en todas las listas de reproducción que has guardado
 - is:fresh oculta lo que ya se te ha mostrado
 - Sigue una búsqueda, silencia un canal y mira lo que ya has visto en cada miniatura
 
@@ -90,6 +115,17 @@ TU HISTORIAL Y VER MÁS TARDE
 - Todo lo que empezaste y nunca terminaste
 - Filtra por canal, duración, visualizaciones o por cuándo lo viste
 - Encuentra ese vídeo que sabes que viste, sin desplazarte sin fin
+
+CUALQUIER LISTA Y TUS SUSCRIPCIONES
+- Busca y filtra cualquier lista de reproducción, tuya o de otra persona, entera
+- Tus suscripciones, solo lo que no has visto y de menos de 20 minutos
+- Atenúa u oculta los vídeos que ya has visto en Inicio y en Suscripciones
+
+LIMPIAR, REPRODUCIR, COMPARTIR
+- Limpia Ver más tarde y tus propias listas, quita Me gusta en bloque y elimina los vídeos borrados, con deshacer y un archivo para recuperar lo que quieras
+- Reproduce lo que has filtrado, en orden, o copia los enlaces para NotebookLM
+- Comparte un filtro como enlace: abre la misma lista con los mismos filtros a cualquiera que tenga Needle
+- Teclado: / para buscar, j y k para moverte, x para seleccionar
 
 ESTADÍSTICAS
 - Las duraciones y los años en los que mejor le va a un canal
@@ -111,6 +147,7 @@ No está afiliada a YouTube ni a Google.`,
 EN LA BARRA DE BÚSQUEDA
 - Tus videos de Ver más tarde, los que te gustaron y tu historial aparecen mientras escribes
 - Escribe filtros: <20m, >100k, unwatched, date:week, @canal
+- in:playlists busca en todas las playlists que guardaste
 - is:fresh oculta lo que ya se te mostró
 - Sigue una búsqueda, silencia un canal y ve lo que ya viste en cada miniatura
 
@@ -124,6 +161,17 @@ TU HISTORIAL Y VER MÁS TARDE
 - Todo lo que empezaste y nunca terminaste
 - Filtra por canal, duración, vistas o por cuándo lo viste
 - Encuentra ese video que sabes que viste, sin tener que desplazarte
+
+CUALQUIER PLAYLIST Y TUS SUSCRIPCIONES
+- Busca y filtra cualquier playlist, tuya o de otra persona, completa
+- Tus suscripciones, solo lo que no viste y de menos de 20 minutos
+- Atenúa u oculta los videos que ya viste en Principal y en Suscripciones
+
+LIMPIAR, REPRODUCIR, COMPARTIR
+- Limpia Ver más tarde y tus propias playlists, quita Me gusta en masa y elimina los videos borrados, con deshacer y un archivo para recuperar lo que quieras
+- Reproduce lo que filtraste, en orden, o copia los enlaces para NotebookLM
+- Comparte un filtro como enlace: abre la misma lista con los mismos filtros para cualquiera que tenga Needle
+- Teclado: / para buscar, j y k para moverte, x para seleccionar
 
 ESTADÍSTICAS
 - Las duraciones y los años en los que mejor le va a un canal
@@ -145,6 +193,7 @@ No está afiliada a YouTube ni a Google.`,
 DANS LA BARRE DE RECHERCHE
 - Vos vidéos À regarder plus tard, vos J'aime et votre historique s'affichent pendant que vous tapez
 - Tapez des filtres : <20m, >100k, unwatched, date:week, @chaîne
+- in:playlists cherche dans toutes les playlists que vous avez enregistrées
 - is:fresh masque ce qu'on vous a déjà montré
 - Suivez une recherche, masquez une chaîne et voyez sur chaque miniature ce que vous avez déjà regardé
 
@@ -158,6 +207,17 @@ VOTRE HISTORIQUE ET À REGARDER PLUS TARD
 - Tout ce que vous avez commencé sans jamais finir
 - Filtrez par chaîne, durée, vues ou date de visionnage
 - Retrouvez cette vidéo que vous savez avoir vue, sans faire défiler pendant des heures
+
+N'IMPORTE QUELLE PLAYLIST ET VOS ABONNEMENTS
+- Cherchez et filtrez n'importe quelle playlist, la vôtre ou celle d'un autre, en entier
+- Vos abonnements, uniquement les vidéos non vues de moins de 20 minutes
+- Estompez ou masquez les vidéos déjà vues sur l'Accueil et dans Abonnements
+
+NETTOYER, LIRE, PARTAGER
+- Faites le tri dans À regarder plus tard et vos propres playlists, retirez vos J'aime en masse et supprimez les vidéos effacées, avec annulation et une archive pour tout remettre en place
+- Lisez ce que vous avez filtré, dans l'ordre, ou copiez les liens pour NotebookLM
+- Partagez un filtre sous forme de lien : il ouvre la même liste avec les mêmes filtres pour toute personne qui a Needle
+- Clavier : / pour chercher, j et k pour se déplacer, x pour sélectionner
 
 STATISTIQUES
 - Les durées et les années où une chaîne marche le mieux
@@ -179,6 +239,7 @@ Non affiliée à YouTube ni à Google.`,
 IN DER SUCHLEISTE
 - Deine Videos aus Später ansehen, deine Likes und dein Verlauf erscheinen schon beim Tippen
 - Tippe Filter ein: <20m, >100k, unwatched, date:week, @kanal
+- in:playlists durchsucht jede Playlist, die du gespeichert hast
 - is:fresh blendet aus, was dir schon einmal angezeigt wurde
 - Folge einer Suche, schalte einen Kanal stumm und sieh auf jedem Thumbnail, was du schon gesehen hast
 
@@ -192,6 +253,17 @@ DEIN VERLAUF UND SPÄTER ANSEHEN
 - Alles, was du angefangen und nie beendet hast
 - Filtere nach Kanal, Länge, Aufrufen oder danach, wann du es gesehen hast
 - Finde das Video, das du ganz sicher schon gesehen hast, ohne endlos zu scrollen
+
+JEDE PLAYLIST UND DEINE ABOS
+- Durchsuche und filtere jede Playlist, deine oder fremde, komplett
+- Deine Abos, nur Ungesehenes unter 20 Minuten
+- Dunkle bereits gesehene Videos auf der Startseite und unter Abos ab oder blende sie aus
+
+AUFRÄUMEN, ABSPIELEN, TEILEN
+- Räume Später ansehen und deine eigenen Playlists auf, entferne Likes in großen Mengen und wirf gelöschte Videos raus, mit Rückgängig und einem Archiv, um alles zurückzuholen
+- Spiele ab, was du gefiltert hast, der Reihe nach, oder kopiere die Links für NotebookLM
+- Teile einen Filter als Link: Er öffnet dieselbe Liste mit denselben Filtern für alle, die Needle haben
+- Tastatur: / zum Suchen, j und k zum Bewegen, x zum Auswählen
 
 STATISTIKEN
 - Die Videolängen und Jahre, in denen ein Kanal am besten läuft
@@ -213,6 +285,7 @@ Nicht mit YouTube oder Google verbunden.`,
 NELLA BARRA DI RICERCA
 - I tuoi video di Guarda più tardi, i Mi piace e la cronologia compaiono mentre scrivi
 - Scrivi filtri: <20m, >100k, unwatched, date:week, @canale
+- in:playlists cerca in tutte le playlist che hai salvato
 - is:fresh nasconde ciò che ti è già stato mostrato
 - Segui una ricerca, silenzia un canale e vedi su ogni miniatura cosa hai già guardato
 
@@ -226,6 +299,17 @@ LA TUA CRONOLOGIA E GUARDA PIÙ TARDI
 - Tutto ciò che hai iniziato e mai finito
 - Filtra per canale, durata, visualizzazioni o per quando l'hai guardato
 - Ritrova quel video che sai di aver visto, senza scorrere all'infinito
+
+QUALSIASI PLAYLIST E LE TUE ISCRIZIONI
+- Cerca e filtra qualsiasi playlist, tua o di altri, per intero
+- Le tue iscrizioni, solo i video non visti e sotto i 20 minuti
+- Attenua o nascondi i video che hai già visto in Home e in Iscrizioni
+
+PULISCI, RIPRODUCI, CONDIVIDI
+- Fai pulizia in Guarda più tardi e nelle tue playlist, togli i Mi piace in blocco e rimuovi i video eliminati, con annulla e un archivio per rimettere tutto a posto
+- Riproduci ciò che hai filtrato, in ordine, o copia i link per NotebookLM
+- Condividi un filtro come link: apre la stessa lista con gli stessi filtri per chiunque abbia Needle
+- Tastiera: / per cercare, j e k per spostarti, x per selezionare
 
 STATISTICHE
 - Le durate e gli anni in cui un canale rende di più
@@ -247,6 +331,7 @@ Non affiliata a YouTube o Google.`,
 IN DE ZOEKBALK
 - Je video's uit Later bekijken, je likes en je geschiedenis verschijnen terwijl je typt
 - Typ filters: <20m, >100k, unwatched, date:week, @kanaal
+- in:playlists doorzoekt elke afspeellijst die je hebt opgeslagen
 - is:fresh verbergt wat je al eerder te zien kreeg
 - Volg een zoekopdracht, demp een kanaal en zie op elke thumbnail wat je al hebt bekeken
 
@@ -260,6 +345,17 @@ JE GESCHIEDENIS EN LATER BEKIJKEN
 - Alles wat je bent begonnen en nooit hebt afgemaakt
 - Filter op kanaal, lengte, weergaven of wanneer je het keek
 - Vind die video waarvan je zeker weet dat je hem hebt gezien, zonder eindeloos te scrollen
+
+ELKE AFSPEELLIJST EN JE ABONNEMENTEN
+- Doorzoek en filter elke afspeellijst, van jezelf of van een ander, helemaal
+- Je abonnementen, alleen wat je nog niet zag en korter dan 20 minuten
+- Dim of verberg video's die je al hebt gezien op Home en bij Abonnementen
+
+OPRUIMEN, AFSPELEN, DELEN
+- Ruim Later bekijken en je eigen afspeellijsten op, haal likes in één keer weg en gooi verwijderde video's eruit, met ongedaan maken en een archief om alles terug te zetten
+- Speel af wat je hebt gefilterd, op volgorde, of kopieer de links voor NotebookLM
+- Deel een filter als link: die opent dezelfde lijst met dezelfde filters voor iedereen met Needle
+- Toetsenbord: / om te zoeken, j en k om te bewegen, x om te kiezen
 
 INZICHTEN
 - De videolengtes en jaren waarin een kanaal het best presteert
@@ -281,6 +377,7 @@ Niet verbonden aan YouTube of Google.`,
 W PASKU WYSZUKIWANIA
 - Filmy z Do obejrzenia, polubione i historia pojawiają się już podczas pisania
 - Wpisuj filtry: <20m, >100k, unwatched, date:week, @kanał
+- in:playlists przeszukuje wszystkie zapisane playlisty
 - is:fresh ukrywa to, co było już Ci pokazane
 - Obserwuj wyszukiwanie, wycisz kanał i zobacz na każdej miniaturze, co już obejrzano
 
@@ -294,6 +391,17 @@ HISTORIA I DO OBEJRZENIA
 - Wszystko, co zostało zaczęte i nigdy nie skończone
 - Filtruj według kanału, długości, wyświetleń lub daty obejrzenia
 - Znajdź ten jeden obejrzany film bez przewijania bez końca
+
+DOWOLNA PLAYLISTA I TWOJE SUBSKRYPCJE
+- Przeszukuj i filtruj dowolną playlistę, swoją lub cudzą, w całości
+- Twoje subskrypcje, tylko nieobejrzane i krótsze niż 20 minut
+- Przyciemnij lub ukryj obejrzane filmy na stronie głównej i w Subskrypcjach
+
+PORZĄDKI, ODTWARZANIE, UDOSTĘPNIANIE
+- Porządkuj Do obejrzenia i własne playlisty, usuwaj polubienia hurtem i czyść usunięte filmy, z cofaniem i archiwum, z którego wszystko przywrócisz
+- Odtwarzaj po kolei to, co przefiltrowano, albo skopiuj linki do NotebookLM
+- Udostępnij filtr jako link: otwiera tę samą listę z tymi samymi filtrami każdemu, kto ma Needle
+- Klawiatura: / do wyszukiwania, j i k do przechodzenia, x do zaznaczania
 
 STATYSTYKI
 - Długości filmów i lata, w których kanał radzi sobie najlepiej
@@ -315,6 +423,7 @@ Nie jest powiązane z YouTube ani Google.`,
 A LA BARRA DE CERCA
 - Els teus vídeos de Mira més tard, els que t'agraden i l'historial apareixen mentre escrius
 - Escriu filtres: <20m, >100k, unwatched, date:week, @canal
+- in:playlists cerca a totes les llistes de reproducció que has desat
 - is:fresh amaga el que ja se t'ha mostrat
 - Segueix una cerca, silencia un canal i mira a cada miniatura què ja has vist
 
@@ -328,6 +437,17 @@ EL TEU HISTORIAL I MIRA MÉS TARD
 - Tot el que vas començar i no vas acabar mai
 - Filtra per canal, durada, visualitzacions o per quan ho vas veure
 - Troba aquell vídeo que saps que vas veure, sense haver de desplaçar-te sense fi
+
+QUALSEVOL LLISTA I LES TEVES SUBSCRIPCIONS
+- Cerca i filtra qualsevol llista de reproducció, teva o d'una altra persona, sencera
+- Les teves subscripcions, només el que no has vist i de menys de 20 minuts
+- Atenua o amaga els vídeos que ja has vist a Inici i a Subscripcions
+
+NETEJAR, REPRODUIR, COMPARTIR
+- Neteja Mira més tard i les teves pròpies llistes, treu m'agrades en bloc i elimina els vídeos esborrats, amb desfer i un arxiu per recuperar el que vulguis
+- Reprodueix el que has filtrat, en ordre, o copia els enllaços per a NotebookLM
+- Comparteix un filtre com a enllaç: obre la mateixa llista amb els mateixos filtres per a qualsevol que tingui Needle
+- Teclat: / per cercar, j i k per moure't, x per seleccionar
 
 ESTADÍSTIQUES
 - Les durades i els anys en què a un canal li va millor

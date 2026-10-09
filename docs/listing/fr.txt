@@ -3,6 +3,7 @@ La recherche YouTube ne sait pas ce que vous avez déjà vu, ne filtre ni par du
 DANS LA BARRE DE RECHERCHE
 - Vos vidéos À regarder plus tard, vos J'aime et votre historique s'affichent pendant que vous tapez
 - Tapez des filtres : <20m, >100k, unwatched, date:week, @chaîne
+- in:playlists cherche dans toutes les playlists que vous avez enregistrées
 - is:fresh masque ce qu'on vous a déjà montré
 - Suivez une recherche, masquez une chaîne et voyez sur chaque miniature ce que vous avez déjà regardé
 
@@ -16,6 +17,17 @@ VOTRE HISTORIQUE ET À REGARDER PLUS TARD
 - Tout ce que vous avez commencé sans jamais finir
 - Filtrez par chaîne, durée, vues ou date de visionnage
 - Retrouvez cette vidéo que vous savez avoir vue, sans faire défiler pendant des heures
+
+N'IMPORTE QUELLE PLAYLIST ET VOS ABONNEMENTS
+- Cherchez et filtrez n'importe quelle playlist, la vôtre ou celle d'un autre, en entier
+- Vos abonnements, uniquement les vidéos non vues de moins de 20 minutes
+- Estompez ou masquez les vidéos déjà vues sur l'Accueil et dans Abonnements
+
+NETTOYER, LIRE, PARTAGER
+- Faites le tri dans À regarder plus tard et vos propres playlists, retirez vos J'aime en masse et supprimez les vidéos effacées, avec annulation et une archive pour tout remettre en place
+- Lisez ce que vous avez filtré, dans l'ordre, ou copiez les liens pour NotebookLM
+- Partagez un filtre sous forme de lien : il ouvre la même liste avec les mêmes filtres pour toute personne qui a Needle
+- Clavier : / pour chercher, j et k pour se déplacer, x pour sélectionner
 
 STATISTIQUES
 - Les durées et les années où une chaîne marche le mieux

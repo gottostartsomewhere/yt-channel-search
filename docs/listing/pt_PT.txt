@@ -3,6 +3,7 @@ A pesquisa do YouTube não sabe o que já viu, não filtra por duração nem por
 NA BARRA DE PESQUISA
 - Os seus vídeos de Ver mais tarde, gostos e histórico aparecem enquanto escreve
 - Escreva filtros: <20m, >100k, unwatched, date:week, @canal
+- in:playlists pesquisa em todas as playlists que guardou
 - is:fresh esconde o que já lhe foi mostrado
 - Siga uma pesquisa, silencie um canal e veja o que já viu em cada miniatura
 
@@ -16,6 +17,17 @@ O SEU HISTÓRICO E VER MAIS TARDE
 - Tudo o que começou e nunca acabou
 - Filtre por canal, duração, visualizações ou pela altura em que viu
 - Encontre aquele vídeo que sabe que viu, sem andar a percorrer a página
+
+QUALQUER PLAYLIST E AS SUAS SUBSCRIÇÕES
+- Pesquise e filtre qualquer playlist, sua ou de outra pessoa, do princípio ao fim
+- As suas subscrições, só o que ainda não viu e com menos de 20 minutos
+- Esbata ou esconda os vídeos que já viu na Página inicial e nas Subscrições
+
+LIMPAR, REPRODUZIR, PARTILHAR
+- Limpe o Ver mais tarde e as suas próprias playlists, retire gostos em massa e elimine vídeos apagados, com anular e um arquivo para repor o que quiser
+- Reproduza o que filtrou, por ordem, ou copie as ligações para o NotebookLM
+- Partilhe um filtro como ligação: abre a mesma lista com os mesmos filtros para quem tiver o Needle
+- Teclado: / para pesquisar, j e k para navegar, x para selecionar
 
 ANÁLISE
 - As durações e os anos em que um canal tem melhores resultados

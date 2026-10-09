@@ -8,6 +8,7 @@ module.exports = {
 検索バーで
 - 入力中に「後で見る」、高く評価した動画、再生履歴が表示されます
 - フィルターを入力：<20m、>100k、unwatched、date:week、@チャンネル
+- in:playlists で、保存したすべての再生リストを検索
 - is:fresh で、すでに表示された動画を隠します
 - 検索をフォロー、チャンネルをミュート、すべてのサムネイルに視聴済みを表示
 
@@ -21,6 +22,17 @@ module.exports = {
 - 見始めて最後まで見ていない動画をすべて表示
 - チャンネル、長さ、再生回数、視聴した時期で絞り込み
 - 確かに見たはずのあの動画を、延々とスクロールせずに見つける
+
+あらゆる再生リストと登録チャンネル
+- 自分のものでも他人のものでも、どの再生リストも丸ごと検索して絞り込み
+- 登録チャンネルの、未視聴で20分未満の動画だけを表示
+- ホームと登録チャンネルで、視聴済みの動画を薄く表示または非表示に
+
+整理・再生・共有
+- 「後で見る」と自分の再生リストを整理、高評価をまとめて取り消し、削除された動画も一掃。元に戻す機能と、いつでも戻せるアーカイブ付き
+- 絞り込んだ動画を順番に再生、または NotebookLM 用にリンクをコピー
+- フィルターをリンクで共有：Needle を入れている人なら、同じリストが同じフィルターで開きます
+- キーボード：/ で検索、j と k で移動、x で選択
 
 インサイト
 - そのチャンネルで最も伸びる動画の長さと年
@@ -42,6 +54,7 @@ YouTube および Google とは提携していません。`,
 검색창에서
 - 입력하는 동안 나중에 볼 동영상, 좋아요 표시한 동영상, 시청 기록이 나타납니다
 - 필터 입력: <20m, >100k, unwatched, date:week, @채널
+- in:playlists 로 저장한 모든 재생목록 검색
 - is:fresh 는 이미 보여진 영상을 숨깁니다
 - 검색 팔로우, 채널 음소거, 모든 썸네일에 시청 여부 표시
 
@@ -55,6 +68,17 @@ YouTube および Google とは提携していません。`,
 - 시작했지만 끝까지 보지 않은 모든 영상
 - 채널, 길이, 조회수, 시청한 시기로 필터링
 - 분명히 봤던 그 영상을 끝없이 스크롤하지 않고 찾기
+
+모든 재생목록과 구독
+- 내 것이든 다른 사람 것이든, 어떤 재생목록이든 통째로 검색하고 필터링
+- 구독 채널 중 아직 안 본 20분 미만 영상만 보기
+- 홈과 구독에서 이미 본 영상을 흐리게 하거나 숨기기
+
+정리, 재생, 공유
+- 나중에 볼 동영상과 내 재생목록 정리, 좋아요 한꺼번에 취소, 삭제된 영상 정리까지. 실행 취소와 언제든 되돌릴 수 있는 보관함 제공
+- 필터링한 영상을 순서대로 재생하거나 NotebookLM용 링크 복사
+- 필터를 링크로 공유: Needle이 있는 사람이라면 같은 목록이 같은 필터로 열립니다
+- 키보드: / 검색, j와 k 이동, x 선택
 
 인사이트
 - 채널에서 가장 성과가 좋은 영상 길이와 연도
@@ -76,6 +100,7 @@ YouTube 또는 Google과 제휴 관계가 없습니다.`,
 在搜索栏中
 - 输入时就会显示你的稍后观看、赞过的视频和观看记录
 - 输入筛选条件：<20m、>100k、unwatched、date:week、@频道
+- in:playlists 搜索你保存的所有播放列表
 - is:fresh 隐藏之前已经展示过给你的结果
 - 关注一个搜索、屏蔽一个频道，并在每个缩略图上看到你是否看过
 
@@ -89,6 +114,17 @@ YouTube 또는 Google과 제휴 관계가 없습니다.`,
 - 所有开始看了却没看完的视频
 - 按频道、时长、观看次数或观看时间筛选
 - 找到那个你确定看过的视频，不用一直往下翻
+
+任意播放列表和你的订阅
+- 搜索并筛选任意播放列表，不管是你的还是别人的，全部内容都能搜
+- 你的订阅内容，只看没看过且不到 20 分钟的视频
+- 在首页和订阅内容中，把已看过的视频变暗或隐藏
+
+整理、播放、分享
+- 整理稍后观看和你自己的播放列表，批量取消赞，清理已删除的视频，支持撤销，还有存档可以随时放回去
+- 按顺序播放筛选结果，或为 NotebookLM 复制链接
+- 把筛选以链接分享：装了 Needle 的人打开后，看到的是同一个列表和同样的筛选
+- 键盘：/ 搜索，j 和 k 移动，x 选择
 
 数据洞察
 - 一个频道表现最好的视频时长和年份
@@ -110,6 +146,7 @@ YouTube 또는 Google과 제휴 관계가 없습니다.`,
 在搜尋列中
 - 輸入時就會顯示你的「稍後觀看」、喜歡的影片和觀看記錄
 - 輸入篩選條件：<20m、>100k、unwatched、date:week、@頻道
+- in:playlists 搜尋你儲存的所有播放清單
 - is:fresh 會隱藏之前已經出現過的結果
 - 追蹤一個搜尋、隱藏一個頻道，並在每個縮圖上看到是否看過
 
@@ -123,6 +160,17 @@ YouTube 또는 Google과 제휴 관계가 없습니다.`,
 - 所有開始看了卻沒看完的影片
 - 依頻道、長度、觀看次數或觀看時間篩選
 - 找到那部你確定看過的影片，不用一直往下捲
+
+任何播放清單和你的訂閱內容
+- 搜尋並篩選任何播放清單，不論是你的還是別人的，整份都能搜
+- 你的訂閱內容，只看沒看過且不到 20 分鐘的影片
+- 在首頁和訂閱內容中，將已看過的影片變暗或隱藏
+
+整理、播放、分享
+- 整理「稍後觀看」和你自己的播放清單，大量取消喜歡，清除已刪除的影片，可以復原，還有封存區能隨時放回去
+- 依序播放篩選結果，或為 NotebookLM 複製連結
+- 把篩選以連結分享：有安裝 Needle 的人打開後，會看到同一份清單和同樣的篩選
+- 鍵盤：/ 搜尋，j 和 k 移動，x 選取
 
 數據洞察
 - 一個頻道表現最好的影片長度和年份
@@ -144,6 +192,7 @@ YouTube 또는 Google과 제휴 관계가 없습니다.`,
 DI BILAH PENCARIAN
 - Video Tonton Nanti, video yang kamu sukai, dan riwayatmu muncul saat kamu mengetik
 - Ketik filter: <20m, >100k, unwatched, date:week, @channel
+- in:playlists mencari di semua playlist yang kamu simpan
 - is:fresh menyembunyikan apa yang sudah pernah ditampilkan kepadamu
 - Ikuti sebuah pencarian, bisukan channel, dan lihat video yang sudah kamu tonton di setiap thumbnail
 
@@ -157,6 +206,17 @@ RIWAYAT DAN TONTON NANTI
 - Semua yang kamu mulai tapi tidak pernah selesai
 - Filter menurut channel, durasi, tayangan, atau kapan kamu menontonnya
 - Temukan video yang kamu yakin pernah ditonton, tanpa menggulir tanpa akhir
+
+PLAYLIST APA PUN DAN SUBSCRIPTION KAMU
+- Cari dan filter playlist apa pun, milikmu atau milik orang lain, seluruhnya
+- Subscription kamu, hanya yang belum ditonton dan di bawah 20 menit
+- Redupkan atau sembunyikan video yang sudah kamu tonton di Beranda dan Subscription
+
+BERESKAN, PUTAR, BAGIKAN
+- Bereskan Tonton Nanti dan playlist milikmu, batalkan suka sekaligus, dan buang video yang sudah dihapus, dengan urungkan dan arsip untuk mengembalikannya
+- Putar hasil filtermu secara berurutan, atau salin tautannya untuk NotebookLM
+- Bagikan filter sebagai tautan: tautan itu membuka daftar yang sama dengan filter yang sama untuk siapa pun yang punya Needle
+- Keyboard: / untuk mencari, j dan k untuk berpindah, x untuk memilih
 
 WAWASAN
 - Durasi video dan tahun dengan performa terbaik sebuah channel
@@ -178,6 +238,7 @@ Tidak berafiliasi dengan YouTube atau Google.`,
 DALAM BAR CARIAN
 - Tonton Kemudian, video yang anda suka dan sejarah anda muncul semasa anda menaip
 - Taip penapis: <20m, >100k, unwatched, date:week, @saluran
+- in:playlists mencari dalam setiap senarai main yang anda simpan
 - is:fresh menyembunyikan apa yang sudah ditunjukkan kepada anda
 - Ikuti carian, senyapkan saluran dan lihat apa yang anda sudah tonton pada setiap lakaran kecil
 
@@ -191,6 +252,17 @@ SEJARAH DAN TONTON KEMUDIAN
 - Semua yang anda mula tetapi tidak pernah habiskan
 - Tapis mengikut saluran, tempoh, tontonan atau bila anda menontonnya
 - Cari video yang anda pasti pernah tonton, tanpa menatal tanpa henti
+
+MANA-MANA SENARAI MAIN DAN LANGGANAN ANDA
+- Cari dan tapis mana-mana senarai main, milik anda atau orang lain, sepenuhnya
+- Langganan anda, hanya yang belum ditonton dan bawah 20 minit
+- Malapkan atau sembunyikan video yang sudah anda tonton di Laman Utama dan Langganan
+
+KEMAS, MAIN, KONGSI
+- Kemas Tonton Kemudian dan senarai main anda sendiri, batalkan suka secara pukal dan buang video yang telah dipadam, dengan buat asal dan arkib untuk memulangkannya
+- Mainkan apa yang anda tapis, mengikut urutan, atau salin pautannya untuk NotebookLM
+- Kongsi penapis sebagai pautan: ia membuka senarai yang sama dengan penapis yang sama untuk sesiapa yang ada Needle
+- Papan kekunci: / untuk mencari, j dan k untuk bergerak, x untuk memilih
 
 STATISTIK
 - Tempoh video dan tahun yang paling berjaya bagi sesebuah saluran
@@ -212,6 +284,7 @@ Tidak bergabung dengan YouTube atau Google.`,
 TRONG THANH TÌM KIẾM
 - Video Xem sau, video đã thích và lịch sử xem hiện ra ngay khi bạn gõ
 - Gõ bộ lọc: <20m, >100k, unwatched, date:week, @kênh
+- in:playlists tìm trong mọi danh sách phát bạn đã lưu
 - is:fresh ẩn những gì đã từng hiển thị cho bạn
 - Theo dõi một tìm kiếm, ẩn một kênh và thấy video đã xem trên mọi hình thu nhỏ
 
@@ -225,6 +298,17 @@ LỊCH SỬ XEM VÀ XEM SAU
 - Mọi video bạn đã bắt đầu nhưng chưa xem hết
 - Lọc theo kênh, thời lượng, lượt xem hoặc thời điểm bạn xem
 - Tìm video bạn chắc chắn đã xem mà không cần cuộn mãi
+
+MỌI DANH SÁCH PHÁT VÀ KÊNH ĐĂNG KÝ
+- Tìm và lọc bất kỳ danh sách phát nào, của bạn hay của người khác, toàn bộ
+- Kênh đăng ký của bạn, chỉ video chưa xem và dưới 20 phút
+- Làm mờ hoặc ẩn video đã xem trên Trang chủ và Kênh đăng ký
+
+DỌN DẸP, PHÁT, CHIA SẺ
+- Dọn dẹp Xem sau và danh sách phát của riêng bạn, bỏ thích hàng loạt và xóa các video đã bị gỡ, có hoàn tác và kho lưu trữ để khôi phục
+- Phát những gì bạn đã lọc theo thứ tự, hoặc sao chép liên kết cho NotebookLM
+- Chia sẻ bộ lọc bằng liên kết: ai có Needle cũng mở được đúng danh sách đó với đúng bộ lọc đó
+- Bàn phím: / để tìm, j và k để di chuyển, x để chọn
 
 THỐNG KÊ
 - Thời lượng video và những năm mà một kênh làm tốt nhất
@@ -246,6 +330,7 @@ Không liên kết với YouTube hay Google.`,
 ในแถบค้นหา
 - วิดีโอในดูภายหลัง วิดีโอที่ชอบ และประวัติการดู จะแสดงขึ้นขณะพิมพ์
 - พิมพ์ตัวกรอง: <20m, >100k, unwatched, date:week, @ช่อง
+- in:playlists ค้นหาในทุกเพลย์ลิสต์ที่คุณบันทึกไว้
 - is:fresh ซ่อนสิ่งที่เคยแสดงให้คุณเห็นแล้ว
 - ติดตามการค้นหา ซ่อนช่อง และดูว่าวิดีโอไหนดูไปแล้วบนทุกภาพขนาดย่อ
 
@@ -259,6 +344,17 @@ Không liên kết với YouTube hay Google.`,
 - ทุกวิดีโอที่เริ่มดูแต่ยังไม่จบ
 - กรองตามช่อง ความยาว ยอดวิว หรือช่วงเวลาที่ดู
 - หาวิดีโอที่มั่นใจว่าเคยดูได้ โดยไม่ต้องเลื่อนหาไม่รู้จบ
+
+เพลย์ลิสต์ใดก็ได้ และช่องที่ติดตาม
+- ค้นหาและกรองเพลย์ลิสต์ใดก็ได้ ทั้งของคุณและของคนอื่น ได้ครบทั้งรายการ
+- ช่องที่คุณติดตาม เฉพาะวิดีโอที่ยังไม่ดูและสั้นกว่า 20 นาที
+- ทำให้จางหรือซ่อนวิดีโอที่ดูแล้วในหน้าแรกและการติดตาม
+
+จัดระเบียบ เล่น แชร์
+- จัดระเบียบดูภายหลังและเพลย์ลิสต์ของคุณเอง เลิกชอบทีละหลายรายการ และล้างวิดีโอที่ถูกลบ พร้อมการเลิกทำและที่เก็บถาวรสำหรับนำกลับมา
+- เล่นวิดีโอที่กรองไว้ตามลำดับ หรือคัดลอกลิงก์ไปใช้กับ NotebookLM
+- แชร์ตัวกรองเป็นลิงก์: ใครที่มี Needle เปิดแล้วจะเห็นรายการเดียวกันด้วยตัวกรองเดียวกัน
+- แป้นพิมพ์: / เพื่อค้นหา j และ k เพื่อเลื่อน x เพื่อเลือก
 
 ข้อมูลเชิงลึก
 - ความยาววิดีโอและปีที่ช่องทำผลงานได้ดีที่สุด
@@ -280,6 +376,7 @@ Không liên kết với YouTube hay Google.`,
 SA SEARCH BAR
 - Lumalabas ang Panoorin Mamaya, mga ni-like mo at ang iyong history habang nagta-type ka
 - Mag-type ng filter: <20m, >100k, unwatched, date:week, @channel
+- Hinahanap ng in:playlists ang bawat playlist na na-save mo
 - Itinatago ng is:fresh ang mga naipakita na sa iyo
 - Sundan ang isang search, i-mute ang isang channel at makita sa bawat thumbnail kung ano na ang napanood mo
 
@@ -293,6 +390,17 @@ ANG IYONG HISTORY AT PANOORIN MAMAYA
 - Lahat ng sinimulan mo pero hindi tinapos
 - Mag-filter ayon sa channel, haba, views o kung kailan mo ito pinanood
 - Hanapin ang video na sigurado kang napanood mo na, nang hindi nag-i-scroll nang walang katapusan
+
+KAHIT ANONG PLAYLIST AT ANG IYONG MGA SUBSCRIPTION
+- Maghanap at mag-filter sa kahit anong playlist, sa iyo man o sa iba, buo
+- Ang iyong mga subscription, ang hindi mo pa napapanood at wala pang 20 minuto lang
+- Palabuin o itago ang mga napanood mo na sa Home at sa Mga Subscription
+
+MAGLINIS, MAG-PLAY, MAG-SHARE
+- Linisin ang Panoorin Mamaya at ang sarili mong mga playlist, mag-unlike nang maramihan at alisin ang mga na-delete na video, may undo at archive para maibalik ang anuman
+- I-play ang na-filter mo nang sunud-sunod, o kopyahin ang mga link para sa NotebookLM
+- I-share ang isang filter bilang link: binubuksan nito ang parehong listahan na may parehong filter para sa sinumang may Needle
+- Keyboard: / para maghanap, j at k para gumalaw, x para pumili
 
 INSIGHTS
 - Ang haba ng video at mga taon kung kailan pinakamagaling ang isang channel
@@ -314,6 +422,7 @@ Hindi kaakibat ng YouTube o Google.`,
 सर्च बार में
 - टाइप करते ही आपके बाद में देखें, पसंद किए गए वीडियो और इतिहास दिखने लगते हैं
 - फ़िल्टर टाइप करें: <20m, >100k, unwatched, date:week, @चैनल
+- in:playlists आपकी सेव की हुई हर प्लेलिस्ट में खोजता है
 - is:fresh वह छिपा देता है जो आपको पहले दिखाया जा चुका है
 - किसी खोज को फ़ॉलो करें, किसी चैनल को म्यूट करें, और हर थंबनेल पर देखें कि आप क्या देख चुके हैं
 
@@ -327,6 +436,17 @@ Hindi kaakibat ng YouTube o Google.`,
 - वह सब जो आपने शुरू किया पर कभी पूरा नहीं किया
 - चैनल, लंबाई, व्यू या देखने के समय से फ़िल्टर करें
 - वह वीडियो ढूँढें जो आपने पक्का देखा था, बिना लगातार स्क्रॉल किए
+
+कोई भी प्लेलिस्ट और आपकी सदस्यताएँ
+- कोई भी प्लेलिस्ट खोजें और फ़िल्टर करें, आपकी हो या किसी और की, पूरी की पूरी
+- आपकी सदस्यताएँ, सिर्फ़ बिना देखे और 20 मिनट से छोटे वीडियो
+- होम और सदस्यताओं में पहले से देखे गए वीडियो धुंधले करें या छिपाएँ
+
+सफ़ाई, प्ले, शेयर
+- बाद में देखें और अपनी प्लेलिस्ट साफ़ करें, एक साथ कई लाइक हटाएँ और डिलीट हो चुके वीडियो निकालें, अनडू और एक आर्काइव के साथ जिससे सब वापस लाया जा सके
+- जो फ़िल्टर किया उसे क्रम से चलाएँ, या NotebookLM के लिए लिंक कॉपी करें
+- किसी फ़िल्टर को लिंक की तरह शेयर करें: जिसके पास भी Needle है, उसके लिए वही सूची उन्हीं फ़िल्टर के साथ खुलती है
+- कीबोर्ड: खोजने के लिए /, आगे-पीछे जाने के लिए j और k, चुनने के लिए x
 
 इनसाइट्स
 - किसी चैनल के सबसे अच्छा प्रदर्शन करने वाले वीडियो की लंबाई और साल

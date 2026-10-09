@@ -3,6 +3,7 @@ La cerca de YouTube no sap què ja has vist, no filtra per durada ni per visuali
 A LA BARRA DE CERCA
 - Els teus vídeos de Mira més tard, els que t'agraden i l'historial apareixen mentre escrius
 - Escriu filtres: <20m, >100k, unwatched, date:week, @canal
+- in:playlists cerca a totes les llistes de reproducció que has desat
 - is:fresh amaga el que ja se t'ha mostrat
 - Segueix una cerca, silencia un canal i mira a cada miniatura què ja has vist
 
@@ -16,6 +17,17 @@ EL TEU HISTORIAL I MIRA MÉS TARD
 - Tot el que vas començar i no vas acabar mai
 - Filtra per canal, durada, visualitzacions o per quan ho vas veure
 - Troba aquell vídeo que saps que vas veure, sense haver de desplaçar-te sense fi
+
+QUALSEVOL LLISTA I LES TEVES SUBSCRIPCIONS
+- Cerca i filtra qualsevol llista de reproducció, teva o d'una altra persona, sencera
+- Les teves subscripcions, només el que no has vist i de menys de 20 minuts
+- Atenua o amaga els vídeos que ja has vist a Inici i a Subscripcions
+
+NETEJAR, REPRODUIR, COMPARTIR
+- Neteja Mira més tard i les teves pròpies llistes, treu m'agrades en bloc i elimina els vídeos esborrats, amb desfer i un arxiu per recuperar el que vulguis
+- Reprodueix el que has filtrat, en ordre, o copia els enllaços per a NotebookLM
+- Comparteix un filtre com a enllaç: obre la mateixa llista amb els mateixos filtres per a qualsevol que tingui Needle
+- Teclat: / per cercar, j i k per moure't, x per seleccionar
 
 ESTADÍSTIQUES
 - Les durades i els anys en què a un canal li va millor

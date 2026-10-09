@@ -3,6 +3,7 @@ De zoekfunctie van YouTube weet niet wat je al hebt gezien, filtert niet op leng
 IN DE ZOEKBALK
 - Je video's uit Later bekijken, je likes en je geschiedenis verschijnen terwijl je typt
 - Typ filters: <20m, >100k, unwatched, date:week, @kanaal
+- in:playlists doorzoekt elke afspeellijst die je hebt opgeslagen
 - is:fresh verbergt wat je al eerder te zien kreeg
 - Volg een zoekopdracht, demp een kanaal en zie op elke thumbnail wat je al hebt bekeken
 
@@ -16,6 +17,17 @@ JE GESCHIEDENIS EN LATER BEKIJKEN
 - Alles wat je bent begonnen en nooit hebt afgemaakt
 - Filter op kanaal, lengte, weergaven of wanneer je het keek
 - Vind die video waarvan je zeker weet dat je hem hebt gezien, zonder eindeloos te scrollen
+
+ELKE AFSPEELLIJST EN JE ABONNEMENTEN
+- Doorzoek en filter elke afspeellijst, van jezelf of van een ander, helemaal
+- Je abonnementen, alleen wat je nog niet zag en korter dan 20 minuten
+- Dim of verberg video's die je al hebt gezien op Home en bij Abonnementen
+
+OPRUIMEN, AFSPELEN, DELEN
+- Ruim Later bekijken en je eigen afspeellijsten op, haal likes in één keer weg en gooi verwijderde video's eruit, met ongedaan maken en een archief om alles terug te zetten
+- Speel af wat je hebt gefilterd, op volgorde, of kopieer de links voor NotebookLM
+- Deel een filter als link: die opent dezelfde lijst met dezelfde filters voor iedereen met Needle
+- Toetsenbord: / om te zoeken, j en k om te bewegen, x om te kiezen
 
 INZICHTEN
 - De videolengtes en jaren waarin een kanaal het best presteert

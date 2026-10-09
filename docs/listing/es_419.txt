@@ -3,6 +3,7 @@ La búsqueda de YouTube no sabe lo que ya viste, no filtra por duración ni por 
 EN LA BARRA DE BÚSQUEDA
 - Tus videos de Ver más tarde, los que te gustaron y tu historial aparecen mientras escribes
 - Escribe filtros: <20m, >100k, unwatched, date:week, @canal
+- in:playlists busca en todas las playlists que guardaste
 - is:fresh oculta lo que ya se te mostró
 - Sigue una búsqueda, silencia un canal y ve lo que ya viste en cada miniatura
 
@@ -16,6 +17,17 @@ TU HISTORIAL Y VER MÁS TARDE
 - Todo lo que empezaste y nunca terminaste
 - Filtra por canal, duración, vistas o por cuándo lo viste
 - Encuentra ese video que sabes que viste, sin tener que desplazarte
+
+CUALQUIER PLAYLIST Y TUS SUSCRIPCIONES
+- Busca y filtra cualquier playlist, tuya o de otra persona, completa
+- Tus suscripciones, solo lo que no viste y de menos de 20 minutos
+- Atenúa u oculta los videos que ya viste en Principal y en Suscripciones
+
+LIMPIAR, REPRODUCIR, COMPARTIR
+- Limpia Ver más tarde y tus propias playlists, quita Me gusta en masa y elimina los videos borrados, con deshacer y un archivo para recuperar lo que quieras
+- Reproduce lo que filtraste, en orden, o copia los enlaces para NotebookLM
+- Comparte un filtro como enlace: abre la misma lista con los mismos filtros para cualquiera que tenga Needle
+- Teclado: / para buscar, j y k para moverte, x para seleccionar
 
 ESTADÍSTICAS
 - Las duraciones y los años en los que mejor le va a un canal

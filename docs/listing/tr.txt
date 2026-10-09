@@ -3,6 +3,7 @@ YouTube araması neleri zaten izlediğinizi bilmez, süreye veya görüntülenme
 ARAMA ÇUBUĞUNDA
 - Daha sonra izle, beğendiğiniz videolar ve geçmişiniz siz yazarken görünür
 - Filtre yazın: <20m, >100k, unwatched, date:week, @kanal
+- in:playlists kaydettiğiniz tüm oynatma listelerinde arar
 - is:fresh size daha önce gösterilenleri gizler
 - Bir aramayı takip edin, bir kanalı sessize alın ve her küçük resimde neyi izlediğinizi görün
 
@@ -16,6 +17,17 @@ GEÇMİŞİNİZ VE DAHA SONRA İZLE
 - Başlayıp hiç bitirmediğiniz her şey
 - Kanala, süreye, görüntülenmeye veya ne zaman izlediğinize göre filtreleyin
 - İzlediğinizden emin olduğunuz o videoyu, durmadan kaydırmadan bulun
+
+HER OYNATMA LİSTESİ VE ABONELİKLERİNİZ
+- Sizin ya da başkasının, her oynatma listesini baştan sona arayın ve filtreleyin
+- Abonelikleriniz, yalnızca izlenmemiş ve 20 dakikadan kısa olanlar
+- Ana Sayfa'da ve Abonelikler'de zaten izlediğiniz videoları soluklaştırın veya gizleyin
+
+TEMİZLE, OYNAT, PAYLAŞ
+- Daha sonra izle listenizi ve kendi oynatma listelerinizi temizleyin, beğenileri toplu kaldırın ve silinmiş videoları ayıklayın; geri alma ve her şeyi geri koyabileceğiniz bir arşiv de var
+- Filtrelediklerinizi sırayla oynatın ya da bağlantıları NotebookLM için kopyalayın
+- Bir filtreyi bağlantı olarak paylaşın: Needle'ı olan herkes için aynı listeyi aynı filtrelerle açar
+- Klavye: aramak için /, gezinmek için j ve k, seçmek için x
 
 İSTATİSTİKLER
 - Bir kanalın en iyi performans gösterdiği video süreleri ve yıllar

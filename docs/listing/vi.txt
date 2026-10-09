@@ -3,6 +3,7 @@ Tìm kiếm của YouTube không biết bạn đã xem gì, không lọc đượ
 TRONG THANH TÌM KIẾM
 - Video Xem sau, video đã thích và lịch sử xem hiện ra ngay khi bạn gõ
 - Gõ bộ lọc: <20m, >100k, unwatched, date:week, @kênh
+- in:playlists tìm trong mọi danh sách phát bạn đã lưu
 - is:fresh ẩn những gì đã từng hiển thị cho bạn
 - Theo dõi một tìm kiếm, ẩn một kênh và thấy video đã xem trên mọi hình thu nhỏ
 
@@ -16,6 +17,17 @@ LỊCH SỬ XEM VÀ XEM SAU
 - Mọi video bạn đã bắt đầu nhưng chưa xem hết
 - Lọc theo kênh, thời lượng, lượt xem hoặc thời điểm bạn xem
 - Tìm video bạn chắc chắn đã xem mà không cần cuộn mãi
+
+MỌI DANH SÁCH PHÁT VÀ KÊNH ĐĂNG KÝ
+- Tìm và lọc bất kỳ danh sách phát nào, của bạn hay của người khác, toàn bộ
+- Kênh đăng ký của bạn, chỉ video chưa xem và dưới 20 phút
+- Làm mờ hoặc ẩn video đã xem trên Trang chủ và Kênh đăng ký
+
+DỌN DẸP, PHÁT, CHIA SẺ
+- Dọn dẹp Xem sau và danh sách phát của riêng bạn, bỏ thích hàng loạt và xóa các video đã bị gỡ, có hoàn tác và kho lưu trữ để khôi phục
+- Phát những gì bạn đã lọc theo thứ tự, hoặc sao chép liên kết cho NotebookLM
+- Chia sẻ bộ lọc bằng liên kết: ai có Needle cũng mở được đúng danh sách đó với đúng bộ lọc đó
+- Bàn phím: / để tìm, j và k để di chuyển, x để chọn
 
 THỐNG KÊ
 - Thời lượng video và những năm mà một kênh làm tốt nhất

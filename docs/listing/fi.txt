@@ -3,6 +3,7 @@ YouTuben haku ei tiedä, mitä olet jo katsonut, ei osaa suodattaa pituuden tai 
 HAKUKENTÄSSÄ
 - Katso myöhemmin, tykkäämäsi videot ja historiasi näkyvät jo kirjoittaessa
 - Kirjoita suodattimia: <20m, >100k, unwatched, date:week, @kanava
+- in:playlists hakee kaikista tallentamistasi soittolistoista
 - is:fresh piilottaa sen, mitä sinulle on jo näytetty
 - Seuraa hakua, mykistä kanava ja näe jokaisesta pikkukuvasta, mitä olet jo katsonut
 
@@ -16,6 +17,17 @@ HISTORIA JA KATSO MYÖHEMMIN
 - Kaikki, minkä aloitit etkä koskaan katsonut loppuun
 - Suodata kanavan, pituuden, katselukertojen tai katseluajan mukaan
 - Löydä se video, jonka tiedät katsoneesi, ilman loputonta vierittämistä
+
+MIKÄ TAHANSA SOITTOLISTA JA TILAUKSESI
+- Hae ja suodata mitä tahansa soittolistaa, omaasi tai jonkun toisen, kokonaan
+- Tilauksesi, vain katsomattomat ja alle 20 minuutin videot
+- Himmennä tai piilota jo katsotut videot etusivulla ja Tilauksissa
+
+SIIVOA, TOISTA, JAA
+- Siivoa Katso myöhemmin ja omat soittolistasi, poista tykkäykset kerralla ja karsi poistetut videot, kumoamisen ja arkiston kanssa, josta kaiken saa takaisin
+- Toista suodattamasi järjestyksessä tai kopioi linkit NotebookLM:ää varten
+- Jaa suodatin linkkinä: se avaa saman listan samoilla suodattimilla kenelle tahansa, jolla on Needle
+- Näppäimistö: / hakuun, j ja k liikkumiseen, x valitsemiseen
 
 TILASTOT
 - Videopituudet ja vuodet, joina kanava menestyy parhaiten

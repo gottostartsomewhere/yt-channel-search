@@ -3,6 +3,7 @@ La ricerca di YouTube non sa cosa hai già visto, non filtra per durata o visual
 NELLA BARRA DI RICERCA
 - I tuoi video di Guarda più tardi, i Mi piace e la cronologia compaiono mentre scrivi
 - Scrivi filtri: <20m, >100k, unwatched, date:week, @canale
+- in:playlists cerca in tutte le playlist che hai salvato
 - is:fresh nasconde ciò che ti è già stato mostrato
 - Segui una ricerca, silenzia un canale e vedi su ogni miniatura cosa hai già guardato
 
@@ -16,6 +17,17 @@ LA TUA CRONOLOGIA E GUARDA PIÙ TARDI
 - Tutto ciò che hai iniziato e mai finito
 - Filtra per canale, durata, visualizzazioni o per quando l'hai guardato
 - Ritrova quel video che sai di aver visto, senza scorrere all'infinito
+
+QUALSIASI PLAYLIST E LE TUE ISCRIZIONI
+- Cerca e filtra qualsiasi playlist, tua o di altri, per intero
+- Le tue iscrizioni, solo i video non visti e sotto i 20 minuti
+- Attenua o nascondi i video che hai già visto in Home e in Iscrizioni
+
+PULISCI, RIPRODUCI, CONDIVIDI
+- Fai pulizia in Guarda più tardi e nelle tue playlist, togli i Mi piace in blocco e rimuovi i video eliminati, con annulla e un archivio per rimettere tutto a posto
+- Riproduci ciò che hai filtrato, in ordine, o copia i link per NotebookLM
+- Condividi un filtro come link: apre la stessa lista con gli stessi filtri per chiunque abbia Needle
+- Tastiera: / per cercare, j e k per spostarti, x per selezionare
 
 STATISTICHE
 - Le durate e gli anni in cui un canale rende di più

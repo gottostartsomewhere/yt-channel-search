@@ -3,6 +3,7 @@ Căutarea YouTube nu știe ce ai văzut deja, nu filtrează după durată sau vi
 ÎN BARA DE CĂUTARE
 - Vizionează mai târziu, videoclipurile apreciate și istoricul apar chiar în timp ce tastezi
 - Tastează filtre: <20m, >100k, unwatched, date:week, @canal
+- in:playlists caută în toate playlisturile pe care le-ai salvat
 - is:fresh ascunde ce ți s-a arătat deja
 - Urmărește o căutare, dezactivează sunetul unui canal și vezi pe fiecare miniatură ce ai văzut deja
 
@@ -16,6 +17,17 @@ ISTORICUL ȘI VIZIONEAZĂ MAI TÂRZIU
 - Tot ce ai început și n-ai terminat niciodată
 - Filtrează după canal, durată, vizionări sau când l-ai văzut
 - Găsește acel videoclip pe care știi sigur că l-ai văzut, fără derulare la nesfârșit
+
+ORICE PLAYLIST ȘI ABONAMENTELE TALE
+- Caută și filtrează orice playlist, al tău sau al altcuiva, în întregime
+- Abonamentele tale, doar ce n-ai văzut și sub 20 de minute
+- Estompează sau ascunde videoclipurile deja văzute pe Pagina principală și în Abonamente
+
+CURĂȚĂ, REDĂ, DISTRIBUIE
+- Curăță Vizionează mai târziu și propriile playlisturi, retrage aprecierile în bloc și scapă de videoclipurile șterse, cu anulare și o arhivă din care pui totul la loc
+- Redă ce ai filtrat, în ordine, sau copiază linkurile pentru NotebookLM
+- Distribuie un filtru ca link: deschide aceeași listă cu aceleași filtre pentru oricine are Needle
+- Tastatură: / pentru căutare, j și k pentru deplasare, x pentru selectare
 
 STATISTICI
 - Duratele și anii în care unui canal îi merge cel mai bine

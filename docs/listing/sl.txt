@@ -3,6 +3,7 @@ Iskanje v YouTubu ne ve, kaj ste si že ogledali, ne filtrira po dolžini ali og
 V ISKALNI VRSTICI
 - Ogled pozneje, videoposnetki, ki so vam všeč, in zgodovina se prikažejo že med tipkanjem
 - Vpišite filtre: <20m, >100k, unwatched, date:week, @kanal
+- in:playlists išče po vseh seznamih predvajanja, ki ste jih shranili
 - is:fresh skrije, kar vam je bilo že prikazano
 - Spremljajte iskanje, utišajte kanal in na vsaki sličici vidite, kaj ste si že ogledali
 
@@ -16,6 +17,17 @@ ZGODOVINA IN OGLED POZNEJE
 - Vse, kar ste začeli in nikoli dokončali
 - Filtrirajte po kanalu, dolžini, ogledih ali času ogleda
 - Poiščite tisti videoposnetek, ki ste si ga zagotovo ogledali, brez neskončnega drsenja
+
+KATERI KOLI SEZNAM PREDVAJANJA IN VAŠE NAROČNINE
+- Iščite in filtrirajte kateri koli seznam predvajanja, svoj ali tuj, v celoti
+- Vaše naročnine, samo neogledano in krajše od 20 minut
+- Zatemnite ali skrijte že ogledane videoposnetke na domači strani in v Naročninah
+
+POSPRAVITE, PREDVAJAJTE, DELITE
+- Pospravite Ogled pozneje in lastne sezname predvajanja, odstranite všečke naenkrat in počistite izbrisane videoposnetke, z razveljavitvijo in arhivom, iz katerega vse vrnete
+- Predvajajte po vrsti, kar ste filtrirali, ali kopirajte povezave za NotebookLM
+- Delite filter kot povezavo: vsakomur, ki ima Needle, odpre isti seznam z istimi filtri
+- Tipkovnica: / za iskanje, j in k za premikanje, x za izbiro
 
 STATISTIKA
 - Dolžine videoposnetkov in leta, ko je kanalu šlo najbolje

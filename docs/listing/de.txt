@@ -3,6 +3,7 @@ Die YouTube-Suche weiß nicht, was du schon gesehen hast, filtert nicht nach Lä
 IN DER SUCHLEISTE
 - Deine Videos aus Später ansehen, deine Likes und dein Verlauf erscheinen schon beim Tippen
 - Tippe Filter ein: <20m, >100k, unwatched, date:week, @kanal
+- in:playlists durchsucht jede Playlist, die du gespeichert hast
 - is:fresh blendet aus, was dir schon einmal angezeigt wurde
 - Folge einer Suche, schalte einen Kanal stumm und sieh auf jedem Thumbnail, was du schon gesehen hast
 
@@ -16,6 +17,17 @@ DEIN VERLAUF UND SPÄTER ANSEHEN
 - Alles, was du angefangen und nie beendet hast
 - Filtere nach Kanal, Länge, Aufrufen oder danach, wann du es gesehen hast
 - Finde das Video, das du ganz sicher schon gesehen hast, ohne endlos zu scrollen
+
+JEDE PLAYLIST UND DEINE ABOS
+- Durchsuche und filtere jede Playlist, deine oder fremde, komplett
+- Deine Abos, nur Ungesehenes unter 20 Minuten
+- Dunkle bereits gesehene Videos auf der Startseite und unter Abos ab oder blende sie aus
+
+AUFRÄUMEN, ABSPIELEN, TEILEN
+- Räume Später ansehen und deine eigenen Playlists auf, entferne Likes in großen Mengen und wirf gelöschte Videos raus, mit Rückgängig und einem Archiv, um alles zurückzuholen
+- Spiele ab, was du gefiltert hast, der Reihe nach, oder kopiere die Links für NotebookLM
+- Teile einen Filter als Link: Er öffnet dieselbe Liste mit denselben Filtern für alle, die Needle haben
+- Tastatur: / zum Suchen, j und k zum Bewegen, x zum Auswählen
 
 STATISTIKEN
 - Die Videolängen und Jahre, in denen ein Kanal am besten läuft

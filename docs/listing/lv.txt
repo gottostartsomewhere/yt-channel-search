@@ -3,6 +3,7 @@ YouTube meklēšana nezina, ko jūs jau esat skatījies, nevar filtrēt pēc gar
 MEKLĒŠANAS JOSLĀ
 - Skatīties vēlāk, jums patikušie video un vēsture parādās jau rakstīšanas laikā
 - Rakstiet filtrus: <20m, >100k, unwatched, date:week, @kanāls
+- in:playlists meklē visos jūsu saglabātajos atskaņošanas sarakstos
 - is:fresh paslēpj to, kas jums jau ir parādīts
 - Sekojiet meklējumam, izslēdziet kanāla skaņu un katrā sīktēlā redziet, ko jau esat skatījies
 
@@ -16,6 +17,17 @@ VĒSTURE UN SKATĪTIES VĒLĀK
 - Viss, ko sākāt un nekad nepabeidzāt
 - Filtrējiet pēc kanāla, garuma, skatījumiem vai skatīšanās laika
 - Atrodiet to video, ko noteikti esat redzējis, bez bezgalīgas ritināšanas
+
+JEBKURŠ ATSKAŅOŠANAS SARAKSTS UN JŪSU ABONEMENTI
+- Meklējiet un filtrējiet jebkuru atskaņošanas sarakstu, savu vai citu, pilnībā
+- Jūsu abonementi, tikai neskatītais un īsāks par 20 minūtēm
+- Aptumšojiet vai paslēpiet jau skatītos video sākumlapā un abonementos
+
+SAKĀRTOJIET, ATSKAŅOJIET, KOPĪGOJIET
+- Sakārtojiet Skatīties vēlāk un savus atskaņošanas sarakstus, noņemiet atzīmes Patīk vienā reizē un izvāciet dzēstos video, ar atsaukšanu un arhīvu, no kura visu atjaunot
+- Atskaņojiet nofiltrēto pēc kārtas vai kopējiet saites NotebookLM
+- Kopīgojiet filtru kā saiti: tā atver to pašu sarakstu ar tiem pašiem filtriem ikvienam, kam ir Needle
+- Tastatūra: / meklēšanai, j un k pārvietošanai, x atlasei
 
 STATISTIKA
 - Video garumi un gadi, kuros kanālam veicas vislabāk

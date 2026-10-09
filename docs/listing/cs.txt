@@ -3,6 +3,7 @@ Vyhledávání na YouTube neví, co jste už viděli, neumí filtrovat podle dé
 VE VYHLEDÁVACÍM ŘÁDKU
 - Videa z Na později, videa, která se vám líbí, a historie se zobrazují už při psaní
 - Pište filtry: <20m, >100k, unwatched, date:week, @kanál
+- in:playlists prohledá všechny playlisty, které jste si uložili
 - is:fresh skryje to, co vám už bylo ukázáno
 - Sledujte vyhledávání, ztlumte kanál a na každé miniatuře uvidíte, co už jste viděli
 
@@ -16,6 +17,17 @@ HISTORIE A NA POZDĚJI
 - Všechno, co jste začali a nikdy nedokončili
 - Filtrujte podle kanálu, délky, zhlédnutí nebo podle toho, kdy jste to viděli
 - Najděte to video, které jste určitě viděli, bez nekonečného posouvání
+
+LIBOVOLNÝ PLAYLIST A VAŠE ODBĚRY
+- Prohledávejte a filtrujte libovolný playlist, svůj i cizí, celý
+- Vaše odběry, jen nezhlédnutá videa kratší než 20 minut
+- Ztlumte nebo skryjte už zhlédnutá videa na domovské stránce a v Odběrech
+
+ÚKLID, PŘEHRÁVÁNÍ, SDÍLENÍ
+- Ukliďte Na později a vlastní playlisty, hromadně odeberte označení Líbí se a vyhoďte smazaná videa, s možností vrátit zpět a archivem, ze kterého vše obnovíte
+- Přehrajte popořadě, co jste vyfiltrovali, nebo zkopírujte odkazy pro NotebookLM
+- Sdílejte filtr jako odkaz: každému, kdo má Needle, otevře stejný seznam se stejnými filtry
+- Klávesnice: / pro hledání, j a k pro pohyb, x pro výběr
 
 STATISTIKY
 - Délky videí a roky, kdy se kanálu daří nejlépe
