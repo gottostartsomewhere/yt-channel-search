@@ -778,13 +778,20 @@ function sharePage() {
  * parameters.
  *
  * A click records the reason, and only the reason, in a Google Form ("Needle
- * uninstall reasons", one multiple-choice question). It goes in the background,
- * so the page never changes and nobody sees the form. Its options have to stay
- * word for word the same as REASONS, or Google refuses the answer.
+ * uninstall reasons"). It goes in the background, so the page never changes
+ * and nobody sees the form. Its options have to stay word for word the same as
+ * REASONS, or Google refuses the answer.
+ *
+ * After the click an optional box asks for more. Its text goes only when Send
+ * is pressed, as a response of its own with the reason in brackets in front,
+ * so the reasons chart counts each person once and every comment still says
+ * which reason it belongs to. Neither question is required in the form, which
+ * is what lets a comment arrive on its own.
  */
 const BYE_FORM = "https://docs.google.com/forms/d/e/1FAIpQLSc6ms97mbbSeMcz_FeuruCT252Zi9g7744ruHodOLFuo_oFmQ/formResponse";
 const BYE_ENTRY = "entry.1386162577";
-const REASONS = ["It didn't work on a page", "It was slow", "I didn't need it", "Something was missing", "A privacy worry", "Something else"];
+const BYE_MORE = "entry.1721068316";
+const REASONS = ["It didn't work on a page", "It was slow", "I didn't need it", "Something was missing", "A privacy worry", "The interface could have been better", "Something else"];
 function byePage() {
   const body = `
 <main>
@@ -797,6 +804,12 @@ function byePage() {
         ${REASONS.map((r) => `<a class="card card-link" href="#" role="button" data-reason="${esc(r)}"><h3>${esc(r)}</h3></a>`).join("\n        ")}
       </div>
       <p class="mono small" id="thanks" style="margin-top:22px" hidden>Thanks, noted. Only the reason you picked was sent.</p>
+      <form class="bye-more" id="more" hidden>
+        <label for="moretext" id="morelabel">Anything to add? Optional, and only sent if you press Send.</label>
+        <textarea id="moretext" rows="3" maxlength="1000" placeholder="What happened, or what would have kept you"></textarea>
+        <p><button class="btn-line btn-sm" type="submit">Send</button></p>
+      </form>
+      <p class="mono small" id="sentmore" style="margin-top:14px" hidden>Sent. Thank you, this helps a lot.</p>
       <p class="mono small" style="margin-top:32px">Removed it by accident? <a href="${store("bye")}">Add it back</a>.</p>
     </div>
   </section>
@@ -805,25 +818,55 @@ function byePage() {
   .bye .card.chosen { border-color: var(--red, #e5484d); box-shadow: 0 0 0 1px var(--red, #e5484d) inset; }
   .bye.sent .card:not(.chosen) { opacity: .45; pointer-events: none; }
   .bye.sent .card.chosen { pointer-events: none; }
+  .bye .card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .bye-more { margin-top: 18px; }
+  .bye-more label { display: block; color: var(--text); font-size: 15px; margin-bottom: 10px; }
+  .bye-more textarea { width: 100%; box-sizing: border-box; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line-2); background: var(--card); color: var(--text); font: inherit; resize: vertical; }
+  .bye-more textarea:focus { outline: none; border-color: var(--red, #e5484d); }
+  .bye-more p { margin-top: 12px; }
 </style>
 <script>
 (function () {
-  var box = document.getElementById("reasons"), sent = false;
+  var box = document.getElementById("reasons"), more = document.getElementById("more");
+  var reason = "", sentMore = false;
+  // In the background: sendBeacon survives the tab being closed straight after.
+  function send(body) {
+    var ok = false;
+    try { ok = navigator.sendBeacon(${JSON.stringify(BYE_FORM)}, body); } catch (x) { ok = false; }
+    if (!ok) { try { fetch(${JSON.stringify(BYE_FORM)}, { method: "POST", mode: "no-cors", body: body, keepalive: true }); } catch (x) {} }
+  }
   box.addEventListener("click", function (e) {
     var card = e.target.closest("[data-reason]");
     if (!card) return;
     e.preventDefault();
-    if (sent) return;
-    sent = true;
+    if (reason) return;
+    reason = card.getAttribute("data-reason");
     var body = new URLSearchParams();
-    body.append(${JSON.stringify(BYE_ENTRY)}, card.getAttribute("data-reason"));
-    // In the background: sendBeacon survives the tab being closed straight after.
-    var ok = false;
-    try { ok = navigator.sendBeacon(${JSON.stringify(BYE_FORM)}, body); } catch (x) { ok = false; }
-    if (!ok) { try { fetch(${JSON.stringify(BYE_FORM)}, { method: "POST", mode: "no-cors", body: body, keepalive: true }); } catch (x) {} }
+    body.append(${JSON.stringify(BYE_ENTRY)}, reason);
+    send(body);
     card.classList.add("chosen");
     box.classList.add("sent");
     document.getElementById("thanks").hidden = false;
+    more.hidden = false;
+    // "Something else" says nothing on its own, so it asks straight away. It is
+    // still counted above, in case they leave without typing.
+    if (reason === ${JSON.stringify(REASONS[REASONS.length - 1])}) {
+      document.getElementById("morelabel").textContent = "What was it? Only sent if you press Send.";
+      var t = document.getElementById("moretext");
+      t.placeholder = "A few words is plenty";
+      t.focus();
+    }
+  });
+  more.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var text = document.getElementById("moretext").value.trim();
+    if (!text || sentMore) return;
+    sentMore = true;
+    var body = new URLSearchParams();
+    body.append(${JSON.stringify(BYE_MORE)}, "[" + reason + "] " + text.slice(0, 1000));
+    send(body);
+    more.hidden = true;
+    document.getElementById("sentmore").hidden = false;
   });
 })();
 </script>`;
