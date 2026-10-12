@@ -1,6 +1,6 @@
 # Privacy policy
 
-Last updated: 5 October 2026
+Last updated: 12 October 2026
 
 Needle for YouTube (formerly Channel Search+ for YouTube) does not collect,
 transmit, or sell any data. There is no server, no account, and no analytics. Everything the extension reads stays
@@ -236,6 +236,14 @@ works. When you remove it, the browser opens
 <https://gottostartsomewhere.github.io/needle/bye/>, which asks why. Both are
 fixed addresses with nothing about you attached: no id, no parameter, nothing
 to tell one person from another. The site has no analytics.
+
+On the goodbye page, answering is up to you. If you click a reason, that
+reason, and only that, is sent to a Google Form so the developer can read why
+people leave. If you then write something in the optional box and press Send,
+that text is sent too, as a separate answer with the reason in front of it.
+Nothing else goes with either: no account, no email, nothing from the
+extension or your browsing. As with any web page, Google's servers see the
+request itself when it arrives. If you click nothing, nothing is sent.
 
 ## What it stores, and where
 
