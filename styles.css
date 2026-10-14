@@ -951,10 +951,15 @@ html[dark] .ytcs-fsel option { background: #1c1c1c; color: #f1f1f1; }
  * sitting directly under the count it follows, costing one line. It is allowed
  * to be missed. Somebody who does not want to review anything should be able to
  * skim straight past it into the grid, which a card does not permit.
+ *
+ * 2.1.2 keeps all of that and adds two small things, because "allowed to be
+ * missed" had become "always missed": a star in the accent colour so the eye
+ * knows it is a different kind of line, and a short fade in when it appears,
+ * since it now appears at a moment rather than being there from the start.
  */
 .ytcs-rate {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 10px;
   flex-wrap: wrap;
   margin: -8px 16px 16px;
@@ -971,6 +976,20 @@ html[dark] .ytcs-fsel option { background: #1c1c1c; color: #f1f1f1; }
  * any display value, and the fix is to restate it where the cascade can see it.
  */
 .ytcs-rate[hidden] { display: none; }
+
+.ytcs-ratestar {
+  flex: none;
+  color: var(--ac);
+}
+
+.ytcs-rate.ytcs-rate-in { animation: ytcs-rate-in 0.45s ease-out both; }
+@keyframes ytcs-rate-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ytcs-rate.ytcs-rate-in { animation: none; }
+}
 
 .ytcs-ratetext {
   line-height: 1.5;

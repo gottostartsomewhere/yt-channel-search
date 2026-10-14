@@ -246,6 +246,8 @@ function applyView() {
   // counts a use. Guarded on typeof because panel.js defines it and this file
   // loads first: a broken ask must never be able to take the grid down with it.
   if (narrowed && typeof tickRating === "function") tickRating();
+  // And a long list cut to a handful is the moment it may ask, once typing stops.
+  if (typeof rateMoment === "function") rateMoment(narrowed && rateWin(total, rows.length));
 }
 
 function median(nums) {

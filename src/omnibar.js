@@ -336,27 +336,38 @@ function omniRateRow() {
   row.className = "ytcs-omni-rate";
   row.appendChild(omniIcon("star", 14));
   const t = document.createElement("span");
-  t.textContent = "Finding Needle useful? A review helps other people find it.";
+  t.textContent = "Finding Needle useful? A quick rating helps other people find it.";
   row.appendChild(t);
   const go = document.createElement("button");
   go.type = "button";
   go.className = "ytcs-omni-ratego";
-  go.textContent = "Leave one";
+  go.textContent = "Rate it";
   go.onclick = () => {
     window.open(STORE_REVIEW_URL, "_blank", "noopener");
     closeRating();
     omniRender();
   };
+  // The same two ways out as the panel's line: later, or never.
+  const later = document.createElement("button");
+  later.type = "button";
+  later.className = "ytcs-omni-tipsoff";
+  later.textContent = "Not now";
+  later.title = "Ask again some other time";
+  later.onclick = () => {
+    snoozeRating();
+    omniRender();
+  };
   const no = document.createElement("button");
   no.type = "button";
   no.className = "ytcs-omni-tipsoff";
-  no.textContent = "Hide";
-  no.title = "Hide this for good";
+  no.textContent = "Don't ask again";
+  no.title = "Never show this again";
   no.onclick = () => {
     closeRating();
     omniRender();
   };
   row.appendChild(go);
+  row.appendChild(later);
   row.appendChild(no);
   return row;
 }

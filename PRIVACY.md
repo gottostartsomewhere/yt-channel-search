@@ -1,6 +1,6 @@
 # Privacy policy
 
-Last updated: 12 October 2026
+Last updated: 14 October 2026
 
 Needle for YouTube (formerly Channel Search+ for YouTube) does not collect,
 transmit, or sell any data. There is no server, no account, and no analytics. Everything the extension reads stays
@@ -259,7 +259,7 @@ All of it is local to your browser. Nothing leaves your machine.
 | Filters you just typed into the search bar | `sessionStorage`, for two minutes | So the results page can apply them after YouTube loads it |
 | Filters from a shared link you opened | `sessionStorage`, for one minute, deleted once used | So the panel can apply them after YouTube loads the page |
 | What the extension removed from your lists: id, title, channel, length, when | IndexedDB, six months, at most 3,000 | So "Removed earlier" can put them back |
-| How many times you have found something with it, and whether you answered the review prompt | `chrome.storage.local` | So the prompt appears once and never again after you answer |
+| How many times, and on how many days, you have found something with it, and how you answered the review prompt | `chrome.storage.local` | So the prompt waits until you have come back on another day, and stops for good once you rate or say not to ask again |
 | How far you watched those videos | IndexedDB, inside the catalogue above | So the watch filters can hide what you have finished |
 | View-count snapshots with timestamps | IndexedDB | So growth can be measured between visits |
 | The channels you add to your watchlist | IndexedDB | So the list survives a restart |

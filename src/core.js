@@ -1842,11 +1842,14 @@ async function fetchSearch(query, onProgress, signed, plan) {
 }
 
 // ---- formatting ----------------------------------------------------------
+// A whole number keeps no ".0": "500.0K views" said nothing "500K views" doesn't,
+// and the chips the search bar makes already write it the short way.
 function fmtCompact(n) {
   if (n == null) return "–";
-  if (n >= 1e9) return (n / 1e9).toFixed(1) + "B";
-  if (n >= 1e6) return (n / 1e6).toFixed(1) + "M";
-  if (n >= 1e3) return (n / 1e3).toFixed(1) + "K";
+  const one = (x, unit) => x.toFixed(1).replace(/\.0$/, "") + unit;
+  if (n >= 1e9) return one(n / 1e9, "B");
+  if (n >= 1e6) return one(n / 1e6, "M");
+  if (n >= 1e3) return one(n / 1e3, "K");
   return String(n);
 }
 

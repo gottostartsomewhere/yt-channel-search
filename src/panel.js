@@ -142,14 +142,21 @@ const STORE_REVIEW_URL =
   "https://chromewebstore.google.com/detail/needle-for-youtube-channe/magofcbhfhpfabphcldhodhgehhclokc/reviews";
 const RATE_KEY = "rateAsk";
 /*
- * Three, not the conventional five.
+ * Two days of use, not a number of clicks.
  *
- * Five is the number people use for tools opened daily. This one is episodic by
- * nature, which is the whole shape of the product: activation runs at about 38%
- * weekly, so a retained user opens it roughly once a week and five uses would be
- * five weeks away. The ask would arrive somewhere near never.
+ * 2.1 asked from the third use, and one reviewer in sixty weekly users said what
+ * that was worth. Three uses can all happen in the first five minutes, from
+ * somebody still deciding whether to keep it. Coming back on a second day is
+ * the thing that means it earned a place, so that is what the ask waits for.
  */
-const RATE_AFTER = 3;
+const RATE_DAYS = 2;
+// "Not now" puts it away for this many more uses, at most this many times in
+// all. After the last one it is finished, as if they had said never.
+const RATE_SNOOZE = 5;
+const RATE_MAX_ASKS = 3;
+// A list this long cut down to this few is the clearest moment it just helped.
+const RATE_WIN_FROM = 40;
+const RATE_WIN_TO = 12;
 
 // ---- UI construction (in-page grid takeover) -----------------------------
 /*
@@ -682,9 +689,8 @@ function buildUi() {
    *
    * Store ranking runs on installs and ratings, and a listing with no ratings
    * sits below identical ones that have them however good it is. So this asks,
-   * once, and only of the people worth asking: it waits for the third use
-   * rather than greeting a stranger on arrival, because somebody who came back
-   * three times has an opinion and somebody on their first visit does not.
+   * and only of the people worth asking: somebody who came back on a second day
+   * has an opinion, and somebody on their first visit does not.
    *
    * Sits directly under the count line rather than at the foot of the panel.
    * The foot is below every card, so on a 236-video channel it is a very long
@@ -692,33 +698,46 @@ function buildUi() {
    * already is the moment the tool has done its job and "236 of 236" has just
    * become "6 of 236", which is also the moment somebody feels like saying yes.
    *
+   * So that is the only time it appears (rateMoment): right after a long list
+   * was cut to a handful, or a clean-up went through, and on one page a day at
+   * most. In 2.1 it sat there from the third use onwards, on every open, and
+   * a line that is always there is a line nobody reads.
+   *
    * It stays clear of the filter row above it, since a bar across the top of a
    * tool you just opened reads as an advert for the tool you are already using.
    *
-   * Dismissed or acted on, it never returns and the counter stops. That is the
-   * whole difference between an ask and a nag.
+   * "Not now" puts it away for a while, "Don't ask again" and rating end it.
+   * Three "Not now"s also end it. It never offers anything for a rating and it
+   * asks everybody the same way, which is what the store's rules require.
    */
   const rate = document.createElement("div");
   rate.className = "ytcs-rate";
   rate.hidden = true;
 
+  const rateStar = icon("M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z", 14);
+  rateStar.classList.add("ytcs-ratestar");
+
   const rateText = document.createElement("span");
   rateText.className = "ytcs-ratetext";
-  rateText.textContent = "Finding this useful? A review from your side helps it reach more people.";
+  rateText.textContent = "Finding Needle useful? A quick rating helps other people find it.";
 
   const rateGo = document.createElement("button");
   rateGo.className = "ytcs-ratego";
-  rateGo.textContent = "Leave one";
+  rateGo.textContent = "Rate it";
   rateGo.onclick = () => {
     window.open(STORE_REVIEW_URL, "_blank", "noopener");
     closeRating();
   };
 
-  const rateNo = ghostBtn("Hide", "Hide this for good");
+  const rateLater = ghostBtn("Not now", "Ask again some other time");
+  rateLater.onclick = () => snoozeRating();
+  const rateNo = ghostBtn("Don't ask again", "Never show this again");
   rateNo.onclick = () => closeRating();
 
+  rate.appendChild(rateStar);
   rate.appendChild(rateText);
   rate.appendChild(rateGo);
+  rate.appendChild(rateLater);
   rate.appendChild(rateNo);
 
   const foot = document.createElement("div");
@@ -1178,6 +1197,9 @@ async function removeSelected(given) {
   setStatus([plural(state.catalog.length, "video")]);
   applyView();
   toast(ed.did(gone.length), "Undo", () => undoRemove(ed, gone, at, gen), 12000);
+  // A clean-up that went through is a moment it helped, but the Undo comes
+  // first: the ask waits until that toast has gone rather than sitting beside it.
+  rateMoment(true, 12500);
 }
 
 async function undoRemove(ed, videos, at, gen) {
@@ -2677,16 +2699,32 @@ function saveRateState(v) {
   } catch (e) { /* best-effort, same as the cache writes */ }
 }
 
-// Answered either way, it is finished for good. countUse short-circuits on
+// Rated, or "Don't ask again": finished for good. countUse short-circuits on
 // `done`, so nothing keeps counting afterwards.
 function closeRating() {
   if (ui) ui.rate.hidden = true;
-  rateCache = { opens: RATE_AFTER, done: true };
+  rateCache = Object.assign({}, rateCache, { done: true });
   saveRateState(rateCache);
 }
 
+// "Not now": away until RATE_SNOOZE more uses, and the last of RATE_MAX_ASKS
+// of these ends it, so a patient "no" is still a no.
+function snoozeRating() {
+  if (ui) ui.rate.hidden = true;
+  const st = rateCache || { opens: 0 };
+  const asks = (st.asks || 0) + 1;
+  rateCache = Object.assign({}, st, { asks, snooze: (st.opens || 0) + RATE_SNOOZE, done: asks >= RATE_MAX_ASKS });
+  saveRateState(rateCache);
+}
+
+// Today on this device's clock, as the one string the days count compares.
+function rateDay() {
+  const d = new Date();
+  return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
+}
+
 /*
- * Counts one *use*, and reveals the ask from the third onwards.
+ * Counts one *use*, and the days on which there was one.
  *
  * A use is the tool doing the thing it exists for: a filter that actually
  * narrowed a list ("236 of 236" becoming "6 of 236"), a video opened from your
@@ -2695,13 +2733,11 @@ function closeRating() {
  * clicked a button three times; finding the video is the only moment anyone
  * feels like recommending it.
  *
- * Before 2.1 only the first of those counted, and the ask only appeared in the
- * panel, so everybody who used Needle through the search bar alone, which is
- * most of what 2.0 is for, was never asked at all.
- *
  * Once per page, whatever happens on it: typing a five-letter search term would
- * otherwise count five uses and trigger the ask on somebody's first visit.
- * It keeps showing rather than firing exactly once. Only the buttons end it.
+ * otherwise count five uses on somebody's first visit.
+ *
+ * Counting reveals nothing by itself any more. rateMoment does that, and only
+ * when it has just helped.
  */
 let rateCache = null;
 let rateCountedGen = -1;
@@ -2715,12 +2751,19 @@ async function countUse() {
   if (!st) { rateCountedGen = -1; return; }
   rateCache = st;
   if (st.done) return;
+  const today = rateDay();
+  // Installs from before 2.1.2 counted uses but not days, so any use already
+  // made stands for one earlier day.
+  const days = (st.days != null ? st.days : st.opens ? 1 : 0) + (st.day === today ? 0 : 1);
   // `at` is never read. It exists so that one storage read answers "did this
   // ever run", which is the question that cost a day of guessing.
-  rateCache = { opens: (st.opens || 0) + 1, done: false, at: Date.now() };
+  rateCache = Object.assign({}, st, { opens: (st.opens || 0) + 1, days, day: today, done: false, at: Date.now() });
   saveRateState(rateCache);
-  if (rateAskReady() && ui && !state.failure) ui.rate.hidden = false;
 }
+
+// Read once on load, so the search bar's dropdown knows the answer on a page
+// where nothing has been used yet.
+rateState().then((st) => { if (st && !rateCache) rateCache = st; });
 
 // grid.js calls it by this name, after a filter narrows the panel's list.
 function tickRating() {
@@ -2728,7 +2771,43 @@ function tickRating() {
 }
 
 function rateAskReady() {
-  return !!rateCache && !rateCache.done && (rateCache.opens || 0) >= RATE_AFTER;
+  return !!rateCache && !rateCache.done && (rateCache.days || 0) >= RATE_DAYS &&
+    (rateCache.opens || 0) >= (rateCache.snooze || 0);
+}
+
+/*
+ * Shows the ask at the moment it just helped, if it is due at all.
+ *
+ * Called with a yes or no after every redraw of the list, so the wait doubles
+ * as a debounce: while somebody is still typing, the count is still moving and
+ * each redraw resets it. It appears once they stop on a result worth having,
+ * eases in under the count, and stays for that page. One page a day at most,
+ * so a second channel the same afternoon is left alone.
+ */
+let rateTimer = 0;
+let rateShownGen = -1;
+
+function rateMoment(win, wait) {
+  clearTimeout(rateTimer);
+  if (!win || !ui || !ui.rate.hidden) return;
+  const gen = state.navGen;
+  rateTimer = setTimeout(() => {
+    if (gen !== state.navGen || !ui || !state.active || state.failure || !ui.rate.hidden || !rateAskReady()) return;
+    const today = rateDay();
+    if (rateCache.shown === today && rateShownGen !== gen) return;
+    rateShownGen = gen;
+    rateCache = Object.assign({}, rateCache, { shown: today });
+    saveRateState(rateCache);
+    ui.rate.hidden = false;
+    ui.rate.classList.remove("ytcs-rate-in");
+    void ui.rate.offsetWidth;
+    ui.rate.classList.add("ytcs-rate-in");
+  }, wait == null ? 1500 : wait);
+}
+
+// grid.js: a long list cut down to a handful.
+function rateWin(total, shown) {
+  return total >= RATE_WIN_FROM && shown > 0 && shown <= RATE_WIN_TO;
 }
 
 async function enable() {
@@ -2781,8 +2860,8 @@ async function enableNow() {
   layoutTokens();
   state.watchlist = await getWatchlist();
   renderNiche();
-  // Somebody already asked, from a use in the search bar, sees it here too.
-  ui.rate.hidden = !rateAskReady();
+  // Never on open: the ask waits for a moment it has helped (rateMoment).
+  ui.rate.hidden = true;
 
   /*
    * The re-entry guard is released here, at the mount, not in enable()'s
