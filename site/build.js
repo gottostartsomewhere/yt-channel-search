@@ -6,8 +6,10 @@ const fs = require("fs");
 const path = require("path");
 
 const BASE = "https://gottostartsomewhere.github.io/needle/";
+// The site's date. A guide changed later carries its own `updated`, which its
+// page, its structured data and the sitemap all use instead.
 const UPDATED = "2026-09-30";
-const UPDATED_TEXT = "30 September 2026";
+const longDate = (iso) => new Date(iso + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 const STORE = "https://chromewebstore.google.com/detail/needle-for-youtube-channe/magofcbhfhpfabphcldhodhgehhclokc";
 const REPO = "https://github.com/gottostartsomewhere/yt-channel-search";
 const PRIVACY = REPO + "/blob/main/PRIVACY.md";
@@ -47,7 +49,7 @@ const closer = (slug, line) => `
 const LABELS = {
   why: "The problem", "ctrl-f": "The workaround", needle: "With Needle", filters: "Filters", faq: "Questions",
   youtube: "On YouTube", "my-activity": "My Activity", popular: "Most viewed", missing: "The gap",
-  cleanup: "Clean up", all: "All at once",
+  cleanup: "Clean up", all: "All at once", lists: "Lists and search",
 };
 
 const GUIDES = [
@@ -123,11 +125,12 @@ ${opsTable([
     title: "How to remove watched videos from your YouTube Watch Later",
     h1: "How to remove watched videos from Watch Later",
     description: "YouTube can clear everything it counts as watched from Watch Later in one go. How to do that, and how to pick exactly what goes instead, with an undo.",
+    updated: "2026-10-12",
     answer: `On your Watch Later page, open the list's menu (the three dots near <em>Play all</em>) and choose <em>Remove watched videos</em>. It removes everything YouTube counts as watched, all at once, with no preview and no undo. To choose what goes, by length, age, channel or how far you got, and undo it afterwards, use <a href="${store("remove-watched-watch-later")}">Needle</a>'s Select on the same page.`,
     faq: [
       ["Is removing with Needle safe?", "It sends YouTube's own remove action, the same one YouTube's menu uses, only after you confirm the number. Undo puts them back with YouTube's own Save to Watch later action."],
-      ["Can it remove videos from my other playlists?", "Not yet. Watch Later only."],
-      ["Does it need extra permissions?", "No. It is off until you turn it on, in the Needle popup or the first time you press Remove, and it only ever touches your Watch Later."],
+      ["Can it remove videos from my other playlists?", "Yes, from playlists you made yourself, and it can unlike videos in bulk on your Liked page. Same Select, same confirm, same undo."],
+      ["Does it need extra permissions?", "No. It is off until you turn it on, in the Needle popup or the first time you press Remove, and it only touches lists that are yours: Watch Later, your own playlists and your likes, each time after you confirm."],
       ["Is it free?", "Yes. No account, no trial, no paid tier."],
     ],
     body: () => `
@@ -199,6 +202,7 @@ ${opsTable([
     tag: "Watch history",
     card: "Search your watch history",
     blurb: "By channel, length or the week you watched it, not just the title.",
+    updated: "2026-10-12",
     title: "Search your YouTube watch history by channel, length or date",
     h1: "How to search your YouTube watch history",
     description: "YouTube's history search only takes words. Find a video you watched by channel, length or when you watched it, with YouTube, My Activity and Needle.",
@@ -206,7 +210,7 @@ ${opsTable([
     faq: [
       ["Why can't I find a video I know I watched?", "Usually one of three things: you watched it signed out or in an incognito window, your history was paused at the time, or auto-delete has removed it. If none of those fit, it may be further back than what's been read, so turn on Deep reading."],
       ["Does Needle keep a copy of my history?", "Only on your device, in the browser's own storage, so searching it is instant. It never leaves your computer, and Clear cached data in the popup wipes it."],
-      ["Does it change my history?", "No. Needle only reads. It never adds, removes or pauses anything in your YouTube account."],
+      ["Does it change my history?", "No. Needle only reads your history. It never adds, removes or pauses anything in it. The only changes it can make to your account are ones you ask for, like removing videos from Watch Later, and it asks before each one."],
       ["Is it free?", "Yes. No account, no trial, no paid tier."],
     ],
     body: () => `
@@ -247,6 +251,7 @@ ${opsTable([
     tag: "Channels",
     card: "Search every video on a channel",
     blurb: "Filter a whole channel by length, views and what you haven't finished.",
+    updated: "2026-10-12",
     title: "Search every video on a YouTube channel by length and views",
     h1: "How to search every video on a YouTube channel",
     description: "Search inside any YouTube channel, sort it by most viewed, and filter every upload by length, view count, date and what you haven't finished.",
@@ -283,10 +288,67 @@ ${figure("../img/channel.webp", 1156, 560, "Needle's panel on the MrBeast Gaming
   <li>Hide everything you've already finished, or find the ones you gave up on halfway.</li>
   <li><strong>Free time:</strong> say you have 45 minutes and see only what fits.</li>
   <li>Exact ranges: under 12 minutes, over a million views, uploaded before 2020.</li>
+  <li><strong>Sort by length:</strong> longest or shortest first, which YouTube can't do. <a href="../find-longest-video-youtube-channel/">Find a channel's longest video</a>.</li>
   <li><strong>Insights:</strong> which video lengths do best on this channel, and two channels side by side.</li>
   <li>Export the list as CSV or JSON.</li>
 </ul>
 <p>The same filters work from the search bar: ${o("@veritasium >1m views <15m")} is every Veritasium video under 15 minutes with over a million views. Turn on <em>Index channels you watch</em> in the popup and ${o("in:channels")} searches the full catalogues of the channels you actually watch.</p>`,
+  },
+
+  {
+    slug: "find-longest-video-youtube-channel",
+    tag: "Channels",
+    card: "Find a channel's longest video",
+    blurb: "YouTube can't sort a channel by length. Search the whole channel, longest first.",
+    published: "2026-10-12",
+    updated: "2026-10-12",
+    title: "How to find the longest video on a YouTube channel",
+    h1: "How to find the longest video on a YouTube channel",
+    description: "YouTube can't sort a channel by video length. How to find the longest or shortest video on any YouTube channel, and search the channel by exact length.",
+    answer: `YouTube can't do it. A channel's Videos tab sorts by <em>Latest</em>, <em>Popular</em> or <em>Oldest</em>, never by length, and the channel's search box only matches words. To find the longest video on a channel, open its Videos tab with <a href="${store("find-longest-video-youtube-channel")}">Needle</a>, a free Chrome extension, and set <em>Sort</em> to <em>Longest</em>. It reads every upload first, so the first video really is the channel's longest. The same panel searches the channel by keyword and exact length.`,
+    faq: [
+      ["Can YouTube sort a channel by length?", "No. A channel's Videos tab sorts by Latest, Popular or Oldest, and that's all. Length isn't a sort option anywhere on YouTube."],
+      ["Can I search a channel for a word and a length at once?", "Yes. Type both into the panel's box, like robot >30m, and you get the channel's videos with that word in the title that run over 30 minutes, still in the order you picked."],
+      ["Does it count Shorts?", "No. Shorts are kept out of the channel list, since YouTube doesn't give them a length to sort on."],
+      ["How big a channel can it sort?", "The whole channel, up to the Video limit in the popup, 1,800 by default, which you can raise. A few hundred videos take a few seconds, then sorting is instant."],
+      ["Does it work on my phone?", "No. Needle is for YouTube in a desktop browser: Chrome, or another browser that installs extensions from the Chrome Web Store."],
+      ["Is it free?", "Yes. No account, no trial, no paid tier."],
+    ],
+    body: () => `
+<h2 id="youtube">What a YouTube channel page can do</h2>
+<ul class="list">
+  <li><strong>Sort:</strong> the chips above the Videos grid switch between <em>Latest</em>, <em>Popular</em> and <em>Oldest</em>. No length.</li>
+  <li><strong>Search:</strong> the magnifying glass at the end of the channel's tabs finds videos by the words in them. It can't filter by length or put anything in order.</li>
+</ul>
+<p>YouTube's main search doesn't help either. Its <em>Filters</em> have three length buckets, under 3 minutes, 3 to 20 and over 20, which narrow results but never sort them, and they cover all of YouTube, not one channel.</p>
+
+<h2 id="missing">Why scrolling doesn't work either</h2>
+<p>Every thumbnail shows its length, so in theory you could look. In practice a channel's page loads about 30 videos at a time as you scroll, so a channel with 600 uploads means scrolling all of them in and reading every timestamp, and Ctrl+F can't search for "longest".</p>
+
+<h2 id="needle">Find the longest video with Needle</h2>
+<ol class="steps">
+  <li>Open the channel's Videos tab.</li>
+  <li>Press the needle button in the bottom right corner, or <kbd>Alt</kbd>+<kbd>Y</kbd>.</li>
+  <li>Needle reads every upload, not only the ones on screen.</li>
+  <li>Set <strong>Sort</strong> to <strong>Longest</strong>. The first video is the longest one on the channel. <strong>Shortest</strong> works the other way round.</li>
+</ol>
+${figure("../img/length.webp", 1152, 556, "Needle's panel on the Veritasium channel, every upload sorted longest first", "Every Veritasium upload, longest first. The list is the whole channel, not just the videos the page had loaded.")}
+
+<h2 id="filters">Search the channel by length</h2>
+<p>Type a word, a length, or both into the panel's box, and the sort keeps working on what's left:</p>
+${opsTable([
+  ["robot >30m", "Videos with robot in the title, over 30 minutes"],
+  [">1h", "Everything longer than an hour"],
+  ["<10m", "Everything shorter than 10 minutes"],
+  [">20m <40m", "Between 20 and 40 minutes"],
+  ["unwatched >1h", "Long videos you haven't started"],
+  ["after:2025", "Uploaded after 2025, to find the longest recent one"],
+])}
+<p>The <strong>Length</strong> button below the box does the same with presets, and <strong>Free time</strong> shows only what fits in the minutes you have.</p>
+
+<h2 id="lists">Playlists, Watch Later and search</h2>
+<p>The same panel opens on any playlist, yours or anyone's, and on your Watch Later, with the same <strong>Sort</strong>. Shortest first on Watch Later is a quick answer to "what can I watch right now".</p>
+<p>From YouTube's search bar, add ${o("sort:longest")} or ${o("sort:shortest")} to a search: ${o("lofi mix sort:longest")} puts the results Needle reads in order of length, and ${o("in:wl sort:shortest")} lists your saved videos shortest first.</p>`,
   },
 
   {
@@ -354,7 +416,7 @@ ${opsTable([
 ];
 
 // History leads: the least contested search, and the thing nobody else does in the search bar.
-const ORDER = ["search-watch-history", "search-watch-later", "remove-watched-watch-later", "search-youtube-playlist", "search-youtube-channel", "youtube-search-filters"];
+const ORDER = ["search-watch-history", "search-watch-later", "remove-watched-watch-later", "search-youtube-playlist", "search-youtube-channel", "find-longest-video-youtube-channel", "youtube-search-filters"];
 GUIDES.sort((a, b) => ORDER.indexOf(a.slug) - ORDER.indexOf(b.slug));
 
 // ---------------------------------------------------------------------------
@@ -429,7 +491,7 @@ function guidePage(g, i) {
     <article class="article">
       ${eyebrow("Guide " + String(i + 1).padStart(2, "0"), g.tag)}
       <h1>${esc(g.h1)}<span class="red">.</span></h1>
-      <p class="mono small">Updated ${UPDATED_TEXT}</p>
+      <p class="mono small">Updated ${longDate(g.updated || UPDATED)}</p>
       <section class="answer" aria-label="Short answer">
         <p class="eyebrow"><span>Short answer</span></p>
         <p>${g.answer}</p>
@@ -453,7 +515,7 @@ function guidePage(g, i) {
   const jsonld = {
     "@context": "https://schema.org",
     "@graph": [
-      { "@type": "Article", headline: g.h1, description: g.description, dateModified: UPDATED, datePublished: UPDATED, image: BASE + "img/og.jpg", mainEntityOfPage: BASE + g.slug + "/", publisher: { "@type": "Organization", name: "Needle for YouTube", logo: { "@type": "ImageObject", url: BASE + "icon128.png" } } },
+      { "@type": "Article", headline: g.h1, description: g.description, dateModified: g.updated || UPDATED, datePublished: g.published || UPDATED, image: BASE + "img/og.jpg", mainEntityOfPage: BASE + g.slug + "/", publisher: { "@type": "Organization", name: "Needle for YouTube", logo: { "@type": "ImageObject", url: BASE + "icon128.png" } } },
       { "@type": "FAQPage", mainEntity: g.faq.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })) },
       { "@type": "BreadcrumbList", itemListElement: [
         { "@type": "ListItem", position: 1, name: "Needle", item: BASE },
@@ -639,7 +701,7 @@ function homePage() {
   };
   return shell({
     slug: "",
-    title: "Needle for YouTube: search Watch Later, history and channels",
+    title: "Needle for YouTube: Search Watch Later, history and channels",
     description: "Free Chrome extension that puts your Watch Later, likes and history in YouTube's search bar, with filters YouTube lacks: exact length, views, unwatched.",
     body,
     jsonld,
@@ -909,7 +971,7 @@ write("f/index.html", sharePage());
 write("robots.txt", `User-agent: *\nAllow: /\n\nSitemap: ${BASE}sitemap.xml\n`);
 write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${["", ...GUIDES.map((g) => g.slug + "/")].map((p) => `  <url><loc>${BASE}${p}</loc><lastmod>${UPDATED}</lastmod></url>`).join("\n")}
+${[["", UPDATED], ...GUIDES.map((g) => [g.slug + "/", g.updated || UPDATED])].map(([p, d]) => `  <url><loc>${BASE}${p}</loc><lastmod>${d}</lastmod></url>`).join("\n")}
 </urlset>
 `);
 write(".nojekyll", "");
