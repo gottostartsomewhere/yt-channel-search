@@ -170,9 +170,9 @@ ${opsTable([
     tag: "Playlists",
     card: "Search inside any playlist",
     blurb: "Yours or anyone's, filtered by length, views and channel.",
-    title: "How to search inside a YouTube playlist",
+    title: "How to search a YouTube playlist (there's no search box)",
     h1: "How to search inside a YouTube playlist",
-    description: "YouTube has no search box inside a playlist. How to find a video in any playlist, yours or anyone's, and filter it by length, views and channel.",
+    description: "YouTube playlists have no search box. Find any video in your own or anyone's playlist in seconds, then filter it by length, views and channel. Free, no sign-up.",
     answer: `YouTube has no search box inside a playlist, and Ctrl+F only sees the videos loaded so far. <a href="${store("search-youtube-playlist")}">Needle</a> reads the whole playlist, yours or anyone's public one, and lets you search and filter it by title, channel, length and views. To search every playlist you've saved at once, type ${o("in:playlists")} into YouTube's search bar.`,
     faq: [
       ["Does it work on someone else's playlist?", "Yes, any playlist you can open: public ones, and unlisted ones you have the link to."],
@@ -252,9 +252,9 @@ ${opsTable([
     card: "Search every video on a channel",
     blurb: "Filter a whole channel by length, views and what you haven't finished.",
     updated: "2026-10-12",
-    title: "Search every video on a YouTube channel by length and views",
+    title: "How to search a YouTube channel and sort it by length",
     h1: "How to search every video on a YouTube channel",
-    description: "Search inside any YouTube channel, sort it by most viewed, and filter every upload by length, view count, date and what you haven't finished.",
+    description: "YouTube only sorts a channel by Latest, Popular and Oldest. Search every upload on any channel and sort or filter it by length, views and date. Free Chrome extension.",
     answer: `Open the channel and click the magnifying glass next to its tabs to search it by keyword. For its most viewed videos, open the Videos tab and pick <em>Popular</em>. YouTube can't filter a channel by length or view count, or hide what you've already watched. <a href="${store("search-youtube-channel")}">Needle</a>, a free Chrome extension, reads every upload on the channel and filters them however you like.`,
     faq: [
       ["How many videos can it read?", "The whole channel, up to the Video limit in the popup, which you can raise for very large channels. A few hundred videos take a few seconds, and after that the channel is cached and opens instantly."],
