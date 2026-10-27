@@ -19,3 +19,10 @@ server/data/
 site/public/
 # the github.io root page is its own repo too (gottostartsomewhere/gottostartsomewhere.github.io)
 site/root/
+
+# the daily check's own log, local to this machine
+tools/canary-log.txt
+
+# the daily check's memory of page shapes, and the pages it saved; local to this machine
+tools/canary-shapes.json
+tools/fixtures/

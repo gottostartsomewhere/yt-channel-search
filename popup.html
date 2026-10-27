@@ -19,17 +19,16 @@
   says NEW until this has been seen. See background.js.
 -->
 <section id="whatsnew" class="card news" hidden>
-  <h2>New in 2.1</h2>
+  <h2>New in 2.2</h2>
   <ul class="newlist">
-    <li><b>Any playlist.</b> Open Needle on any playlist, anyone's, and filter it.</li>
-    <li><b>Your subscriptions.</b> Unwatched, under 20 minutes, this week.</li>
-    <li><b>Clean up your lists.</b> Remove from Watch Later or your playlists, unlike, clear out deleted videos. Undo, and an archive to put things back.</li>
-    <li><b>Play, copy, share.</b> Play what you filtered, copy links for NotebookLM, or share the filter itself.</li>
-    <li><b>in:playlists</b> searches every playlist you've saved.</li>
-    <li><b>List view</b>, a <b>Channel</b> picker, and keys: press <b>?</b> in the panel.</li>
-    <li><b>Dim watched videos</b> on Home and Subscriptions, below.</li>
-    <li><b>Faster, and fixed.</b> Big channels show their first videos in a second, and the panel is readable in YouTube's light theme again.</li>
+    <li><b>Mute everywhere.</b> A muted channel now leaves Home, Subscriptions and the videos next to the one you're watching, not just search. Mute words too, and bring a list over from another blocker. Below.</li>
+    <li><b>How long is this playlist?</b> Every playlist, your Watch Later and your Liked videos now show their total length, how much is left to watch, and how far through you are.</li>
+    <li><b>Fixed: in:wl missing videos.</b> It only searched the first 100 of your Watch Later and said nothing matched. Now it says so, and one click searches all of it.</li>
   </ul>
+  <!-- The one place every active user sees once, by choice: they clicked the
+       NEW badge. So the ask lives here, said plainly, and never anywhere it
+       would interrupt. -->
+  <p class="newask">Needle is free and made by one person. If it has helped you, a rating is how other people find it. <a href="https://chromewebstore.google.com/detail/needle-for-youtube-channe/magofcbhfhpfabphcldhodhgehhclokc/reviews" target="_blank" rel="noopener">Rate Needle</a></p>
 </section>
 
 <!--
@@ -158,10 +157,31 @@
   <p id="followsEmpty" class="empty">Type a search with a filter, like <code>rust &lt;20m</code>, and press Follow in the dropdown or the panel. New matches wait for you in the search bar.</p>
 </section>
 
+<!--
+  Mute everywhere: what is muted, and the way out of each. Gone from search,
+  Home, Subscriptions and the videos beside the one you're watching; your own
+  lists and a channel's own page stay as they are. See mute.js.
+-->
 <section>
   <h2>Muted channels</h2>
   <ul id="muted" class="list"></ul>
-  <p id="mutedEmpty" class="empty">Hover a search result and press the mute button on its thumbnail. Muted channels leave search results only.</p>
+  <p id="mutedEmpty" class="empty">Hover any video's thumbnail and press the mute button in its corner. A muted channel leaves search, Home, Subscriptions and the videos next to the one you're watching. Shorts shelves don't say whose they are, so mute a word to catch those.</p>
+</section>
+
+<section>
+  <h2>Muted words</h2>
+  <form id="wordForm" class="addrow">
+    <input id="wordInput" type="text" maxlength="60" placeholder="A word or phrase in titles, like crypto" autocomplete="off" spellcheck="false">
+    <button type="submit" class="ghost">Mute</button>
+  </form>
+  <ul id="mutedWords" class="list"></ul>
+  <p id="wordsEmpty" class="empty">A video goes when its title has the word, as a whole word: muting <code>AI</code> leaves "said" alone.</p>
+  <div class="muteio">
+    <button id="muteExport" type="button" class="ghost">Export</button>
+    <button id="muteImport" type="button" class="ghost">Import</button>
+    <input id="muteFile" type="file" accept=".txt,.csv,.json,text/plain,application/json" hidden>
+    <span class="muteio-note">A text file, one per line. Brings lists over from other blockers.</span>
+  </div>
 </section>
 
 <footer>

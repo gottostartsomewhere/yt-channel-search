@@ -1153,6 +1153,17 @@ mark.ytcs-hl {
   font-size: 12px;
   color: var(--dim);
 }
+/* "Search all of it", after a list the bar could only read part of. */
+.ytcs-omni-all {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--txt);
+  font: inherit;
+  font-weight: 500;
+  text-decoration: underline;
+  cursor: pointer;
+}
 
 /* The operators, as things you can click. How anyone finds out they exist. */
 .ytcs-omni-tips {
@@ -1788,6 +1799,11 @@ a:hover > .ytcs-mutebtn,
 [data-ytcs-feed="dim"] { opacity: 0.32; transition: opacity 0.15s ease; }
 [data-ytcs-feed="dim"]:hover { opacity: 1; }
 [data-ytcs-feed="hide"] { display: none !important; }
+
+/* Mute everywhere: a card from a muted channel, or with a muted word in its
+   title. An attribute and a rule rather than removing the element, so YouTube's
+   own layout code never finds something missing (mute.js). */
+[data-ytcs-muted] { display: none !important; }
 /* A count in its own column at the end of a menu row (the Channel picker). */
 .ytcs-menucount { margin-left: auto; padding-left: 24px; color: var(--dim); font-variant-numeric: tabular-nums; font-size: 12.5px; }
 

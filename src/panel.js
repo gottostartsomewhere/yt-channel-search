@@ -1355,7 +1355,16 @@ async function restoreSelected() {
  * fix ships: fewer videos, but the right ones, instead of an empty box.
  */
 const SCREEN_CARDS = "ytd-rich-item-renderer, ytd-playlist-video-renderer, ytd-video-renderer, ytd-grid-video-renderer, yt-lockup-view-model";
-const ISSUES_URL = "https://github.com/gottostartsomewhere/yt-channel-search/issues/new";
+/*
+ * "Report it" opens a Google Form with the report already filled in, and the
+ * person presses Submit on Google's own page. No account needed, unlike the
+ * GitHub issue this used to open, which most people watching YouTube don't
+ * have. And the extension itself still sends nothing: the privacy policy's
+ * "does not transmit" stays true, because the submit is theirs, on a page that
+ * shows them exactly what goes.
+ */
+const REPORT_FORM = "https://docs.google.com/forms/d/e/FORM_ID/viewform";
+const REPORT_ENTRY = "entry.0";
 
 // Every piece of text in a card, one per element that holds text directly.
 // textContent, not innerText: the grid is hidden, so nothing in it has layout.
@@ -1476,10 +1485,8 @@ function renderFailure(container) {
   const copy = selBtn("Copy report", "ytcs-primarybtn", () => copyText(f.report, () => toast("Report copied. Nothing personal in it: no titles, videos or addresses")),
     "A few lines about what broke, with nothing about you or what you watch");
   const open = selBtn("Report it", "ytcs-ghost", () => {
-    copyText(f.report, () => {});
-    window.open(ISSUES_URL + "?title=" + encodeURIComponent("Read failure on " + pageKind()) +
-      "&body=" + encodeURIComponent("The report is on your clipboard. Paste it here:\n\n"), "_blank", "noopener");
-  }, "Opens a GitHub issue; the report is copied for you to paste");
+    window.open(REPORT_FORM + "?usp=pp_url&" + REPORT_ENTRY + "=" + encodeURIComponent(f.report), "_blank", "noopener");
+  }, "Opens a short form with the report filled in. Nothing about you, and nothing goes until you press Submit");
   const msg = document.createElement("div");
   msg.className = "ytcs-failtext";
   msg.appendChild(head);
@@ -2501,6 +2508,7 @@ async function refreshCatalog() {
         if (cat.shallow) bits.push("Latest page only. Deep reading, in the popup, reads further");
       } else if (scope) {
         if (!cat.length) bits.push("Nothing read yet. Are you signed in?");
+        else if (library.short[scope]) bits.push((scope === "hist" ? "Latest page only" : "First 100 only") + ". Deep reading, in the popup, reads further");
       } else if (history) {
         // Say when the list stops rather than letting it look like everything.
         const oldest = cat[cat.length - 1];
@@ -3042,6 +3050,7 @@ try {
         library.hist = [];
         library.liked = [];
         library.pl = [];
+        library.short = {};
         library.plAt = 0;
         library.at = Date.now();
         // And what the memory features were holding, for the same reason.

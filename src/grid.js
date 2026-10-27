@@ -363,8 +363,35 @@ function renderStats(rows) {
   ];
   // Only meaningful when this account actually has history on the channel.
   // Signed out there is none, whatever the read filled in.
-  if (signedIn() && state.catalog.some((v) => typeof v.progress === "number")) {
+  const hasProgress = signedIn() && state.catalog.some((v) => typeof v.progress === "number");
+  if (hasProgress) {
     tiles.push(["Not started", String(rows.filter((v) => watchState(v) === "new").length)]);
+  }
+  /*
+   * How long a list is, and how much of it is left. A playlist is usually
+   * something to get through, a course or a backlog, so on one those come
+   * first; on a channel the total sits after the views. Search results and
+   * history are not lists anyone works through, so neither gets them.
+   *
+   * Left is what remains of each video, from the progress YouTube draws on its
+   * thumbnails, and nothing of one past the "finished" point. A list read only
+   * partly says so in the label, because the length of its first 100 is not the
+   * length of the list.
+   */
+  const list = !!playlistId();
+  if ((list || isChannelPage()) && !isSearchPage() && !listHasWatchDates()) {
+    const total = rows.reduce((s, v) => s + (v.seconds || 0), 0);
+    const partial = state.catalog.shallow || state.catalog.truncated;
+    const span = [[partial ? "Length of the first " + state.catalog.length : "Total length", fmtSpan(total)]];
+    if (hasProgress && total) {
+      const left = rows.reduce((s, v) => s + (watchState(v) === "done" ? 0 :
+        (v.seconds || 0) * (1 - Math.min(100, Math.max(0, v.progress || 0)) / 100)), 0);
+      span.push(["Left to watch", fmtSpan(left)], ["Done", Math.round(100 * (1 - left / total)) + "%"]);
+    }
+    // On a playlist the median views of someone's course says nothing, and the
+    // line has the room only once the length is in it.
+    if (list) tiles.splice(0, tiles.length, ...span, ...tiles.filter((t) => t[0] !== "Median views"));
+    else tiles.splice(3, 0, ...span);
   }
   ui.stats.innerHTML = "";
   for (const [label, val] of tiles) {

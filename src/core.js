@@ -1861,3 +1861,12 @@ function fmtDuration(s) {
   const pad = (x) => String(x).padStart(2, "0");
   return h > 0 ? h + ":" + pad(m) + ":" + pad(sec) : m + ":" + pad(sec);
 }
+
+// A whole list's length: "14h 20m", "38m". Seconds would be noise at this size,
+// and "14:20:05" reads as one video's length, not a course's.
+function fmtSpan(s) {
+  const m = Math.round((s || 0) / 60);
+  if (m < 60) return m + "m";
+  const h = Math.floor(m / 60), r = m % 60;
+  return r ? h + "h " + r + "m" : h + "h";
+}

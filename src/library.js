@@ -29,8 +29,18 @@ const LIB_ORDER = ["wl", "hist", "liked"];
  * Once read, they join the dropdown's groups like the other lists.
  */
 const PL_TTL = 12 * 3600 * 1000;
+/*
+ * A search scoped to one list (in:wl) that finds nothing reads the lists again,
+ * at most this often: the video may have been saved since the last read, which
+ * can be three hours old. "I know it's in my Watch Later" is the whole reason
+ * somebody types in:wl, so a stale miss is the one answer that must not happen.
+ */
+const LIB_RECHECK = 2 * 60 * 1000;
 
-const library = { wl: [], hist: [], liked: [], pl: [], at: 0, plAt: 0, loaded: false, refreshing: null, plLoading: null };
+// `short`: which lists were read only partly (page one, without deep reading),
+// so the search bar never answers "nothing matches" for a list it has not seen all of.
+// `deep`: whether deep reading was on for that read, so switching it on reads again.
+const library = { wl: [], hist: [], liked: [], pl: [], short: {}, deep: false, at: 0, plAt: 0, loaded: false, refreshing: null, plLoading: null };
 const libListeners = [];
 
 function onLibraryChange(fn) {
@@ -57,6 +67,8 @@ async function loadLibrary() {
       library.hist = rec.hist || [];
       library.liked = rec.liked || [];
       library.pl = rec.pl || [];
+      library.short = rec.short || {};
+      library.deep = !!rec.deep;
       library.at = rec.at || 0;
       library.plAt = rec.plAt || 0;
     }
@@ -67,8 +79,25 @@ async function loadLibrary() {
 }
 
 function saveLibrary() {
-  return idbPut(LIB_KEY, { wl: library.wl, hist: library.hist, liked: library.liked, pl: library.pl, at: library.at, plAt: library.plAt });
+  return idbPut(LIB_KEY, { wl: library.wl, hist: library.hist, liked: library.liked, pl: library.pl, short: library.short, deep: library.deep, at: library.at, plAt: library.plAt });
 }
+
+// What a partly read list covers, in words, or "" when it was read in full.
+function libraryShortNote(key) {
+  if (!library.short[key]) return "";
+  return key === "hist" ? "the latest page of your watch history" : "the first 100 of your " + LIB_NAMES[key];
+}
+
+// Deep reading switched on in the popup: the copy here was read without it, so
+// read again on the next click into the search bar, not three hours from now.
+try {
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === "sync" && changes.deepHistory && changes.deepHistory.newValue) {
+      library.at = 0;
+      library.plAt = 0;
+    }
+  });
+} catch (e) { /* no extension context */ }
 
 function libraryChanged() {
   for (const fn of libListeners) {
@@ -118,6 +147,7 @@ function refreshLibrary() {
   if (!cfg.librarySearch) return Promise.resolve(library);
 
   library.refreshing = (async () => {
+    const deep = !!cfg.deepHistory;
     // Each list on its own. One failing keeps its previous copy rather than
     // emptying the dropdown for the other two.
     const read = async (fn, prev) => {
@@ -127,6 +157,10 @@ function refreshLibrary() {
     const liked = await read(() => fetchPlaylist("LL", cfg.deepHistory), library.liked);
     const hist = await read(() => fetchHistory(() => {}, cfg.deepHistory), library.hist);
 
+    // A list that failed came back as the old copy, and keeps the old flag.
+    const short = (got, key) => (got === library[key] ? !!library.short[key] : !!got.shallow);
+    library.short = { wl: short(wl, "wl"), liked: short(liked, "liked"), hist: short(hist, "hist") };
+    library.deep = deep;
     library.wl = wl.filter((v) => v.playable !== false);
     library.liked = liked.filter((v) => v.playable !== false);
     library.hist = hist;
@@ -543,7 +577,8 @@ async function libraryCatalog(scope) {
   if (scope === "channels") return (await indexVideos()).slice();
   await loadLibrary();
   if (scope === "pl") return (await loadPlaylistLibrary()).slice();
-  if (!library[scope].length && library.refreshing) await library.refreshing;
+  // A read in progress may bring the rest of a partly read list (deep reading just switched on).
+  if ((!library[scope].length || library.short[scope]) && library.refreshing) await library.refreshing;
   if (!library[scope].length) await refreshLibrary();
   return library[scope].slice();
 }

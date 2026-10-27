@@ -388,6 +388,37 @@ function openScoped(key, f) {
   navigateTo(searchUrl(f.query, ""));
 }
 
+/*
+ * The line under the rows for a filtered search, as { text, all }. Never
+ * "nothing matches" for a list read only partly: without deep reading that is
+ * the first 100 of Watch Later, and a video past them would be reported missing
+ * when it is there. `all` adds the button that reads the rest.
+ */
+function omniScopeHint(f, raw, groups, ownScope) {
+  if (!raw.trim()) return {};
+  const name = LIB_NAMES[f.scope];
+  const short = ownScope ? libraryShortNote(f.scope) : "";
+  const found = groups.length ? "Searched " : "Nothing in ";
+  if (ownScope && library.refreshing) {
+    if (short && cfg.deepHistory) return { text: "Reading all of your " + name + ". A long one takes a few seconds…" };
+    if (!groups.length) return { text: "Reading your " + name + " again, in case it was saved since…" };
+  }
+  // Deep reading on and still only part of it: YouTube refused the rest.
+  if (short && cfg.deepHistory && library.deep) return { text: found + short + ". YouTube would not send the rest. Are you signed in?" };
+  if (short) return { text: found + short + ".", all: !cfg.deepHistory };
+  if (!f.ops || groups.length) return {};
+  return { text: f.scope ? "Nothing in your " + name + " matches." : "Nothing in your library matches. Enter searches YouTube with these filters." };
+}
+
+// The button on a partly read list. Deep reading goes on here and in the popup,
+// where it can be switched off like any setting, and the render that follows
+// reads the list again with it (see `deeper` in omniRender).
+function searchAllOfIt() {
+  cfg.deepHistory = true;
+  try { chrome.storage.sync.set({ deepHistory: true }); } catch (e) { /* this tab reads deeper all the same */ }
+  omniSchedule();
+}
+
 function omniRender() {
   if (!omni.input || !cfg.librarySearch) return;
   const box = omniListbox();
@@ -406,6 +437,13 @@ function omniRender() {
   let groups = [];
   if (!raw.trim()) groups = libraryIdle();
   else if (f.words.length || f.ops) groups = matchLibrary(f, f.scope ? 8 : OMNI_PER_GROUP);
+  // in:wl (or liked, history) found nothing: maybe it was saved since the last
+  // read, so read again before saying so (see LIB_RECHECK). And a list read
+  // partly before deep reading went on is read again, all of it this time.
+  const ownScope = LIB_ORDER.includes(f.scope);
+  const missed = f.words.length && !groups.length && Date.now() - library.at > LIB_RECHECK;
+  const deeper = library.short[f.scope] && cfg.deepHistory && !library.deep;
+  if (ownScope && !library.refreshing && (missed || deeper)) refreshLibrary().then(omniSchedule, omniSchedule);
   // How many each list really has, for "See all".
   const totals = {};
   if (raw.trim() && f.query && groups.length) for (const g of matchLibrary(f, 0)) totals[g.key] = g.videos.length;
@@ -469,13 +507,20 @@ function omniRender() {
   }
   if (fromIndex.length) groups = groups.concat([{ key: "channels", videos: fromIndex }]);
 
-  const hint = omni.hint || (f.ops && !groups.length && raw.trim()
-    ? (f.scope ? "Nothing in your " + LIB_NAMES[f.scope] + " matches." : "Nothing in your library matches. Enter searches YouTube with these filters.")
-    : "");
-  if (hint) {
+  const hint = omni.hint ? { text: omni.hint } : omniScopeHint(f, raw, groups, ownScope);
+  if (hint.text) {
     const p = document.createElement("div");
     p.className = "ytcs-omni-hint";
-    p.textContent = hint;
+    p.textContent = hint.text;
+    if (hint.all) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "ytcs-omni-all";
+      b.textContent = "Search all of it";
+      b.title = "Turns on deep reading, which reads past page one of your own lists. Off again in the popup";
+      b.onclick = searchAllOfIt;
+      p.append(" ", b);
+    }
     omni.el.appendChild(p);
   }
 
@@ -645,7 +690,7 @@ function omniArrive() {
   if (!isSearchPage()) return;
   beginSeenPage();
   omni.showMuted = false;
-  hideMutedResults();
+  muteScan();
   const f = takePending();
   // Only ever set here. The navigate handler clears both before this runs, so
   // a second run with nothing pending must not undo the first one's scope.
@@ -993,10 +1038,7 @@ function badgeResults() {
     if (idx) markThumb(a, id, idx, "");
     const feedCard = onFeed && a.closest(FEED_CARD);
     if (feedCard) applyFeedWatched(feedCard, cfg.feedWatched !== "off" && feedFinished(feedCard, id, idx));
-    if (onSearch && card.closest("ytd-search")) {
-      addMuteButton(a);
-      observeShown(card, id);
-    }
+    if (onSearch && card.closest("ytd-search")) observeShown(card, id);
   }
   // The panel's own cards too. Top right there, since top left is where the
   // panel already says NEW about fresh uploads.
@@ -1011,80 +1053,13 @@ function badgeResults() {
       observeShown(a, id);
     }
   }
-  if (onSearch) hideMutedResults();
+  // Mute everywhere has its own pass, over every page it applies to (mute.js).
+  muteScan();
 }
 
-// ---- muting from a result ---------------------------------------------------------------
-// Who made the video on a card: the panel's cards say so in data attributes,
-// YouTube's carry a link to the channel, whose text is its name.
-function cardChannel(card) {
-  if (card.dataset && (card.dataset.ch || card.dataset.h)) return { name: card.dataset.ch || "", handle: card.dataset.h || "" };
-  let handle = "", name = "";
-  for (const a of card.querySelectorAll("a[href^='/@']")) {
-    const m = a.getAttribute("href").match(/^\/@([^/?]+)/);
-    if (m && !handle) handle = decodeURIComponent(m[1]).toLowerCase();
-    const t = a.textContent.trim();
-    if (t && !name) name = t;
-  }
-  return handle || name ? { name, handle } : null;
-}
-
-// Shows on hover, bottom left, which is the one corner nothing else uses:
-// YouTube puts the length bottom right and our marks go along the top.
-function addMuteButton(host) {
-  if (host.querySelector(":scope > .ytcs-mutebtn")) return;
-  const b = document.createElement("button");
-  b.type = "button";
-  b.className = "ytcs-mutebtn";
-  b.title = "Mute this channel in search";
-  b.setAttribute("aria-label", "Mute this channel in search");
-  b.appendChild(omniIcon("mute", 14));
-  if (getComputedStyle(host).position === "static") host.style.position = "relative";
-  host.appendChild(b);
-}
-
-// On the window, in the capture phase, so it runs before the link the button
-// sits inside can navigate, and before YouTube's own handlers see the click.
-window.addEventListener("click", (e) => {
-  const b = e.target && e.target.closest && e.target.closest(".ytcs-mutebtn");
-  if (!b) return;
-  e.preventDefault();
-  e.stopImmediatePropagation();
-  const card = b.closest("a.ytcs-card") || b.closest("ytd-video-renderer, yt-lockup-view-model");
-  const who = card && cardChannel(card);
-  if (!who) return;
-  muteChannel(who.name, who.handle);
-  const entry = muted.list[muted.list.length - 1];
-  toast("Muted " + (who.name || "@" + who.handle) + " in search", "Undo", () => {
-    if (entry) unmuteChannel(entry);
-    hideMutedResults();
-    if (state.active) applyView();
-  });
-  hideMutedResults();
-  if (state.active) applyView();
-}, true);
-
-const RESULT_CARDS = "ytd-search ytd-video-renderer, ytd-search yt-lockup-view-model";
-
-function hideMutedResults() {
-  if (!isSearchPage()) return;
-  let n = 0;
-  for (const card of document.querySelectorAll(RESULT_CARDS)) {
-    const who = cardChannel(card);
-    const hide = !omni.showMuted && !!who && isMuted({ channel: who.name, handle: who.handle });
-    if (hide) {
-      n++;
-      if (!card.hasAttribute("data-ytcs-muted")) {
-        card.setAttribute("data-ytcs-muted", card.style.display);
-        card.style.display = "none";
-      }
-    } else if (card.hasAttribute("data-ytcs-muted")) {
-      card.style.display = card.getAttribute("data-ytcs-muted");
-      card.removeAttribute("data-ytcs-muted");
-    }
-  }
-  renderMuteNote(n);
-}
+// ---- muting ----------------------------------------------------------------------------
+// Finding, hiding and the mute button live in mute.js. What stays here is the
+// note over search results, since it belongs with the search bar.
 
 // "2 results from channels you muted, hidden. Show them", above YouTube's list,
 // so a mute is never a silent hole in the results.
@@ -1121,7 +1096,7 @@ function renderMuteNote(n) {
   b.textContent = omni.showMuted ? "Hide them again" : "Show them";
   b.onclick = () => {
     omni.showMuted = !omni.showMuted;
-    hideMutedResults();
+    muteScan();
   };
   note.appendChild(t);
   note.appendChild(b);
@@ -1298,6 +1273,8 @@ if (!window.__ytcsOmniLoaded) {
         library.hist = rec.hist || [];
         library.liked = rec.liked || [];
         library.pl = rec.pl || [];
+        library.short = rec.short || {};
+        library.deep = !!rec.deep;
         library.at = rec.at || 0;
         library.plAt = rec.plAt || 0;
         library.loaded = true;

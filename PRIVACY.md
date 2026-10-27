@@ -1,6 +1,6 @@
 # Privacy policy
 
-Last updated: 14 October 2026
+Last updated: 28 October 2026
 
 Needle for YouTube (formerly Channel Search+ for YouTube) does not collect,
 transmit, or sell any data. There is no server, no account, and no analytics. Everything the extension reads stays
@@ -107,8 +107,16 @@ this extension does not, and every one of them is kept on your device.
   for this month's uploads matching it, the same request as searching it
   yourself, and keeps anything new for the search bar. The query list syncs
   between your own browsers; what each one has found stays on the device.
-- **Channels you muted.** Their names and handles, synced between your own
-  browsers. Muted channels are hidden from search results only.
+- **Channels and words you muted.** For a channel, its name, handle and
+  channel id; for a word, the word. Kept on this device only. A muted channel's
+  videos, and videos with a muted word in the title, are hidden from search,
+  Home, Subscriptions and the videos next to the one you're watching. To know
+  whose video a card is, the extension reads YouTube's own data for the page
+  you're on, inside that page, as YouTube sends it: the first page and the
+  results that load as you scroll. It reads a copy and leaves YouTube's
+  untouched, keeps only which channel made which video for as long as the tab is
+  open, and sends none of it anywhere. Export in the popup saves your list as a
+  text file on your computer; Import reads one you choose. Neither goes online.
 - **The channels you watch.** The channels that appear most in your history
   have their public video lists read in the background, at most one channel
   every ten minutes and then once a week each, so `in:channels` can search
@@ -124,7 +132,10 @@ not open.
 This is the only part of the extension that touches anything resembling a
 credential, so it is described in full rather than summarised.
 
-**It is off by default and does nothing until you turn it on** in the popup.
+**It is off by default and does nothing until you turn it on**, in the popup or
+with the "Search all of it" button the search bar shows when it could only read
+part of one of your lists. Either way it is the same setting, and the popup
+switches it off.
 Left alone, the extension reads roughly the first 180 videos of your history,
 the first 100 of Watch Later and Liked, and the first page of search results'
 watch progress, and stops, exactly like every other feature here.
@@ -245,6 +256,20 @@ Nothing else goes with either: no account, no email, nothing from the
 extension or your browsing. As with any web page, Google's servers see the
 request itself when it arrives. If you click nothing, nothing is sent.
 
+## When a page can't be read
+
+If YouTube changes how it sends a page and Needle can't read it, the panel
+says so and offers a short report: which kind of page it was, how far the read
+got, the names and counts of the building blocks YouTube's reply was made of,
+your Chrome version and language, and Needle's version, video limit and deep
+reading setting. Never a title, a video, a channel, an address or anything you
+searched for.
+
+Copy report puts it on your clipboard. Report it opens a Google Form in a new
+tab with that text already filled in. The extension itself sends nothing: the
+form only goes if you press Submit on Google's page, where you can read it, or
+change it, first.
+
 ## What it stores, and where
 
 All of it is local to your browser. Nothing leaves your machine.
@@ -266,7 +291,8 @@ All of it is local to your browser. Nothing leaves your machine.
 | Video ids you have been shown in search results, with counts and dates | IndexedDB | So `is:fresh` can leave them out |
 | What each followed search has found | IndexedDB | So the search bar can show what is new |
 | Public video lists of the channels you watch most | IndexedDB, with the catalogues above | So `in:channels` can search them |
-| Searches you follow, and channels you muted | `chrome.storage.sync` | So they follow you between your own browsers |
+| Searches you follow | `chrome.storage.sync` | So they follow you between your own browsers |
+| Channels and words you muted | `chrome.storage.local` | Kept on this device; sync is too small for a long list |
 | Your settings | `chrome.storage.sync` | So they persist |
 
 Watch progress is the most personal of these, so to be exact about it: YouTube
@@ -277,8 +303,8 @@ unlike your settings it never syncs between devices.
 
 Settings use the browser's own sync storage, so if you have browser sync turned
 on they travel between your devices through your browser account. That is the
-browser's mechanism, not ours, and it covers settings, followed searches and
-muted channels only. Catalogues, snapshots, watchlists and everything the
+browser's mechanism, not ours, and it covers settings and followed searches
+only. Catalogues, snapshots, watchlists and everything the
 extension remembers about what you were shown never sync and never leave the
 device.
 

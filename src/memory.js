@@ -92,45 +92,136 @@ function isFresh(v) {
 
 // ---- muted channels ---------------------------------------------------------------
 /*
- * YouTube's "Don't recommend channel" never touches search. These do: muted
- * channels leave search results, on YouTube's own page and in the panel, and
- * stay gone until unmuted in the popup. Your own lists are left alone, since
- * something you saved on purpose is not noise.
+ * YouTube's "Don't recommend channel" never touches search, and often not even
+ * the sidebar. These do: a muted channel leaves search, Home, Subscriptions and
+ * the videos beside the one you're watching, and a muted word takes any video
+ * whose title has it. Your own lists, a channel's own page and Shorts you open
+ * are left alone, since something you went to on purpose is not noise.
+ *
+ * A channel is kept by up to three things: its UC... id, which never changes,
+ * its @handle and its name, for whichever one a card happens to show.
+ *
+ * Kept in local storage, not sync. Chrome's sync allows about 8KB per list,
+ * which is around a hundred channels, and the reason to bring a list over from
+ * another blocker is that it is long. Lists kept in sync by older versions move across once.
  */
-const muted = { list: [] };
+// `ver` goes up with every change, so Mute can tell a card it already judged needs judging again.
+const muted = { list: [], words: [], ver: 0 };
+const MUTE_MAX = 5000;
+
+function onMutedChange() {
+  muted.ver++;
+  if (typeof muteScan === "function") muteScan();
+}
 
 function loadMuted() {
   try {
-    chrome.storage.sync.get({ muted: [] }, (got) => {
-      if (!chrome.runtime.lastError && got) muted.list = got.muted || [];
-      if (typeof hideMutedResults === "function") hideMutedResults();
+    chrome.storage.local.get({ muted: null, mutedWords: [] }, (got) => {
+      if (chrome.runtime.lastError || !got) return;
+      muted.words = got.mutedWords || [];
+      if (got.muted) {
+        muted.list = got.muted;
+        onMutedChange();
+        return;
+      }
+      // Once: whatever an older version kept in sync comes across.
+      chrome.storage.sync.get({ muted: [] }, (old) => {
+        muted.list = (old && old.muted) || [];
+        chrome.storage.local.set({ muted: muted.list });
+        onMutedChange();
+      });
     });
     chrome.storage.onChanged.addListener((changes, area) => {
-      if (area === "sync" && changes.muted) {
-        muted.list = changes.muted.newValue || [];
-        if (typeof hideMutedResults === "function") hideMutedResults();
-      }
+      if (area !== "local" || !(changes.muted || changes.mutedWords)) return;
+      if (changes.muted) muted.list = changes.muted.newValue || [];
+      if (changes.mutedWords) muted.words = changes.mutedWords.newValue || [];
+      onMutedChange();
     });
   } catch (e) { /* no extension context */ }
 }
 
-function isMuted(v) {
-  if (!muted.list.length) return false;
-  const name = (v.channel || "").toLowerCase();
-  return muted.list.some((m) => (m.handle && v.handle === m.handle) || (m.name && name === m.name));
+function saveMuted() {
+  muted.ver++;
+  try { chrome.storage.local.set({ muted: muted.list, mutedWords: muted.words }); } catch (e) { /* ignore */ }
 }
 
-function muteChannel(name, handle) {
-  const entry = { name: String(name || "").toLowerCase().trim(), handle: String(handle || "").toLowerCase().replace(/^@/, "") };
-  if (!entry.name && !entry.handle) return;
-  if (isMuted({ channel: entry.name, handle: entry.handle })) return;
-  muted.list = muted.list.concat([entry]).slice(-500);
-  try { chrome.storage.sync.set({ muted: muted.list }); } catch (e) { /* ignore */ }
+/*
+ * Whether a video is muted, given whatever is known about who made it: ids,
+ * handles and names (arrays, since a collab has two of each) and its title.
+ * Ids and handles are trusted first; a name is only compared when one side
+ * knows nothing better, because two channels can share a name and only one of
+ * them was muted.
+ */
+function muteReason(who) {
+  if (!muted.list.length && !muted.words.length) return "";
+  const ids = who.channelIds || [], handles = who.handles || [];
+  const names = (who.names || []).map((n) => String(n).toLowerCase().trim()).filter(Boolean);
+  for (const m of muted.list) {
+    const sure = (m.channelId && ids.includes(m.channelId)) || (m.handle && handles.includes(m.handle));
+    if (sure) return "channel";
+    const knowsBetter = (m.channelId || m.handle) && (ids.length || handles.length);
+    if (!knowsBetter && m.name && names.includes(m.name)) return "channel";
+  }
+  if (who.title && muted.words.length && mutedWordIn(who.title)) return "word";
+  return "";
+}
+
+// The panel's own cards: one channel each, and a title.
+function isMuted(v) {
+  return !!muteReason({ channelIds: v.channelId ? [v.channelId] : [], handles: v.handle ? [v.handle] : [], names: v.channel ? [v.channel] : [], title: v.title });
+}
+
+/*
+ * A word matches as a whole word, any case, so muting "AI" leaves "AIRBUS" and
+ * "said" alone. A phrase matches as written. Letters in any script count as
+ * letters, so it works for titles that are not in English.
+ */
+let wordsRe = null, wordsSig = "";
+function mutedWordIn(title) {
+  const sig = muted.words.join("\u0001");
+  if (sig !== wordsSig) {
+    wordsSig = sig;
+    const parts = muted.words.map((w) => String(w).trim()).filter(Boolean)
+      .map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+"));
+    wordsRe = parts.length ? new RegExp("(?<![\\p{L}\\p{N}])(?:" + parts.join("|") + ")(?![\\p{L}\\p{N}])", "iu") : null;
+  }
+  return !!wordsRe && wordsRe.test(title);
+}
+
+// What a muted channel looks like stored: lowercase name and handle, its id as is.
+function muteEntry(name, handle, channelId) {
+  return {
+    name: String(name || "").toLowerCase().trim(),
+    handle: String(handle || "").toLowerCase().replace(/^@/, "").trim(),
+    channelId: /^UC[\w-]{22}$/.test(channelId || "") ? channelId : "",
+  };
+}
+
+function sameChannel(a, b) {
+  return (a.channelId && a.channelId === b.channelId) || (a.handle && a.handle === b.handle) ||
+    (!a.channelId && !a.handle && !b.channelId && !b.handle && a.name && a.name === b.name);
+}
+
+// Returns the stored entry, new or the one already there (filled in with
+// anything it was missing), or null when there was nothing to go on.
+function muteChannel(name, handle, channelId) {
+  const entry = muteEntry(name, handle, channelId);
+  if (!entry.name && !entry.handle && !entry.channelId) return null;
+  const old = muted.list.find((m) => sameChannel(m, entry));
+  if (old) {
+    const merged = { name: old.name || entry.name, handle: old.handle || entry.handle, channelId: old.channelId || entry.channelId };
+    muted.list = muted.list.map((m) => (m === old ? merged : m));
+    saveMuted();
+    return merged;
+  }
+  muted.list = muted.list.concat([entry]).slice(-MUTE_MAX);
+  saveMuted();
+  return entry;
 }
 
 function unmuteChannel(entry) {
-  muted.list = muted.list.filter((m) => !(m.name === entry.name && m.handle === entry.handle));
-  try { chrome.storage.sync.set({ muted: muted.list }); } catch (e) { /* ignore */ }
+  muted.list = muted.list.filter((m) => !(m.name === entry.name && m.handle === entry.handle && (m.channelId || "") === (entry.channelId || "")));
+  saveMuted();
 }
 
 // ---- followed searches -------------------------------------------------------------

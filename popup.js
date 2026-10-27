@@ -83,17 +83,149 @@ function renderList(listId, emptyId, items, label, onRemove) {
   }
 }
 
+/*
+ * Muted channels and words live in local storage now (memory.js says
+ * why: sync holds about a hundred channels). A list from an older version is still in
+ * sync until a YouTube tab moves it, so it is read from there until then.
+ */
+function readMuted(cb) {
+  chrome.storage.local.get({ muted: null, mutedWords: [] }, (got) => {
+    if (got && got.muted) return cb(got.muted, got.mutedWords || []);
+    chrome.storage.sync.get({ muted: [] }, (old) => cb((old && old.muted) || [], (got && got.mutedWords) || []));
+  });
+}
+
+function mutedLabel(m) {
+  if (m.name) return m.name + (m.handle ? "  @" + m.handle : "");
+  return m.handle ? "@" + m.handle : m.channelId;
+}
+
 function paintLists() {
-  chrome.storage.sync.get({ follows: [], muted: [] }, (got) => {
+  chrome.storage.sync.get({ follows: [] }, (got) => {
     renderList("follows", "followsEmpty", got.follows, (f) => f.q, (f) => {
       chrome.storage.sync.set({ follows: got.follows.filter((x) => x.id !== f.id) }, paintLists);
     });
-    renderList("muted", "mutedEmpty", got.muted, (m) => m.name || "@" + m.handle, (m) => {
-      chrome.storage.sync.set({ muted: got.muted.filter((x) => !(x.name === m.name && x.handle === m.handle)) }, paintLists);
+  });
+  readMuted((list, words) => {
+    renderList("muted", "mutedEmpty", list, mutedLabel, (m) => {
+      chrome.storage.local.set({ muted: list.filter((x) => x !== m) }, paintLists);
+    });
+    renderList("mutedWords", "wordsEmpty", words, (w) => w, (w) => {
+      chrome.storage.local.set({ muted: list, mutedWords: words.filter((x) => x !== w) }, paintLists);
     });
   });
 }
 paintLists();
+
+// ---- muted words -------------------------------------------------------------------
+$("wordForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const w = $("wordInput").value.replace(/\s+/g, " ").trim();
+  if (!w) return;
+  readMuted((list, words) => {
+    const already = words.some((x) => x.toLowerCase() === w.toLowerCase());
+    if (!already) words = words.concat([w]).slice(-500);
+    chrome.storage.local.set({ muted: list, mutedWords: words }, () => {
+      $("wordInput").value = "";
+      paintLists();
+      flash(already ? "Already muted" : "Muted " + w);
+    });
+  });
+});
+
+/*
+ * ---- export and import ----------------------------------------------------------------
+ *
+ * Plain text, one per line, so it survives any editor and so a list from
+ * another blocker comes in after a copy and paste:
+ *
+ *   @veritasium                                  a handle
+ *   https://www.youtube.com/@veritasium          a link to one
+ *   UCHnyfMqiRRG1u-2MsSQLbXA                     a channel id, or a link with one
+ *   word: crypto                                 a muted word
+ *   Some Channel Name                            anything else is a channel's name
+ *
+ * A JSON file is read too: any strings in it are taken as lines, which covers
+ * the exports of the blockers that write JSON.
+ */
+const MUTE_FILE_HEAD = "# Needle muted list. One per line: @handle, a channel link or UC id, \"word: something\", or a channel's name.";
+
+$("muteExport").addEventListener("click", () => {
+  readMuted((list, words) => {
+    const lines = [MUTE_FILE_HEAD];
+    for (const m of list) lines.push(m.handle ? "@" + m.handle : m.channelId ? m.channelId : m.name);
+    for (const w of words) lines.push("word: " + w);
+    const url = URL.createObjectURL(new Blob([lines.join("\n") + "\n"], { type: "text/plain" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "needle-muted.txt";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    flash("Exported " + list.length + " channels, " + words.length + " words");
+  });
+});
+
+$("muteImport").addEventListener("click", () => $("muteFile").click());
+
+function muteLinesFrom(text) {
+  try {
+    const j = JSON.parse(text);
+    const strings = [];
+    (function walk(o) {
+      if (typeof o === "string") strings.push(o);
+      else if (o && typeof o === "object") for (const k in o) walk(o[k]);
+    })(j);
+    return strings;
+  } catch (e) {
+    return text.split(/\r?\n/);
+  }
+}
+
+function parseMuteLine(raw) {
+  const line = String(raw).trim();
+  if (!line || line.charAt(0) === "#") return null;
+  const word = line.match(/^(?:word|keyword)\s*:\s*(.+)$/i);
+  if (word) return { word: word[1].replace(/\s+/g, " ").trim() };
+  const id = line.match(/(UC[\w-]{22})(?![\w-])/);
+  const handle = line.match(/(?:^|\/)@([\p{L}\p{N}._-]+)/u);
+  if (id || handle) {
+    return { channel: { name: "", handle: handle ? handle[1].toLowerCase() : "", channelId: id ? id[1] : "" } };
+  }
+  if (line.length > 80 || /^https?:/i.test(line)) return null;
+  return { channel: { name: line.toLowerCase(), handle: "", channelId: "" } };
+}
+
+function sameMuted(a, b) {
+  return (a.channelId && a.channelId === b.channelId) || (a.handle && a.handle === b.handle) ||
+    (!a.channelId && !a.handle && !b.channelId && !b.handle && a.name && a.name === b.name);
+}
+
+$("muteFile").addEventListener("change", () => {
+  const file = $("muteFile").files && $("muteFile").files[0];
+  $("muteFile").value = "";
+  if (!file) return;
+  file.text().then((text) => {
+    readMuted((list, words) => {
+      let channels = 0, added = 0;
+      for (const raw of muteLinesFrom(text)) {
+        const p = parseMuteLine(raw);
+        if (!p) continue;
+        if (p.word) {
+          if (p.word && !words.some((x) => x.toLowerCase() === p.word.toLowerCase())) { words = words.concat([p.word]); added++; }
+          continue;
+        }
+        channels++;
+        if (!list.some((m) => sameMuted(m, p.channel))) list = list.concat([p.channel]);
+      }
+      chrome.storage.local.set({ muted: list.slice(-5000), mutedWords: words.slice(-500) }, () => {
+        paintLists();
+        flash("Imported " + channels + " channels, " + added + " words");
+      });
+    });
+  });
+});
 
 // Firefox keeps shortcuts under about:addons and refuses the chrome:// URL.
 const IS_GECKO = navigator.userAgent.indexOf("Firefox") !== -1;

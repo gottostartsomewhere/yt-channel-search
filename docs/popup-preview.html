@@ -1,0 +1,43 @@
+<!doctype html>
+<!--
+  The real popup (popup.html, popup.css, popup.js) with chrome.* stubbed and a
+  few muted channels and words in storage, so its lists can be checked without
+  loading the extension. Not shipped: build.js only copies its SHARED list.
+  Serve the repo over http and open docs/popup-preview.html.
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<title>Needle popup preview</title>
+<link rel="stylesheet" href="../popup.css">
+</head>
+<body>
+<script>
+  const store = {
+    local: { muted: [
+      { name: "veritasium", handle: "veritasium", channelId: "UCHnyfMqiRRG1u-2MsSQLbXA" },
+      { name: "", handle: "mrbeast", channelId: "" },
+      { name: "", handle: "", channelId: "UCX6OQ3DkcsbYNE6H8uQQuVA" },
+    ], mutedWords: ["crypto", "AI slop"] },
+    sync: { follows: [] },
+  };
+  const area = (name) => ({
+    get: (d, cb) => cb(Object.assign({}, d, store[name])),
+    set: (v, cb) => { Object.assign(store[name], v); if (cb) cb(); },
+  });
+  window.chrome = {
+    storage: { local: area("local"), sync: area("sync"), onChanged: { addListener() {} } },
+    tabs: { query: (q, cb) => cb([{ url: "https://www.youtube.com/" }]), create() {}, sendMessage() {} },
+    runtime: { getManifest: () => ({ version: "preview" }), lastError: null, onMessage: { addListener() {} } },
+    commands: { getAll: (cb) => cb([]) },
+  };
+  fetch("../popup.html").then((r) => r.text()).then((html) => {
+    const body = html.slice(html.indexOf("<body>") + 6, html.indexOf("<script src=\"popup.js\">"));
+    document.body.insertAdjacentHTML("beforeend", body);
+    const s = document.createElement("script");
+    s.src = "../popup.js";
+    document.body.appendChild(s);
+  });
+</script>
+</body>
+</html>
