@@ -198,6 +198,43 @@ ${opsTable([
   },
 
   {
+    slug: "youtube-playlist-length",
+    tag: "Playlists",
+    card: "How long is this playlist?",
+    blurb: "Its total length, and how much of it you have left.",
+    updated: "2026-10-26",
+    title: "YouTube playlist length: total time and how much is left",
+    h1: "YouTube playlist length, and how much you have left",
+    description: "YouTube shows how many videos a playlist has, not how long it is. See any playlist's total length, the time you have left and how far through you are.",
+    answer: `YouTube tells you how many videos a playlist has, but not how long it runs. <a href="${store("youtube-playlist-length")}">Needle</a> reads the whole playlist and shows its <strong>total length</strong>, and when you're signed in, <strong>how much is left to watch</strong> and how far through you are, worked out from the progress bars YouTube already puts on each video. It works on any playlist, your Watch Later and your Liked videos.`,
+    faq: [
+      ["Does YouTube show a playlist's total length?", "No. A playlist page shows the number of videos and the views, not the running time."],
+      ["How is the time left worked out?", "From the red progress bar YouTube draws on each thumbnail. A video you've finished counts as nothing left, a half-watched one as half, an untouched one in full. It needs you signed in, since that's when YouTube shows your progress."],
+      ["What about very long playlists?", "Needle reads up to the Video limit in the popup, 1,800 by default. Your own lists, like Watch Later, stop at the first 100 unless Deep reading is on, and the total then says it's the length of the first 100, not the whole list."],
+      ["Does the total change when I filter?", "Yes. It's always the length of what's showing, so filter to unwatched and it's how long the rest of the course is."],
+      ["Is it free?", "Yes. No account, no trial, no paid tier."],
+    ],
+    body: () => `
+<h2 id="why">Why YouTube doesn't tell you</h2>
+<p>A playlist page shows how many videos it has and loads them a hundred at a time as you scroll. Nothing adds up their lengths, so "is this course 6 hours or 20?" means guessing from the number of videos, or pasting the link into a calculator website.</p>
+
+<h2 id="needle">See it with Needle</h2>
+<ol class="steps">
+  <li>Open the playlist, or your Watch Later or Liked videos.</li>
+  <li>Press the needle button in the bottom right corner, or <kbd>Alt</kbd>+<kbd>Y</kbd>.</li>
+  <li>Needle reads every video in it.</li>
+  <li>The line above the videos shows <strong>Total length</strong>, and when you're signed in, <strong>Left to watch</strong> and how much is <strong>Done</strong>.</li>
+</ol>
+
+<h2 id="course">Working through a course</h2>
+<p>Filter <strong>Watched</strong> to the ones you haven't started and the total becomes how long the rest of the course is. Leave the sort on <em>List order</em> to go through it in sequence.</p>
+<p>Short on time? <strong>+ Free time</strong> takes how long you have, say 45 minutes, and shows only the videos that fit.</p>
+
+<h2 id="watch-later">How long is your Watch Later?</h2>
+<p>The same works on your Watch Later, which for most people is less a list than a backlog. Seeing that it's 31 hours long is usually what it takes to clear out the ones you'll never get to. Needle can do that too: see <a href="../remove-watched-watch-later/">removing watched videos from Watch Later</a>.</p>`,
+  },
+
+  {
     slug: "search-watch-history",
     tag: "Watch history",
     card: "Search your watch history",
