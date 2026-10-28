@@ -2853,6 +2853,7 @@ async function enableNow() {
 
   state.active = true;
   hideNativeGrids();
+  fitSticky();
   setLauncher(true);
   labelForSource();
   if (cfg.hideWatched) {
@@ -2888,6 +2889,28 @@ async function enableNow() {
 
   if (!state.catalog.length) await loadCatalog();
   else applyView();
+}
+
+/*
+ * The header sticks 56px down, under YouTube's masthead, when the page itself
+ * scrolls. On a playlist page (Watch Later and Liked included) YouTube wraps
+ * the page in ytd-browse with overflow: hidden (October 2026), and a sticky
+ * element sticks within the nearest such box, not the page. That box already
+ * starts under the masthead and never scrolls, so the 56px only pushed the
+ * header down over the line beneath it, the one with the playlist's total
+ * length. So the offset is measured from whatever the header sticks within.
+ */
+function fitSticky() {
+  const head = ui && ui.wrap.querySelector(":scope > .ytcs-chrome");
+  if (!head) return;
+  let box = ui.wrap.parentElement;
+  while (box && box !== document.body && box !== document.documentElement && getComputedStyle(box).overflowY === "visible") box = box.parentElement;
+  const masthead = document.querySelector("#masthead-container");
+  const under = masthead ? Math.round(masthead.getBoundingClientRect().bottom) : 56;
+  const page = !box || box === document.body || box === document.documentElement;
+  // Where the box starts on the page, not on screen, so a scrolled page measures the same.
+  const top = page ? under : Math.max(0, under - Math.round(box.getBoundingClientRect().top + window.scrollY));
+  if (head.style.top !== top + "px") head.style.top = top + "px";
 }
 
 function disable() {
@@ -2997,7 +3020,7 @@ function ensureUi() {
    * nothing and needs no MutationObserver, which on ytd-browse would fire on
    * every lazy load and scroll. Worst case a stray grid shows for 1.5s.
    */
-  if (state.active) hideNativeGrids();
+  if (state.active) { hideNativeGrids(); fitSticky(); }
   // Opened from a shared filter link: open with its filters, once.
   if (launcher) shareArrive();
 }

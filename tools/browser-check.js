@@ -74,21 +74,45 @@ const MUTE_CODE = `
   new MutationObserver(() => scheduleBadges()).observe(document.querySelector("ytd-page-manager") || document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["href"] });
 ` + MEM.slice(MEM.indexOf("const muted = {"), MEM.indexOf("// ---- followed searches")) + "\n" + read("src/mute.js") + "\nmuteScan(); 1;";
 const AT_START = read("src/cards.js") + "\n" + read("src/feedmap.js");
+/*
+ * The whole extension, for checks on the panel itself: every content script the
+ * manifest loads at document_idle, in its order, in one scope of their own with
+ * chrome.* stood in for. Content scripts are exempt from the page's CSP (YouTube
+ * enforces Trusted Types); code put into the page is not, so those pages are
+ * opened with CSP bypassed, which is the exemption the real extension has.
+ */
+const MANIFEST = JSON.parse(read("manifest.json"));
+const FULL = "(function () {\n" + `
+  const __store = { sync: {}, local: {} }, __listeners = [];
+  const __area = (name) => ({
+    get(d, cb) { const out = {}; const keys = d === null ? Object.keys(__store[name]) : typeof d === "string" ? [d] : Array.isArray(d) ? d : Object.keys(d || {});
+      for (const k of keys) out[k] = k in __store[name] ? __store[name][k] : (d && typeof d === "object" && !Array.isArray(d) ? d[k] : undefined);
+      setTimeout(() => cb && cb(out), 0); },
+    set(o, cb) { for (const k in o) __store[name][k] = o[k]; setTimeout(() => cb && cb(), 0); },
+    remove(k, cb) { delete __store[name][k]; setTimeout(() => cb && cb(), 0); },
+  });
+  const chrome = { runtime: { id: "check", lastError: null, getManifest: () => ({ version: ${JSON.stringify(MANIFEST.version)} }),
+      sendMessage() {}, onMessage: { addListener() {} } },
+    storage: { sync: __area("sync"), local: __area("local"), onChanged: { addListener: (fn) => __listeners.push(fn) } } };
+` + MANIFEST.content_scripts.find((c) => c.run_at === "document_idle" && !c.world).js.map((f) => read(f)).join("\n") + "\n})();\n" + read("src/navigate.js") + "\n1;";
+
 // core.js in a scope of its own, so none of its names meet YouTube's.
 const CORE = `window.__needleCore = (function () { ${read("src/core.js")}
   ; cfg.maxVideos = 400; return { cfg, fetchPlaylist, fetchHistory, fetchSubscriptions }; })(); 1;`;
 
 // ---- a page ------------------------------------------------------------------------------
-async function open(browser, url, withMute) {
+// `withNeedle`: false (YouTube alone), true (Mute's code) or "full" (the whole extension).
+async function open(browser, url, withNeedle) {
   const p = await browser.newPage();
   await p.setViewport({ width: 1400, height: 900 });
   await p.setExtraHTTPHeaders({ "accept-language": "en-US,en;q=0.9" });
-  if (withMute) await p.evaluateOnNewDocument(AT_START);
+  if (withNeedle === "full") await p.setBypassCSP(true);
+  if (withNeedle) await p.evaluateOnNewDocument((withNeedle === "full" ? read("src/arrive.js") + "\n" : "") + AT_START);
   await p.goto(YT + url, { waitUntil: "networkidle2", timeout: 60000 });
   await sleep(2500);
-  if (withMute) {
+  if (withNeedle) {
     await p.addStyleTag({ content: read("styles.css") });
-    await p.evaluate(MUTE_CODE);
+    await p.evaluate(withNeedle === "full" ? FULL : MUTE_CODE);
     await sleep(1200);
   }
   return p;
@@ -206,6 +230,37 @@ const PUBLIC = [
       const got = await counts(p, { searchbox: SEARCH_INPUT, cards: SEL.screen });
       await p.close();
       return { problems: needAtLeast(got, { searchbox: 1, cards: 10 }), detail: JSON.stringify(got) };
+    },
+  },
+  {
+    name: "panel on a playlist: reads it all, length in view",
+    run: async (b) => {
+      // Crash Course Astronomy: a public course of 48 videos.
+      const p = await open(b, "/playlist?list=PL8dPuuaLjXtPAJr1ysd5yGIyiSFuh0mIL", "full");
+      const l = await p.evaluate(() => { const x = document.querySelector(".ytcs-launcher"); if (!x) return null; const r = x.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
+      if (!l) { await p.close(); return { problems: ["no Needle button on the page"] }; }
+      await p.mouse.click(l.x, l.y);
+      let r = null;
+      for (let t = 0; t < 25000; t += 1000) {
+        await sleep(1000);
+        r = await p.evaluate(() => {
+          const head = document.querySelector(".ytcs-chrome"), stats = document.querySelector(".ytcs-stats"), grid = document.querySelector(".ytcs-grid");
+          if (!head || !stats) return { panel: false };
+          const hr = head.getBoundingClientRect(), sr = stats.getBoundingClientRect();
+          const length = (stats.innerText.match(/Total length\s*([^\n]+)/) || [])[1] || "";
+          return { panel: true, videos: grid ? grid.children.length : 0, length, covered: sr.top < hr.bottom - 1 && sr.bottom > hr.top };
+        });
+        if (r.length && r.videos >= 40) break;
+      }
+      await p.close();
+      const problems = [];
+      if (!r || !r.panel) problems.push("the panel did not open");
+      else {
+        if (r.videos < 40) problems.push(`${r.videos} of 48 videos read`);
+        if (!r.length) problems.push("no Total length");
+        if (r.covered) problems.push("the length line is hidden under the panel's header");
+      }
+      return { problems, detail: r ? JSON.stringify(r) : "" };
     },
   },
   {
