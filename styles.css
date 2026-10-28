@@ -1487,7 +1487,7 @@ mark.ytcs-hl {
 /* "Mute channel everywhere" at the end of YouTube's ⋮ menu (mute.js). Drawn by
    Needle in YouTube's own colours and type, since the parts YouTube builds its
    menu items from change from one menu to the next. */
-.ytcs-menuitem {
+.ytcs-ytrow {
   display: flex;
   align-items: center;
   align-self: stretch;
@@ -1504,13 +1504,13 @@ mark.ytcs-hl {
   white-space: nowrap;
   user-select: none;
 }
-.ytcs-menuitem:hover,
-.ytcs-menuitem:focus-visible {
+.ytcs-ytrow:hover,
+.ytcs-ytrow:focus-visible {
   background: var(--yt-spec-10-percent-layer, rgba(128, 128, 128, 0.2));
   outline: none;
 }
-.ytcs-menuitem > svg { width: 24px; height: 24px; flex: none; }
-.ytcs-menuitem-by {
+.ytcs-ytrow > svg { width: 24px; height: 24px; flex: none; }
+.ytcs-ytrow-by {
   margin-left: auto;
   padding-left: 24px;
   font-size: 12px;

@@ -345,7 +345,8 @@ function unmuteAndSay(entry, who) {
  */
 // How long after the click to keep looking: for the menu to open, and, for a
 // card nothing names, for YouTube's oEmbed to answer whose it is.
-const MUTE_MENU_WAIT = 1500, MUTE_MENU_WAIT_ASKING = 4000;
+// An answer still coming is waited for as long as the menu stays open, up to the second figure.
+const MUTE_MENU_WAIT = 1500, MUTE_MENU_WAIT_ASKING = 10000;
 let muteMenuAt = 0;
 
 // The card a button sits in: up to the first element holding a video link, if
@@ -374,7 +375,7 @@ function openMenuNear(r) {
 }
 
 function dropMenuItems() {
-  for (const el of document.querySelectorAll(".ytcs-menuitem")) el.remove();
+  for (const el of document.querySelectorAll(".ytcs-ytrow")) el.remove();
 }
 
 function watchForMenu(found, button) {
@@ -384,12 +385,15 @@ function watchForMenu(found, button) {
   // A Short, or a channel's own page, names nobody: ask now, while the menu opens.
   const asking = !named(muteOwnerOf(found.card, found.id));
   if (asking) askWhoMade(found.id);
+  let opened = false;
   const look = () => {
     if (muteMenuAt !== at) return; // another click since
     const menu = openMenuNear(r);
+    if (opened && !menu) return; // closed while the answer was on its way
+    opened = opened || !!menu;
     const owner = menu && muteOwnerOf(found.card, found.id);
     if (named(owner)) return addMenuItem(menu, found, owner);
-    if (Date.now() - at < (asking ? MUTE_MENU_WAIT_ASKING : MUTE_MENU_WAIT)) setTimeout(look, 60);
+    if (Date.now() - at < (asking ? MUTE_MENU_WAIT_ASKING : MUTE_MENU_WAIT)) setTimeout(look, 80);
   };
   setTimeout(look, 60);
 }
@@ -398,14 +402,14 @@ function addMenuItem(menu, found, owner) {
   dropMenuItems();
   const entry = muted.list.find((m) => sameChannel(m, muteEntry(owner.name, owner.handle, owner.channelId)));
   const it = document.createElement("div");
-  it.className = "ytcs-menuitem";
+  it.className = "ytcs-ytrow";
   it.setAttribute("role", "menuitem");
   it.tabIndex = 0;
   it.appendChild(omniIcon("mute", 24));
   const label = document.createElement("span");
   label.textContent = entry ? "Unmute channel" : "Mute channel everywhere";
   const by = document.createElement("span");
-  by.className = "ytcs-menuitem-by";
+  by.className = "ytcs-ytrow-by";
   by.textContent = "Needle";
   it.append(label, by);
   it.title = entry ? "Bring " + (owner.name || "this channel") + " back" : "Hide " + (owner.name || "this channel") + " from search, Home and next to videos";
@@ -446,7 +450,7 @@ function alignMenuItem(it, menu) {
  * and only if even that does not fit, wraps.
  */
 function fitMenuItem(it, label) {
-  const by = it.querySelector(".ytcs-menuitem-by");
+  const by = it.querySelector(".ytcs-ytrow-by");
   if (!cutOff(it, by || label)) return;
   if (by) by.remove();
   label.textContent = it.__needle && it.__needle.entry ? "Unmute channel" : "Mute channel";
@@ -488,7 +492,7 @@ function makeRoom(it) {
 }
 
 // YouTube closes its menu on Escape, as it does for anyone using a keyboard.
-function closeMenu(item) {
+function closeYouTubeMenu(item) {
   item.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", code: "Escape", keyCode: 27, bubbles: true, composed: true }));
 }
 
@@ -523,12 +527,12 @@ function muteTarget(b) {
 window.addEventListener("click", (e) => {
   const t = e.target;
   if (!t || !t.closest) return;
-  const item = t.closest(".ytcs-menuitem");
+  const item = t.closest(".ytcs-ytrow");
   if (item) {
     e.preventDefault();
     e.stopImmediatePropagation();
     const { owner, entry } = item.__needle || {};
-    closeMenu(item);
+    closeYouTubeMenu(item);
     item.remove();
     if (entry) unmuteAndSay(entry, owner);
     else if (owner) muteAndSay(owner);
@@ -552,7 +556,7 @@ window.addEventListener("click", (e) => {
 
 // The same item, chosen from the keyboard.
 window.addEventListener("keydown", (e) => {
-  if ((e.key === "Enter" || e.key === " ") && e.target && e.target.classList && e.target.classList.contains("ytcs-menuitem")) {
+  if ((e.key === "Enter" || e.key === " ") && e.target && e.target.classList && e.target.classList.contains("ytcs-ytrow")) {
     e.preventDefault();
     e.target.click();
   }

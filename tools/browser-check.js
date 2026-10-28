@@ -153,7 +153,7 @@ async function menuItem(p, waitMs) {
   for (let t = 0; t < waitMs; t += 150) {
     await sleep(150);
     const it = await p.evaluate(() => {
-      const el = document.querySelector(".ytcs-menuitem");
+      const el = document.querySelector(".ytcs-ytrow");
       if (!el) return null;
       const r = el.getBoundingClientRect();
       const at = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
@@ -168,10 +168,16 @@ const menuOpen = (p) => p.evaluate(() => [...document.querySelectorAll("[role=me
 
 // Opens a card's ⋮, checks Needle's item, clicks it; returns problems.
 async function muteThroughMenu(p, kind, expect) {
-  const btn = await menuButton(p, kind);
+  let btn = await menuButton(p, kind);
+  // YouTube puts the Shorts shelf anywhere in the results: bring the first one into view and look again.
+  if (!btn && kind === "short") {
+    await p.evaluate(() => { const a = document.querySelector("a[href^='/shorts/']"); if (a) window.scrollTo(0, a.getBoundingClientRect().top + window.scrollY - 250); });
+    await sleep(1500);
+    btn = await menuButton(p, kind);
+  }
   if (!btn) return ["no " + kind + " with a ⋮ menu in view"];
   await p.mouse.click(btn.x, btn.y);
-  const it = await menuItem(p, kind === "short" ? 4500 : 2000);
+  const it = await menuItem(p, 10000);
   if (!it) {
     const opened = await menuOpen(p);
     await p.keyboard.press("Escape");
@@ -275,6 +281,29 @@ const PUBLIC = [
         else if (typed.length === r.length) problems.push("the total did not follow the typed filter");
       }
       return { problems, detail: JSON.stringify({ ...r, typed }) };
+    },
+  },
+  {
+    name: "panel menus: picking an option filters the list",
+    run: async (b) => {
+      const p = await open(b, "/playlist?list=PL8dPuuaLjXtPAJr1ysd5yGIyiSFuh0mIL", "full");
+      await p.evaluate(() => document.querySelector(".ytcs-launcher").click());
+      for (let t = 0; t < 25000; t += 1000) { await sleep(1000); if (await p.evaluate(() => (document.querySelector(".ytcs-grid") || { children: [] }).children.length >= 40)) break; }
+      const count = () => p.evaluate(() => +((document.querySelector(".ytcs-wrap").innerText.match(/(\d+) of \d+/) || [])[1] || 0));
+      const before = await count();
+      // "+ Length", as a person opens it, then its second option
+      const opened = await p.evaluate(() => { const b = [...document.querySelectorAll(".ytcs-wrap button")].find((x) => /Length/.test(x.textContent) && x.getBoundingClientRect().width > 0); if (!b) return false; b.click(); return true; });
+      await sleep(600);
+      const opt = await p.evaluate(() => { const o = [...document.querySelectorAll(".ytcs-menu [role=option]")].filter((x) => x.getBoundingClientRect().width > 0)[1]; if (!o) return null; const r = o.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, text: o.textContent.trim() }; });
+      if (opt) await p.mouse.click(opt.x, opt.y);
+      await sleep(1200);
+      const after = await count();
+      await p.close();
+      const problems = [];
+      if (!opened) problems.push("no Length menu in the panel");
+      else if (!opt) problems.push("the Length menu opened with no options");
+      else if (after === before) problems.push(`picked "${opt.text}" and the list stayed at ${before}`);
+      return { problems, detail: JSON.stringify({ before, picked: opt && opt.text, after }) };
     },
   },
   {

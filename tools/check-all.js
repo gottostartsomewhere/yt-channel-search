@@ -1,7 +1,8 @@
 /*
  * node tools/check-all.js
  *
- * Everything, in one go, before an upload: the saved pages (no network), the
+ * Everything, in one go, before an upload: names declared twice across the
+ * content scripts, the saved pages (no network), the
  * data check on live public pages, then the browser check, signed in too if the
  * check's profile is. The same checks the scheduled tasks run each morning,
  * without the notifications. Exit 1 if any part failed.
@@ -10,6 +11,7 @@ const { spawnSync } = require("child_process");
 const path = require("path");
 
 const PARTS = [
+  ["names", "names-check.js"],
   ["saved pages", "fixtures-test.js"],
   ["data check", "canary.js"],
   ["browser check", "browser-check.js"],
