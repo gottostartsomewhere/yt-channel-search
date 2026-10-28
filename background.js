@@ -66,7 +66,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
  * An update opens nothing. It only marks What's new, for the popup to show.
  */
 const SITE = "https://gottostartsomewhere.github.io/needle/";
-const WHATS_NEW_FROM = [2, 2];
+const WHATS_NEW_FROM = [2, 3];
 
 function olderThan(version, target) {
   const v = String(version || "0").split(".").map((n) => parseInt(n, 10) || 0);

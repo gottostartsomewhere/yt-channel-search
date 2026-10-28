@@ -115,17 +115,22 @@ this extension does not, and every one of them is kept on your device.
   you're on, inside that page, as YouTube sends it: the first page and the
   results that load as you scroll. It reads a copy and leaves YouTube's
   untouched, keeps only which channel made which video for as long as the tab is
-  open, and sends none of it anywhere. Export in the popup saves your list as a
-  text file on your computer; Import reads one you choose. Neither goes online.
+  open, and sends none of it anywhere. A Short on Home or in search comes with
+  no channel at all, so for those, and only once you have muted a channel or
+  opened a video's ⋮ menu, the extension asks youtube.com's public oEmbed address
+  (the one any website uses to embed a video) whose video it is: the video's id
+  goes to youtube.com, without your cookies, and the channel's name and handle
+  come back. Export in the popup saves your list as a text file on your
+  computer; Import reads one you choose. Neither goes online.
 - **The channels you watch.** The channels that appear most in your history
   have their public video lists read in the background, at most one channel
   every ten minutes and then once a week each, so `in:channels` can search
   them. You can turn this off in the popup ("Index channels you watch").
 
-The follow checks and the channel index are the only things the extension
-does without being clicked. Both only talk to youtube.com, both only read
-public search results and public channel pages, and both stop when YouTube is
-not open.
+The follow checks, the channel index and naming Shorts for Mute are the only
+things the extension does without being clicked. All three only talk to
+youtube.com, only read public search results, public channel pages and public
+video details, and stop when YouTube is not open.
 
 ## Deep reading, and the one thing worth reading carefully
 

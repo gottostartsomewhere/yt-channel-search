@@ -1,7 +1,8 @@
 /*
  * Needle for YouTube
  * Mute everywhere: a muted channel or word disappears from search, Home,
- * Subscriptions and the videos beside the one you're watching.
+ * Subscriptions and the videos beside the one you're watching. A channel is
+ * muted from YouTube's own ⋮ menu on any video, or from the panel's cards.
  *
  * Built on the few things YouTube does not change, so it keeps working when it
  * redesigns, which is the thing every blocker in the store is reviewed badly for:
@@ -14,7 +15,8 @@
  *     the player, the description and the comments are safe.
  *   - Who made it comes from YouTube's own data (src/feedmap.js reads it in the
  *     page and posts it here), by the UC... id that never changes, then from any
- *     /@handle or /channel/ link on the card, then from its name.
+ *     /@handle or /channel/ link on the card, then from its name. A Short
+ *     names nobody in either place, so YouTube's oEmbed is asked (askWhoMade).
  *
  * Your own lists, a channel's own page and the Shorts player are left alone:
  * something you went to on purpose is not noise.
@@ -23,6 +25,9 @@
 // ---- who made each video, from YouTube's data --------------------------------------------
 const muteOwners = new Map(); // video id -> { channelIds, handles, names }
 const MUTE_OWNERS_MAX = 6000;
+// A channel's /@handle and its UC... id, paired whenever one card shows both, so
+// a Short named only by handle (see askWhoMade) still matches a channel muted by id.
+const muteHandleIds = new Map();
 
 window.addEventListener("message", (e) => {
   if (e.source !== window || !e.data || !Array.isArray(e.data.needleCards)) return;
@@ -34,14 +39,69 @@ window.addEventListener("message", (e) => {
     const names = row[3] && typeof row[3] === "object" ? Object.values(row[3]).filter((x) => typeof x === "string") : [];
     const nameOf = row[3] && typeof row[3] === "object" ? row[3] : {};
     const title = typeof row[4] === "string" ? row[4] : "";
+    // A Short comes back from YouTube with a title and no channel. Keep the
+    // channel askWhoMade already found for it rather than forget it.
+    const had = muteOwners.get(row[0]);
+    const keep = had && !ids.length && !handles.length && !names.length;
     muteOwners.delete(row[0]);
-    muteOwners.set(row[0], { channelIds: ids, handles, names, nameOf, title });
+    muteOwners.set(row[0], keep ? Object.assign({}, had, { title: title || had.title }) : { channelIds: ids, handles, names, nameOf, title });
+    if (ids.length === 1 && handles.length === 1) muteHandleIds.set(handles[0], ids[0]);
     added++;
   }
   // Oldest out first; a long session on Home would otherwise grow this forever.
   while (muteOwners.size > MUTE_OWNERS_MAX) muteOwners.delete(muteOwners.keys().next().value);
+  while (muteHandleIds.size > MUTE_OWNERS_MAX) muteHandleIds.delete(muteHandleIds.keys().next().value);
   if (added && typeof scheduleBadges === "function") scheduleBadges();
 });
+
+/*
+ * ---- whose Short, when YouTube's data does not say ------------------------------------
+ * A Short on Home or in search arrives with no channel at all, in the data or on
+ * the page. YouTube's oEmbed answer, the one any website uses to embed a video,
+ * names it: the channel's name and its /@handle. Asked only once you have muted
+ * a channel (or opened a card's ⋮ menu), only for a video nothing else could
+ * name, once per video, a few at a time, of youtube.com, and without cookies.
+ */
+const muteAsked = new Set();
+const muteAskQueue = [];
+const MUTE_ASK_AT_ONCE = 4;
+let muteAsking = 0;
+
+function askWhoMade(id) {
+  if (muteAsked.has(id)) return;
+  muteAsked.add(id);
+  if (muteAsked.size > MUTE_OWNERS_MAX) muteAsked.delete(muteAsked.values().next().value);
+  muteAskQueue.push(id);
+  pumpAsks();
+}
+
+function pumpAsks() {
+  while (muteAsking < MUTE_ASK_AT_ONCE && muteAskQueue.length) {
+    const id = muteAskQueue.shift();
+    muteAsking++;
+    fetch("/oembed?format=json&url=" + encodeURIComponent("https://www.youtube.com/watch?v=" + id), { credentials: "omit" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => { if (j) learnFromEmbed(id, j); })
+      .catch(() => { /* stays unnamed: muted words still apply */ })
+      .finally(() => { muteAsking--; pumpAsks(); });
+  }
+}
+
+function learnFromEmbed(id, j) {
+  const url = typeof j.author_url === "string" ? j.author_url : "";
+  const h = url.match(/\/@([^/?#]+)/), c = url.match(/\/channel\/(UC[\w-]{22})/);
+  let handle = "";
+  if (h) { try { handle = decodeURIComponent(h[1]).toLowerCase(); } catch (e) { handle = h[1].toLowerCase(); } }
+  const name = typeof j.author_name === "string" ? j.author_name.trim() : "";
+  if (!handle && !c && !name) return;
+  const had = muteOwners.get(id);
+  muteOwners.set(id, {
+    channelIds: c ? [c[1]] : [], handles: handle ? [handle] : [], names: name ? [name] : [],
+    nameOf: c && name ? { [c[1]]: name } : {},
+    title: (had && had.title) || (typeof j.title === "string" ? j.title : ""),
+  });
+  if (typeof scheduleBadges === "function") scheduleBadges();
+}
 
 // The page's data was read before this script was listening (feedmap.js runs
 // first); ask for it again, now that something is here to hear it.
@@ -157,13 +217,29 @@ function muteTitle(card, id) {
 function muteWho(card, id) {
   const data = muteOwners.get(id) || { channelIds: [], handles: [], names: [], nameOf: {}, title: "" };
   const page = muteFromPage(card);
+  const handles = [...new Set(data.handles.concat(page.handles))];
+  const channelIds = [...new Set(data.channelIds.concat(page.channelIds))];
+  for (const h of handles) {
+    const uc = muteHandleIds.get(h);
+    if (uc && !channelIds.includes(uc)) channelIds.push(uc);
+  }
   return {
-    channelIds: [...new Set(data.channelIds.concat(page.channelIds))],
-    handles: [...new Set(data.handles.concat(page.handles))],
+    channelIds,
+    handles,
     names: [...new Set(data.names.concat(page.names))],
     nameOf: data.nameOf || {},
     title: data.title || muteTitle(card, id),
   };
+}
+
+// The one channel a card is by: the uploader, who comes first in YouTube's data
+// (a collab's guest after). Null when nothing names it.
+function muteOwnerOf(card, id) {
+  const who = muteWho(card, id);
+  const channelId = who.channelIds[0] || "";
+  const handle = who.handles[0] || "";
+  const name = (channelId && who.nameOf[channelId]) || who.names[0] || "";
+  return channelId || handle || name ? { name, handle, channelId } : null;
 }
 
 // ---- the pass ------------------------------------------------------------------------------
@@ -173,7 +249,7 @@ function muteWho(card, id) {
  * looked at once per pass, hidden with an attribute and a stylesheet rule, so
  * YouTube's own layout code never sees a removed element.
  */
-const muteVerdict = new WeakMap(); // card -> { id, ver, known, reason, canMute, button, skip }
+const muteVerdict = new WeakMap(); // card -> { id, ver, known, reason, skip }
 
 function muteScan() {
   const here = mutePage() && !(typeof omni === "object" && omni && omni.showMuted && location.pathname === "/results");
@@ -194,9 +270,10 @@ function muteScan() {
     /*
      * Judged once, then remembered, so a long scroll costs only its new cards.
      * Judged again when the card now shows another video (YouTube reuses them),
-     * when the lists changed, or when YouTube's data about it has just arrived.
+     * when the lists changed, or when what is known about who made it changed
+     * (`known` is that record itself, replaced whenever it is).
      */
-    const known = muteOwners.has(id);
+    const known = muteOwners.get(id) || null;
     let v = muteVerdict.get(card);
     if (!v || v.id !== id || v.ver !== muted.ver || v.known !== known) {
       // A column or a page is never hidden, and nothing inside the player,
@@ -206,8 +283,10 @@ function muteScan() {
         continue;
       }
       const who = muteWho(card, id);
-      v = { id, ver: muted.ver, known, reason: muteReason(who), canMute: !!(who.channelIds.length || who.handles.length), button: false };
+      v = { id, ver: muted.ver, known, reason: muteReason(who) };
       muteVerdict.set(card, v);
+      // Nothing names its channel (a Short, mostly): ask, and judge it again on the answer.
+      if (!who.channelIds.length && !who.handles.length && muted.list.length) askWhoMade(id);
     }
     if (v.skip) continue;
     if (card.getAttribute("data-ytcs-vid") !== id) card.setAttribute("data-ytcs-vid", id);
@@ -217,18 +296,174 @@ function muteScan() {
     } else if (card.hasAttribute("data-ytcs-muted")) {
       card.removeAttribute("data-ytcs-muted");
     }
-    // A mute button wherever we know whose video it is.
-    if (!v.reason && v.canMute && !v.button) {
-      const thumb = [...card.querySelectorAll(MUTE_VIDEO_LINK)].find((x) => muteLinkId(x) === id && x.querySelector("img, yt-image, yt-thumbnail-view-model"));
-      if (thumb) addMuteButton(thumb);
-      v.button = true;
-    }
   }
   if (location.pathname === "/results" && typeof renderMuteNote === "function") renderMuteNote(hiddenInSearch);
 }
 
-// ---- the button ----------------------------------------------------------------------------
-// Shows on hover, bottom left of a thumbnail, the one corner nothing else uses.
+// ---- muting, and saying so -----------------------------------------------------------------
+function muteAndSay(who) {
+  const entry = muteChannel(who.name, who.handle, who.channelId);
+  if (!entry) return;
+  const label = who.name || (who.handle ? "@" + who.handle : "this channel");
+  toast("Muted " + label + ". Gone from search, Home and next to videos", "Undo", () => {
+    unmuteChannel(entry);
+    muteScan();
+    if (state.active) applyView();
+  });
+  muteScan();
+  if (state.active) applyView();
+}
+
+function unmuteAndSay(entry, who) {
+  unmuteChannel(entry);
+  const label = who.name || (who.handle ? "@" + who.handle : "this channel");
+  toast("Unmuted " + label, "Undo", () => {
+    muteChannel(entry.name, entry.handle, entry.channelId);
+    muteScan();
+    if (state.active) applyView();
+  });
+  muteScan();
+  if (state.active) applyView();
+}
+
+/*
+ * ---- the ⋮ menu ------------------------------------------------------------------------------
+ * "Mute channel everywhere" in YouTube's own ⋮ menu on every video, which is
+ * where people already go when they are done with a channel ("Don't recommend
+ * channel" lives there, and does not reach search).
+ *
+ * Found the way a screen reader finds it, not by YouTube's element names, which
+ * change: a click on a button inside a card (a card as muteCard defines it),
+ * then the element marked role="menu" that opens beside that button. In October
+ * 2026 YouTube draws two different menus for this, one on search and one beside
+ * a video, and both are marked so. If no menu opens, or none is marked, nothing
+ * is added and nothing breaks.
+ *
+ * (A button on the thumbnail itself cannot work on YouTube's cards: hovering one
+ * starts YouTube's preview, which covers the thumbnail within a third of a
+ * second. It stays on the panel's cards, which have no preview.)
+ */
+// How long after the click to keep looking: for the menu to open, and, for a
+// card nothing names, for YouTube's oEmbed to answer whose it is.
+const MUTE_MENU_WAIT = 1500, MUTE_MENU_WAIT_ASKING = 4000;
+let muteMenuAt = 0;
+
+// The card a button sits in: up to the first element holding a video link, if
+// that element links to that one video only.
+function cardAround(el) {
+  if (el.closest(MUTE_NEVER)) return null;
+  for (let up = el.parentElement, i = 0; up && up !== document.body && i < 16; up = up.parentElement, i++) {
+    const a = up.querySelector(MUTE_VIDEO_LINK);
+    if (!a) continue;
+    const id = muteLinkId(a);
+    return id && linksOnlyTo(up, id) && !notACard(up) ? { card: up, id } : null;
+  }
+  return null;
+}
+
+// The open menu nearest the button that opened it, once it has items in it.
+function openMenuNear(r) {
+  let best = null, bestGap = 400;
+  for (const m of document.querySelectorAll("[role=menu]")) {
+    const mr = m.getBoundingClientRect();
+    if (!mr.width || !mr.height || m.closest(".ytcs-wrap") || !m.querySelector("[role=menuitem], [role=option]")) continue;
+    const gap = Math.hypot(Math.max(0, mr.left - r.right, r.left - mr.right), Math.max(0, mr.top - r.bottom, r.top - mr.bottom));
+    if (gap < bestGap) { best = m; bestGap = gap; }
+  }
+  return best;
+}
+
+function dropMenuItems() {
+  for (const el of document.querySelectorAll(".ytcs-menuitem")) el.remove();
+}
+
+function watchForMenu(found, button) {
+  const at = muteMenuAt = Date.now();
+  const r = button.getBoundingClientRect();
+  const named = (o) => o && (o.channelId || o.handle);
+  // A Short, or a channel's own page, names nobody: ask now, while the menu opens.
+  const asking = !named(muteOwnerOf(found.card, found.id));
+  if (asking) askWhoMade(found.id);
+  const look = () => {
+    if (muteMenuAt !== at) return; // another click since
+    const menu = openMenuNear(r);
+    const owner = menu && muteOwnerOf(found.card, found.id);
+    if (named(owner)) return addMenuItem(menu, found, owner);
+    if (Date.now() - at < (asking ? MUTE_MENU_WAIT_ASKING : MUTE_MENU_WAIT)) setTimeout(look, 60);
+  };
+  setTimeout(look, 60);
+}
+
+function addMenuItem(menu, found, owner) {
+  dropMenuItems();
+  const entry = muted.list.find((m) => sameChannel(m, muteEntry(owner.name, owner.handle, owner.channelId)));
+  const it = document.createElement("div");
+  it.className = "ytcs-menuitem";
+  it.setAttribute("role", "menuitem");
+  it.tabIndex = 0;
+  it.appendChild(omniIcon("mute", 24));
+  const label = document.createElement("span");
+  label.textContent = entry ? "Unmute channel" : "Mute channel everywhere";
+  const by = document.createElement("span");
+  by.className = "ytcs-menuitem-by";
+  by.textContent = "Needle";
+  it.append(label, by);
+  it.title = entry ? "Bring " + (owner.name || "this channel") + " back" : "Hide " + (owner.name || "this channel") + " from search, Home and next to videos";
+  it.__needle = { owner, entry };
+  menu.appendChild(it);
+  makeRoom(it);
+  // YouTube draws its rows' icons a moment after the rows themselves.
+  for (const ms of [0, 150, 500]) setTimeout(() => { if (it.isConnected) alignMenuItem(it, menu); }, ms);
+}
+
+// In line with YouTube's own rows: its icon column and its text column.
+// Measured, not assumed: the two menus lay their rows out differently, so the
+// row is moved by however far its icon and label landed from YouTube's.
+function alignMenuItem(it, menu) {
+  const first = menu.querySelector("[role=menuitem], [role=option]");
+  const ico = first && first !== it && first.querySelector("svg");
+  const mine = it.firstElementChild, label = mine && mine.nextElementSibling;
+  if (!ico || !label) return;
+  const i = ico.getBoundingClientRect();
+  const shift = Math.round(i.left - mine.getBoundingClientRect().left);
+  const cs = getComputedStyle(it);
+  const pad = parseFloat(cs.paddingLeft) + parseFloat(cs.marginLeft) + shift;
+  it.style.paddingLeft = Math.max(0, pad) + "px";
+  it.style.marginLeft = Math.min(0, pad) + "px";
+  const text = [...first.querySelectorAll("*")].find((el) => !el.children.length && el.textContent.trim() && el.getBoundingClientRect().left > i.right);
+  if (text) {
+    const gap = parseFloat(getComputedStyle(it).columnGap) || 16;
+    it.style.gap = Math.max(8, gap + Math.round(text.getBoundingClientRect().left - label.getBoundingClientRect().left)) + "px";
+  }
+}
+
+/*
+ * YouTube sizes its menu to the rows it had when it opened, with a max-height
+ * on a box that scrolls. A row added after that is drawn past the bottom of that
+ * box, where a click lands on whatever is underneath. So every box between the
+ * row and the menu's fixed frame with a max-height the row pokes out of grows
+ * by that much, and the frame moves up if that pushed it off the bottom of the
+ * window.
+ */
+function makeRoom(it) {
+  for (let el = it.parentElement; el && el !== document.body; el = el.parentElement) {
+    const past = it.getBoundingClientRect().bottom - el.getBoundingClientRect().bottom;
+    if (el.style.maxHeight && past > 1) el.style.maxHeight = parseFloat(el.style.maxHeight) + past + "px";
+    if (getComputedStyle(el).position !== "fixed") continue;
+    const r = el.getBoundingClientRect();
+    const over = r.bottom - (window.innerHeight - 8);
+    if (over > 0) el.style.top = Math.max(8, r.top - over) + "px";
+    break;
+  }
+}
+
+// YouTube closes its menu on Escape, as it does for anyone using a keyboard.
+function closeMenu(item) {
+  item.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", code: "Escape", keyCode: 27, bubbles: true, composed: true }));
+}
+
+// ---- the panel's button --------------------------------------------------------------------
+// On the panel's own cards, bottom left of the thumbnail, the one corner nothing else uses.
 function addMuteButton(host) {
   if (host.querySelector(":scope > .ytcs-mutebtn")) return;
   const b = document.createElement("button");
@@ -241,42 +476,54 @@ function addMuteButton(host) {
   host.appendChild(b);
 }
 
-// Who the button means: the panel's cards say so in data attributes; YouTube's
-// carry the video id we stamped on the card, and the owner comes from there.
+// Who the button means: the panel's cards say so in data attributes.
 function muteTarget(b) {
   const panelCard = b.closest("a.ytcs-card");
-  if (panelCard) {
-    const d = panelCard.dataset;
-    return { name: d.ch || "", handle: d.h || "", channelId: d.cid || "" };
-  }
-  const card = b.closest("[data-ytcs-vid]");
-  if (!card) return null;
-  const id = card.getAttribute("data-ytcs-vid");
-  const who = muteWho(card, id);
-  // The uploader comes first in YouTube's data, a collab's guest after.
-  const channelId = who.channelIds[0] || "";
-  const handle = who.handles[0] || "";
-  const name = (channelId && who.nameOf[channelId]) || who.names[0] || "";
-  return channelId || handle || name ? { name, handle, channelId } : null;
+  if (!panelCard) return null;
+  const d = panelCard.dataset;
+  return { name: d.ch || "", handle: d.h || "", channelId: d.cid || "" };
 }
 
-// On the window, in the capture phase, so it runs before the link the button
-// sits inside can navigate, and before YouTube's own handlers see the click.
+/*
+ * On the window, in the capture phase, so it runs before the link the panel's
+ * button sits inside can navigate, and before YouTube's own handlers see a click
+ * on the menu item. Every other click is let through untouched; one on a button
+ * inside a card starts watching for the menu it may open.
+ */
 window.addEventListener("click", (e) => {
-  const b = e.target && e.target.closest && e.target.closest(".ytcs-mutebtn");
-  if (!b) return;
-  e.preventDefault();
-  e.stopImmediatePropagation();
-  const who = muteTarget(b);
-  if (!who) return;
-  const entry = muteChannel(who.name, who.handle, who.channelId);
-  if (!entry) return;
-  const label = who.name || (who.handle ? "@" + who.handle : "this channel");
-  toast("Muted " + label + ". Gone from search, Home and next to videos", "Undo", () => {
-    unmuteChannel(entry);
-    muteScan();
-    if (state.active) applyView();
-  });
-  muteScan();
-  if (state.active) applyView();
+  const t = e.target;
+  if (!t || !t.closest) return;
+  const item = t.closest(".ytcs-menuitem");
+  if (item) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    const { owner, entry } = item.__needle || {};
+    closeMenu(item);
+    item.remove();
+    if (entry) unmuteAndSay(entry, owner);
+    else if (owner) muteAndSay(owner);
+    return;
+  }
+  const b = t.closest(".ytcs-mutebtn");
+  if (b) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    const who = muteTarget(b);
+    if (who) muteAndSay(who);
+    return;
+  }
+  muteMenuAt = 0;
+  dropMenuItems();
+  const button = t.closest("button, [role=button]");
+  if (!button || button.closest("a")) return;
+  const found = cardAround(button);
+  if (found) watchForMenu(found, button);
+}, true);
+
+// The same item, chosen from the keyboard.
+window.addEventListener("keydown", (e) => {
+  if ((e.key === "Enter" || e.key === " ") && e.target && e.target.classList && e.target.classList.contains("ytcs-menuitem")) {
+    e.preventDefault();
+    e.target.click();
+  }
 }, true);
