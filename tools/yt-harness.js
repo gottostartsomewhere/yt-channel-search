@@ -150,8 +150,17 @@ function sidebarCards(core, data) {
 }
 
 // Search results as Mute sees them, also through src/cards.js.
+/*
+ * Search results as Mute reads them, videos only. A Short carries no channel in
+ * YouTube's data, so Mute names it through oEmbed instead (canary's oembed
+ * check), and since October 2026 a few turn up even under the Videos filter.
+ * Shorts are told apart by their own /shorts/ links in the data.
+ */
 function muteSearchCards(data) {
-  return data ? needleCards(data).map((c) => ({ id: c.id, title: c.title, channelId: c.channelIds[0] || "", handle: c.handles[0] || "" })) : [];
+  if (!data) return [];
+  const shorts = new Set((JSON.stringify(data).match(/"\/shorts\/[\w-]{11}/g) || []).map((s) => s.slice(9)));
+  return needleCards(data).filter((c) => !shorts.has(c.id))
+    .map((c) => ({ id: c.id, title: c.title, channelId: c.channelIds[0] || "", handle: c.handles[0] || "" }));
 }
 
 // The Shorts on a channel's Shorts tab, as Needle maps them.

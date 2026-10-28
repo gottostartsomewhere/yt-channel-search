@@ -33,8 +33,10 @@ const SHAPES = path.join(__dirname, "canary-shapes.json");
 const FIXTURES = path.join(__dirname, "fixtures");
 const ORIGIN = "https://www.youtube.com";
 
-// The first video the channel check finds, for the watch page check to open.
+// The first video the channel check finds, for the watch page check to open,
+// and the Shorts the Shorts check finds, for the oEmbed check to ask about.
 let someVideo = "";
+let someShorts = [];
 
 // The data a page was built from. Now and then YouTube answers a quick run of
 // requests with an empty page; one more try a moment later is enough, and a
@@ -112,10 +114,34 @@ const CHECKS = [
   {
     key: "shorts",
     name: "channel Shorts tab",
-    read: async (c) => channelShorts(c, await pageData(c, "/@veritasium/shorts")),
+    read: async (c) => {
+      const list = channelShorts(c, await pageData(c, "/@veritasium/shorts"));
+      someShorts = Array.from(list).map((v) => v.id);
+      return list;
+    },
     parse: (c, data) => channelShorts(c, data),
     min: 10, fixtureMin: 10,
     fields: { title: 0.9 },
+  },
+  {
+    key: "oembed",
+    name: "who made a Short (YouTube's oEmbed, for Mute)",
+    // Not a page: no shape to track, nothing to save.
+    page: false,
+    read: async () => {
+      if (!someShorts.length) throw new Error("no Shorts to ask about: the Shorts check found none");
+      const out = [];
+      for (const id of someShorts.slice(0, 5)) {
+        const r = await fetch(ORIGIN + "/oembed?format=json&url=" + encodeURIComponent(ORIGIN + "/watch?v=" + id));
+        const j = r.ok ? await r.json() : {};
+        const h = String(j.author_url || "").match(/\/@([^/?#]+)/);
+        out.push({ id, title: j.title || "", channel: j.author_name || "", handle: h ? h[1].toLowerCase() : "" });
+      }
+      return out;
+    },
+    min: 5,
+    // Mute matches a Short to a muted channel by handle.
+    fields: { title: 1, handle: 1 },
   },
 ];
 
@@ -125,6 +151,7 @@ const has = {
   views: (v) => typeof v.views === "number" && v.views >= 0,
   days: (v) => typeof v.days === "number" && v.days >= 0,
   channel: (v) => !!(v.handle || v.channel || v.channelId),
+  handle: (v) => !!v.handle,
 };
 
 // Problems with a list of videos, or none. Shared with the fixture tests.
@@ -198,11 +225,11 @@ async function readOnce(check, shapes, today) {
   const secs = ((Date.now() - t0) / 1000).toFixed(1) + "s";
 
   // The first page YouTube sent, raw, for the shape and the fixture.
-  const firstHtml = core.captured[0] && core.captured[0].text;
+  const firstHtml = check.page !== false && core.captured[0] && core.captured[0].text;
   const data = firstHtml ? core.findJson(firstHtml, "ytInitialData") : null;
-  const empty = !data || !Object.keys(data).length;
+  const empty = check.page !== false && (!data || !Object.keys(data).length);
   let drift = null, fixture = "";
-  if (!empty) {
+  if (data && !empty) {
     drift = compareShape(shapes, check.key, cardKinds(data), today);
     const haveOne = fs.existsSync(FIXTURES) && fs.readdirSync(FIXTURES).some((f) => f.startsWith(check.key + "-"));
     if (!haveOne || drift.added.length || drift.gone.length) fixture = saveFixture(check.key, data, today);
@@ -266,4 +293,4 @@ if (require.main === module) {
   })();
 }
 
-module.exports = { CHECKS, judge };
+module.exports = { CHECKS, judge, notify };

@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "description": "The daily checks. node_modules here is only for browser-check.js.",
+  "dependencies": {
+    "puppeteer-core": "23.11.1"
+  }
+}
