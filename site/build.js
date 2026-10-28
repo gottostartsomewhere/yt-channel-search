@@ -50,6 +50,7 @@ const LABELS = {
   why: "The problem", "ctrl-f": "The workaround", needle: "With Needle", filters: "Filters", faq: "Questions",
   youtube: "On YouTube", "my-activity": "My Activity", popular: "Most viewed", missing: "The gap",
   cleanup: "Clean up", all: "All at once", lists: "Lists and search",
+  course: "Courses", "watch-later": "Watch Later", shorts: "Shorts", words: "Words", import: "Moving over",
 };
 
 const GUIDES = [
@@ -232,6 +233,49 @@ ${opsTable([
 
 <h2 id="watch-later">How long is your Watch Later?</h2>
 <p>The same works on your Watch Later, which for most people is less a list than a backlog. Seeing that it's 31 hours long is usually what it takes to clear out the ones you'll never get to. Needle can do that too: see <a href="../remove-watched-watch-later/">removing watched videos from Watch Later</a>.</p>`,
+  },
+
+  {
+    slug: "block-youtube-channel",
+    // The ⋮ menu item it describes arrives in 2.3; see LIVE_VERSION.
+    ships: 2.3,
+    tag: "Mute",
+    card: "Block a channel, search included",
+    blurb: "Gone from search, Home, Subscriptions and next to videos. Shorts too.",
+    updated: "2026-10-28",
+    title: "Block a YouTube channel everywhere, search included",
+    h1: "How to block a YouTube channel, search included",
+    description: "YouTube's Don't recommend channel never touches search. Hide a channel from search, Home, Subscriptions, the sidebar and Shorts in one click, or mute a word.",
+    answer: `YouTube has no way to keep a channel out of your search results. Its <strong>Don't recommend channel</strong> only thins out recommendations. <a href="${store("block-youtube-channel")}">Needle</a> adds <strong>Mute channel everywhere</strong> to the ⋮ menu on every video: one click and that channel is gone from search, Home, Subscriptions, the videos next to the one you're watching, and Shorts. You can mute a word too, and anything with it in the title goes.`,
+    faq: [
+      ["Can you block a channel on YouTube?", "Not from your search results. Don't recommend channel lowers how often it's recommended, and Block user only stops someone commenting on your own channel. Neither hides a channel from search."],
+      ["Where does a muted channel disappear from?", "Search results, Home, Subscriptions, the videos next to the one you're watching, and Shorts on Home and in search. Its own channel page still opens if you go there on purpose."],
+      ["Can I undo it?", "Yes. Undo appears the moment you mute. Later, the Needle popup lists every channel you've muted with a button to bring it back, and the ⋮ menu on its videos says Unmute channel."],
+      ["Can I mute a word or a topic?", "Yes. Add it under Muted words in the Needle popup and any video with it in the title is hidden, from any channel. It matches whole words, so muting AI leaves AIRBUS alone."],
+      ["Can I bring my list from another blocker?", "Yes. Import in the popup reads a text file with one channel or word per line: handles, channel ids and names all work. Export saves yours the same way."],
+      ["Is it free, and does my list go anywhere?", "Free, with no account. Your muted list stays on your computer and is never sent anywhere."],
+    ],
+    body: () => `
+<h2 id="youtube">What YouTube's own options do</h2>
+<p><strong>Don't recommend channel</strong>, in the ⋮ menu on Home and beside videos, tells the recommendations to ease off that channel. It doesn't touch search, so the channel is still there the next time you look something up. <strong>Not interested</strong> works on one video at a time.</p>
+
+<h2 id="needle">Mute a channel with Needle</h2>
+<ol class="steps">
+  <li>Find any video from the channel: in search, on Home, or next to a video.</li>
+  <li>Open its ⋮ menu.</li>
+  <li>Choose <strong>Mute channel everywhere</strong>.</li>
+</ol>
+${figure("../img/mute-menu.webp", 1192, 303, "A YouTube search result with its three-dot menu open, and Needle's Mute channel everywhere at the bottom of the menu", "YouTube's own menu, one row longer.")}
+<p>Its videos go at once, from every page, and stay gone as you scroll. Changed your mind? Press <strong>Undo</strong>, or unmute it from the popup.</p>
+
+<h2 id="shorts">Shorts too</h2>
+<p>On Home and in search, YouTube doesn't say whose a Short is, which is why most blockers let them through. Needle asks YouTube, the same way any website that embeds a video does, and a muted channel's Shorts go with its videos.</p>
+
+<h2 id="words">Mute a word instead</h2>
+<p>Tired of a topic rather than a channel? Open the Needle popup and add a word under <strong>Muted words</strong>. Any video with it in the title disappears, whoever made it. A phrase works too.</p>
+
+<h2 id="import">Coming from another blocker</h2>
+<p>Use <strong>Import</strong> in the popup to bring your list over, one channel or word per line. <strong>Export</strong> saves yours as a text file.</p>`,
   },
 
   {
@@ -453,8 +497,13 @@ ${opsTable([
 ];
 
 // History leads: the least contested search, and the thing nobody else does in the search bar.
-const ORDER = ["search-watch-history", "search-watch-later", "remove-watched-watch-later", "search-youtube-playlist", "search-youtube-channel", "find-longest-video-youtube-channel", "youtube-search-filters"];
+const ORDER = ["search-watch-history", "search-watch-later", "block-youtube-channel", "remove-watched-watch-later", "search-youtube-playlist", "youtube-playlist-length", "search-youtube-channel", "find-longest-video-youtube-channel", "youtube-search-filters"];
 GUIDES.sort((a, b) => ORDER.indexOf(a.slug) - ORDER.indexOf(b.slug));
+
+// The version on the store now. A guide for a feature still in review (`ships`
+// above this) is left out of every page and the sitemap until the store has it.
+const LIVE_VERSION = 2.2;
+for (let i = GUIDES.length - 1; i >= 0; i--) if (GUIDES[i].ships > LIVE_VERSION) GUIDES.splice(i, 1);
 
 // ---------------------------------------------------------------------------
 // page shell
