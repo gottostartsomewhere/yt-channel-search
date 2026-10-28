@@ -4,7 +4,7 @@
     "description": "Store and toolbar name. English in every locale on purpose: one title for store search everywhere, and it matches what people are told to search for."
   },
   "extDesc": {
-    "message": "The YouTube search that knows what you've watched. Search and filter channels, playlists, history, Watch Later and subscriptions.",
+    "message": "The YouTube search that knows what you've watched. Filter channels, playlists, history and Watch Later. Mute a channel everywhere.",
     "description": "Store short description, 132 characters at most."
   }
 }

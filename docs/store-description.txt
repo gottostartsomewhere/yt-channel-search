@@ -1,13 +1,20 @@
-Previously it only made channel searching easier. Now it makes all of YouTube search and your history a much more personal experience.
+New: mute a channel from YouTube's own ⋮ menu, and it's gone from search, Home, Subscriptions and Shorts. YouTube's "Don't recommend channel" never touches search. This does.
 
 YouTube's search doesn't know what you've watched, can't filter by length or views, and channel search only matches titles. Needle fixes that, right inside YouTube's search bar.
+
+MUTE A CHANNEL, EVERYWHERE
+- "Mute channel everywhere" in the ⋮ menu on every video
+- Gone from search, Home, Subscriptions and the videos next to the one you're watching
+- Its Shorts go too, on Home and in search
+- Mute words: any video with one in its title disappears
+- Undo straight away, unmute any time, and bring a list over from another blocker
 
 IN THE SEARCH BAR
 - Your Watch Later, likes and history show up as you type
 - Type filters: <20m, >100k, unwatched, date:week, @channel
 - in:playlists searches every playlist you've saved
 - is:fresh hides what you've already been shown
-- Follow a search, mute a channel, see what you've watched on every thumbnail
+- Follow a search, and see what you've watched on every thumbnail
 
 SEARCH A CHANNEL
 Press the needle button on any channel's Videos tab. It reads every upload, not just what's loaded.
@@ -21,6 +28,7 @@ YOUR HISTORY AND WATCH LATER
 - Find that video you know you watched, without scrolling
 
 ANY PLAYLIST AND YOUR SUBSCRIPTIONS
+- How long any playlist is, and how much of it you have left
 - Search and filter any playlist, yours or anyone's, all of it
 - Your subscriptions, unwatched and under 20 minutes
 - Dim or hide the videos you've already watched on Home and Subscriptions

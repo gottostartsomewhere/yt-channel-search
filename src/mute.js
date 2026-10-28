@@ -435,6 +435,36 @@ function alignMenuItem(it, menu) {
     const gap = parseFloat(getComputedStyle(it).columnGap) || 16;
     it.style.gap = Math.max(8, gap + Math.round(text.getBoundingClientRect().left - label.getBoundingClientRect().left)) + "px";
   }
+  fitMenuItem(it, label);
+}
+
+/*
+ * YouTube sizes the menu to its own rows, which can be narrower than "Mute
+ * channel everywhere" plus "Needle" (signed out, at the right edge of the
+ * page). Cut short, the row would read "Mute channel everywl". So it drops the
+ * tag and says "Mute channel", no longer than YouTube's own "Save to playlist",
+ * and only if even that does not fit, wraps.
+ */
+function fitMenuItem(it, label) {
+  const by = it.querySelector(".ytcs-menuitem-by");
+  if (!cutOff(it, by || label)) return;
+  if (by) by.remove();
+  label.textContent = it.__needle && it.__needle.entry ? "Unmute channel" : "Mute channel";
+  if (cutOff(it, label)) it.style.whiteSpace = "normal";
+  makeRoom(it);
+}
+
+// Whether `el` runs past the right edge of a box around the row that clips it.
+function cutOff(it, el) {
+  const right = el.getBoundingClientRect().right;
+  for (let up = it; up && up !== document.body; up = up.parentElement) {
+    const cs = getComputedStyle(up);
+    if (cs.overflowX !== "visible" || up === it) {
+      if (right > up.getBoundingClientRect().right - 4) return true;
+    }
+    if (cs.position === "fixed") break;
+  }
+  return right > window.innerWidth - 4;
 }
 
 /*

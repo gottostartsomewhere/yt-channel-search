@@ -250,7 +250,7 @@ const PUBLIC = [
     run: async (b) => {
       const p = await open(b, "/results?search_query=space+documentary", true);
       const url = p.url();
-      const problems = await muteThroughMenu(p, "video", "Mute channel everywhere");
+      const problems = await muteThroughMenu(p, "video", "Mute channel");
       if (p.url() !== url) problems.push("the click navigated away");
       await p.close();
       return { problems };
@@ -260,7 +260,7 @@ const PUBLIC = [
     name: "⋮ menu beside a video, and none on the player's own",
     run: async (b) => {
       const p = await open(b, "/watch?v=NiCgcUTL9_Q", true);
-      const problems = await muteThroughMenu(p, "video", "Mute channel everywhere");
+      const problems = await muteThroughMenu(p, "video", "Mute channel");
       const own = await p.evaluate(() => {
         const m = document.querySelector("ytd-watch-metadata");
         const btn = m && [...m.querySelectorAll("button")].find((x) => /more actions/i.test(x.getAttribute("aria-label") || "") && x.getBoundingClientRect().width > 0);
@@ -281,7 +281,7 @@ const PUBLIC = [
     name: "Shorts: named by oEmbed, a muted channel's Shorts all go",
     run: async (b) => {
       const p = await open(b, "/results?search_query=veritasium+shorts", true);
-      const problems = await muteThroughMenu(p, "short", "Mute channel everywhere");
+      const problems = await muteThroughMenu(p, "short", "Mute channel");
       await sleep(2500);
       const r = await p.evaluate(() => {
         const handle = (muted.list.slice(-1)[0] || {}).handle;
