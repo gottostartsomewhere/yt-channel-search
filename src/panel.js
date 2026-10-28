@@ -2893,20 +2893,43 @@ async function enableNow() {
 
 /*
  * The header sticks 56px down, under YouTube's masthead, when the page itself
- * scrolls. On a playlist page (Watch Later and Liked included) YouTube wraps
- * the page in ytd-browse with overflow: hidden (October 2026), and a sticky
- * element sticks within the nearest such box, not the page. That box already
- * starts under the masthead and never scrolls, so the 56px only pushed the
- * header down over the line beneath it, the one with the playlist's total
- * length. So the offset is measured from whatever the header sticks within.
+ * scrolls. On channel and playlist pages (Watch Later and Liked included)
+ * YouTube wraps the page in ytd-browse with overflow: hidden (October 2026),
+ * and a sticky element sticks within the nearest such box, not the page. That
+ * box never scrolls, so the header stopped following the list, and the 56px
+ * pushed it down over the line beneath it, the one with a playlist's total
+ * length.
+ *
+ * A box like that, one that hides overflow but does not scroll, is switched to
+ * overflow: clip while the panel is open. It clips exactly as before, and a
+ * sticky element looks straight past it to the page. Anything that really
+ * scrolls is left alone, and the offset is measured from it instead.
  */
 function fitSticky() {
   const head = ui && ui.wrap.querySelector(":scope > .ytcs-chrome");
   if (!head) return;
   let box = ui.wrap.parentElement;
-  while (box && box !== document.body && box !== document.documentElement && getComputedStyle(box).overflowY === "visible") box = box.parentElement;
+  for (; box && box !== document.body && box !== document.documentElement; box = box.parentElement) {
+    const o = getComputedStyle(box).overflowY;
+    if (o === "visible" || o === "clip") continue;
+    if (o === "hidden" && box.scrollHeight <= box.clientHeight + 1 && box.scrollTop === 0) {
+      box.setAttribute("data-ytcs-unclip", "");
+      continue;
+    }
+    break;
+  }
   const masthead = document.querySelector("#masthead-container");
-  const under = masthead ? Math.round(masthead.getBoundingClientRect().bottom) : 56;
+  let under = masthead ? Math.round(masthead.getBoundingClientRect().bottom) : 56;
+  // A channel's tabs (Home, Videos, Shorts...) stay fixed under the masthead as
+  // the channel's header scrolls away; the panel's header stops under them,
+  // not behind them. Found by their role, in whatever fixed bar holds them.
+  for (const t of document.querySelectorAll("ytd-browse [role=tablist]")) {
+    const h = Math.round(t.getBoundingClientRect().height);
+    if (!h) continue;
+    let fixed = false;
+    for (let el = t.parentElement; el && el !== document.body && !fixed; el = el.parentElement) fixed = getComputedStyle(el).position === "fixed";
+    if (fixed) { under += h; break; }
+  }
   const page = !box || box === document.body || box === document.documentElement;
   // Where the box starts on the page, not on screen, so a scrolled page measures the same.
   const top = page ? under : Math.max(0, under - Math.round(box.getBoundingClientRect().top + window.scrollY));
@@ -2915,6 +2938,7 @@ function fitSticky() {
 
 function disable() {
   restoreNativeGrids();
+  for (const el of document.querySelectorAll("[data-ytcs-unclip]")) el.removeAttribute("data-ytcs-unclip");
   if (ui && ui.wrap.parentElement) ui.wrap.remove();
   state.active = false;
   setLauncher(false);

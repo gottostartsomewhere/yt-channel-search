@@ -264,6 +264,38 @@ const PUBLIC = [
     },
   },
   {
+    name: "panel on a channel: header stays in reach, under YouTube's tabs",
+    run: async (b) => {
+      const p = await open(b, "/@veritasium/videos", "full");
+      const l = await p.evaluate(() => { const x = document.querySelector(".ytcs-launcher"); if (!x) return null; const r = x.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
+      if (!l) { await p.close(); return { problems: ["no Needle button on the page"] }; }
+      await p.mouse.click(l.x, l.y);
+      for (let t = 0; t < 30000; t += 1000) {
+        await sleep(1000);
+        if (await p.evaluate(() => (document.querySelector(".ytcs-grid") || { children: [] }).children.length >= 60)) break;
+      }
+      await p.evaluate(() => window.scrollBy(0, 2000));
+      await sleep(2000);
+      const r = await p.evaluate(() => {
+        const head = document.querySelector(".ytcs-chrome");
+        if (!head) return null;
+        const hr = head.getBoundingClientRect();
+        // Whatever YouTube keeps fixed across the top of the page at the header's place.
+        const at = document.elementFromPoint(hr.left + 20, hr.top + 8);
+        return { videos: document.querySelector(".ytcs-grid").children.length, headTop: Math.round(hr.top), onTop: head.contains(at) };
+      });
+      await p.close();
+      const problems = [];
+      if (!r) problems.push("the panel did not open");
+      else {
+        if (r.videos < 60) problems.push(`only ${r.videos} videos read`);
+        if (r.headTop < 40 || r.headTop > 160) problems.push(`scrolled, the header is at ${r.headTop}px, not held under the masthead`);
+        else if (!r.onTop) problems.push("scrolled, something of YouTube's covers the header");
+      }
+      return { problems, detail: r ? JSON.stringify(r) : "" };
+    },
+  },
+  {
     name: "Mute on search: hides that channel only, stays fast",
     run: async (b) => {
       const p = await open(b, "/results?search_query=space+documentary", true);

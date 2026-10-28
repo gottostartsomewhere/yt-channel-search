@@ -99,6 +99,9 @@ html:not([dark]) .ytcs-mutenote { --ac: #cc2f36; }
  * The whole thing is a single bordered surface rather than a bordered box per
  * control, which is what made the old bar read as a form.
  */
+/* A box of YouTube's that hides overflow without scrolling, while the panel is
+   open: clips the same, and lets the header stick to the page (fitSticky). */
+[data-ytcs-unclip] { overflow: clip !important; }
 .ytcs-chrome {
   position: sticky;
   top: 56px;
