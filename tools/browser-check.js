@@ -252,6 +252,18 @@ const PUBLIC = [
         });
         if (r.length && r.videos >= 40) break;
       }
+      // A filter typed the way the box's placeholder suggests, and left there: no space, no Enter.
+      let typed = null;
+      if (r && r.panel) {
+        await p.click(".ytcs-wrap input");
+        await p.keyboard.type("<11m", { delay: 80 });
+        await sleep(1800);
+        typed = await p.evaluate(() => {
+          const n = (document.querySelector(".ytcs-wrap").innerText.match(/(\d+) of (\d+)/) || []).slice(1).map(Number);
+          const len = [...document.querySelectorAll(".ytcs-stats .ytcs-stat")].map((t) => t.textContent).find((t) => /Total length/.test(t)) || "";
+          return { shown: n[0], of: n[1], length: len.replace("Total length", "").trim() };
+        });
+      }
       await p.close();
       const problems = [];
       if (!r || !r.panel) problems.push("the panel did not open");
@@ -259,8 +271,10 @@ const PUBLIC = [
         if (r.videos < 40) problems.push(`${r.videos} of 48 videos read`);
         if (!r.length) problems.push("no Total length");
         if (r.covered) problems.push("the length line is hidden under the panel's header");
+        if (!typed || !(typed.shown > 0 && typed.shown < typed.of)) problems.push(`"<11m" typed and left: ${typed ? typed.shown + " of " + typed.of : "no count"}`);
+        else if (typed.length === r.length) problems.push("the total did not follow the typed filter");
       }
-      return { problems, detail: r ? JSON.stringify(r) : "" };
+      return { problems, detail: JSON.stringify({ ...r, typed }) };
     },
   },
   {

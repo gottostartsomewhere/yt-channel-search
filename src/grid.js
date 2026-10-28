@@ -80,7 +80,12 @@ function watchState(v) {
 }
 
 function filterAndSort() {
-  const kw = ui.kw.value.trim().toLowerCase();
+  // A typed filter still in progress ("<12m" before the space or the pause that
+  // makes it a filter, see absorbOperators) is not searched for as a word: it
+  // would match no title and empty the list while it is still being typed.
+  let kw = ui.kw.value.toLowerCase();
+  if (!/\s$/.test(kw)) kw = kw.replace(/(^|\s)(?:[<>@-]|[a-z]+:)\S*$/, "$1");
+  kw = kw.trim();
   const [minDur, maxDur] = rangeVal(ui.duration);
   const [minViews, maxViews] = rangeVal(ui.views);
   const uploaded = ui.uploaded.value; // "", "7", "31", "93", "366", "old"

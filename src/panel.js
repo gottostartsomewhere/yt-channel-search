@@ -547,8 +547,17 @@ function buildUi() {
     // Backspace in an empty box takes the last token back out, like any tag field.
     if (e.key === "Backspace" && !kw.value && typeof popLastToken === "function") popLastToken();
   });
+  // And on a pause. The placeholder says "type <12m", and someone who does just
+  // that and waits should get the filter, not an empty list waiting on a space
+  // they had no way to know about. A pause, not every keystroke, so "<2" is
+  // still not taken for "under 2 minutes" on the way to "<20m".
+  let typingPause = 0;
   kw.addEventListener("input", () => {
     if (/\s$/.test(kw.value) && typeof absorbOperators === "function") absorbOperators(false);
+    clearTimeout(typingPause);
+    typingPause = setTimeout(() => {
+      if (document.activeElement === kw && typeof absorbOperators === "function") absorbOperators(true);
+    }, 900);
   });
 
   const slots = [
