@@ -263,7 +263,7 @@ ${opsTable([
 <ol class="steps">
   <li>Find any video from the channel: in search, on Home, or next to a video.</li>
   <li>Open its ⋮ menu.</li>
-  <li>Choose <strong>Mute channel everywhere</strong>.</li>
+  <li>Choose <strong>Mute channel everywhere</strong> (in a narrow menu it just says <strong>Mute channel</strong>).</li>
 </ol>
 ${figure("../img/mute-menu.webp", 1192, 303, "A YouTube search result with its three-dot menu open, and Needle's Mute channel everywhere at the bottom of the menu", "YouTube's own menu, one row longer.")}
 <p>Its videos go at once, from every page, and stay gone as you scroll. Changed your mind? Press <strong>Undo</strong>, or unmute it from the popup.</p>
@@ -502,7 +502,7 @@ GUIDES.sort((a, b) => ORDER.indexOf(a.slug) - ORDER.indexOf(b.slug));
 
 // The version on the store now. A guide for a feature still in review (`ships`
 // above this) is left out of every page and the sitemap until the store has it.
-const LIVE_VERSION = 2.2;
+const LIVE_VERSION = 2.3;
 for (let i = GUIDES.length - 1; i >= 0; i--) if (GUIDES[i].ships > LIVE_VERSION) GUIDES.splice(i, 1);
 
 // ---------------------------------------------------------------------------
