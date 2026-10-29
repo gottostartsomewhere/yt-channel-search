@@ -9,6 +9,11 @@ const BASE = "https://gottostartsomewhere.github.io/needle/";
 // The site's date. A guide changed later carries its own `updated`, which its
 // page, its structured data and the sitemap all use instead.
 const UPDATED = "2026-09-30";
+// The home page lists every guide, so it changes whenever one goes up: the day
+// the newest guide's card went on it (block a channel, live with 2.3). Bump it
+// when a guide goes live. The sitemap takes this or the newest guide's date,
+// whichever is later, so Google revisits the page that links to everything.
+const HOME_UPDATED = "2026-10-29";
 const longDate = (iso) => new Date(iso + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 const STORE = "https://chromewebstore.google.com/detail/needle-for-youtube-channe/magofcbhfhpfabphcldhodhgehhclokc";
 const REPO = "https://github.com/gottostartsomewhere/yt-channel-search";
@@ -1057,7 +1062,7 @@ write("f/index.html", sharePage());
 write("robots.txt", `User-agent: *\nAllow: /\n\nSitemap: ${BASE}sitemap.xml\n`);
 write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${[["", UPDATED], ...GUIDES.map((g) => [g.slug + "/", g.updated || UPDATED])].map(([p, d]) => `  <url><loc>${BASE}${p}</loc><lastmod>${d}</lastmod></url>`).join("\n")}
+${[["", [HOME_UPDATED, ...GUIDES.map((g) => g.updated || UPDATED)].sort().pop()], ...GUIDES.map((g) => [g.slug + "/", g.updated || UPDATED])].map(([p, d]) => `  <url><loc>${BASE}${p}</loc><lastmod>${d}</lastmod></url>`).join("\n")}
 </urlset>
 `);
 write(".nojekyll", "");
