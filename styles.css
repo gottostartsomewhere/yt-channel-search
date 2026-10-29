@@ -64,6 +64,18 @@ html:not([dark]) .ytcs-mutenote { --ac: #cc2f36; }
   place-items: center;
 }
 .ytcs-launcher-mark svg { display: block; }
+/* Before the first open: the mark and what it does here, then back to the mark alone. */
+.ytcs-launcher.ytcs-launcher-mark.ytcs-launcher-intro {
+  width: auto;
+  padding: 0 18px 0 11px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-color: var(--ac);
+  animation: ytcs-intro-in 0.35s ease-out;
+}
+.ytcs-launcher-label { white-space: nowrap; }
+@keyframes ytcs-intro-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
 .ytcs-wrap { width: 100%; color: var(--txt); }
 
@@ -102,6 +114,9 @@ html:not([dark]) .ytcs-mutenote { --ac: #cc2f36; }
 /* A box of YouTube's that hides overflow without scrolling, while the panel is
    open: clips the same, and lets the header stick to the page (fitSticky). */
 [data-ytcs-unclip] { overflow: clip !important; }
+/* YouTube's hover preview is one player for the whole page; with the panel open it would start over the panel. */
+html[data-ytcs-panel] ytd-video-preview,
+html[data-ytcs-panel] #video-preview { display: none !important; }
 .ytcs-chrome {
   position: sticky;
   top: 56px;
@@ -556,7 +571,14 @@ html[dark] .ytcs-fsel option { background: #1c1c1c; color: #f1f1f1; }
   font-variant-numeric: tabular-nums;
 }
 
-.ytcs-card { display: flex; flex-direction: column; text-decoration: none; color: inherit; }
+/*
+ * Up to 600 cards are drawn, and a dozen are on screen. Laying out and
+ * painting the rest on every key was what made typing in a long history stall
+ * (273ms on one key over 1,604 videos), not finding the matches, which took a
+ * few ms. Off screen, a card now holds its place at its last size and is laid
+ * out only as it scrolls near.
+ */
+.ytcs-card { display: flex; flex-direction: column; text-decoration: none; color: inherit; content-visibility: auto; contain-intrinsic-size: auto 300px; }
 .ytcs-thumb {
   position: relative;
   width: 100%;
@@ -1714,6 +1736,7 @@ a:hover > .ytcs-mutebtn,
   gap: 10px;
 }
 .ytcs-listview .ytcs-card {
+  contain-intrinsic-size: auto 120px;
   flex-direction: row;
   align-items: flex-start;
   gap: 16px;

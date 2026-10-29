@@ -249,6 +249,7 @@ const ANY_LIST = /^https:\/\/www\.youtube\.com\/playlist\?(?:.*&)?list=([\w-]+)/
 const PANEL_PAGE = (u) => CHANNEL.test(u) || HISTORY.test(u.split("?")[0]) || SUBS.test(u.split("?")[0]) ||
   RESULTS.test(u.split("?")[0]) || ANY_LIST.test(u);
 const YOUTUBE = /^https:\/\/www\.youtube\.com\//;
+const VIDEO = /^https:\/\/www\.youtube\.com\/(watch\?|shorts\/)/;
 
 /*
  * What's new, once. The card shows while the flag is set and the flag is
@@ -281,9 +282,53 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         window.close();
       });
     });
+  } else if (YOUTUBE.test(url)) {
+    /*
+     * Home, a video, Shorts: nowhere for the panel to open. This used to be a
+     * greyed-out button and a sentence, on the pages people spend most of their
+     * time on, and "It didn't work on a page" was the commonest reason given for
+     * removing Needle. Now the button goes somewhere it works. "#needle=" with
+     * nothing after it opens the panel on arrival, the way a shared link does
+     * (see arrive.js).
+     */
+    const go = (path) => { chrome.tabs.update(tab.id, { url: "https://www.youtube.com" + path + "#needle=" }); window.close(); };
+    const also = (pairs) => {
+      for (const [label, path] of pairs) {
+        const b = document.createElement("button");
+        b.className = "ghost";
+        b.textContent = label;
+        b.addEventListener("click", () => go(path));
+        $("also").appendChild(b);
+      }
+      $("also").hidden = false;
+    };
+    $("hint").textContent = "Opens with Needle ready. Any channel, playlist or search works too.";
+    if (VIDEO.test(url)) {
+      // Whose video it is, from the page: until it answers, the button waits.
+      $("open").textContent = "Search this video's channel";
+      $("open").disabled = true;
+      chrome.tabs.sendMessage(tab.id, { type: "ytcs-video-channel" }, (r) => {
+        if (chrome.runtime.lastError || !r || !r.path) {
+          $("open").textContent = "Search your Watch Later";
+          $("open").disabled = false;
+          $("open").addEventListener("click", () => go("/playlist?list=WL"));
+          return;
+        }
+        const name = r.name.length > 22 ? r.name.slice(0, 21) + "…" : r.name;
+        $("open").textContent = name ? "Search " + name + "'s videos" : "Search this video's channel";
+        $("open").disabled = false;
+        $("open").addEventListener("click", () => go(r.path + "/videos"));
+      });
+      also([["Watch Later", "/playlist?list=WL"], ["History", "/feed/history"]]);
+    } else {
+      $("open").textContent = "Search your Watch Later";
+      $("open").addEventListener("click", () => go("/playlist?list=WL"));
+      also([["History", "/feed/history"], ["Subscriptions", "/feed/subscriptions"]]);
+    }
   } else {
-    $("open").disabled = true;
-    $("hint").textContent = "Open a channel, a search, a playlist, your history or your subscriptions.";
+    $("open").textContent = "Open YouTube";
+    $("open").addEventListener("click", () => { chrome.tabs.create({ url: "https://www.youtube.com/" }); window.close(); });
+    $("hint").textContent = "Needle works on YouTube: channels, playlists, searches and your history.";
   }
 
   /*

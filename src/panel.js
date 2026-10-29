@@ -1640,6 +1640,21 @@ function copyShareLink() {
   countUse();
 }
 
+/*
+ * Whose video this page is playing: the channel link under the player (a
+ * Short's, on /shorts/), by the link that has the name in it rather than the
+ * avatar beside it. A path ("/@veritasium") and a name, or null.
+ */
+function pageVideoChannel() {
+  const scope = location.pathname.startsWith("/shorts/")
+    ? document.querySelector("ytd-reel-video-renderer[is-active], ytd-shorts")
+    : document.querySelector("ytd-watch-metadata");
+  const a = scope && [...scope.querySelectorAll("a[href^='/@'], a[href^='/channel/']")].find((x) => x.textContent.trim());
+  if (!a) return null;
+  const path = new URL(a.href).pathname.replace(/\/(videos|featured|shorts|streams)?\/?$/, "");
+  return { path, name: a.textContent.trim().replace(/\s+/g, " ").slice(0, 60) };
+}
+
 // A shared link's filters, caught at page start by arrive.js. Used once.
 function takeShared() {
   let p = null;
@@ -2830,6 +2845,7 @@ function rateWin(total, shown) {
 async function enable() {
   if (state.active || state.enabling) return;
   state.enabling = true;
+  launcherOpened();
   try {
     await enableNow();
   } finally {
@@ -2862,6 +2878,14 @@ async function enableNow() {
 
   state.active = true;
   hideNativeGrids();
+  /*
+   * YouTube's hover preview is one player for the whole page, not part of the
+   * list the panel hides, so with the panel open it still started over it: on
+   * search results it played a promoted video across the panel's header and
+   * box, where YouTube's first result had been. While the panel is open the
+   * page says so, and styles.css keeps that player out of the way.
+   */
+  document.documentElement.setAttribute("data-ytcs-panel", "");
   fitSticky();
   setLauncher(true);
   labelForSource();
@@ -2947,6 +2971,7 @@ function fitSticky() {
 
 function disable() {
   restoreNativeGrids();
+  document.documentElement.removeAttribute("data-ytcs-panel");
   for (const el of document.querySelectorAll("[data-ytcs-unclip]")) el.removeAttribute("data-ytcs-unclip");
   if (ui && ui.wrap.parentElement) ui.wrap.remove();
   state.active = false;
@@ -2989,11 +3014,72 @@ function needleMark(size) {
   return svg;
 }
 
+/*
+ * Until somebody has opened the panel once, the button says what it does here,
+ * on the first few pages it appears on, then folds back to the mark. A needle
+ * in a corner says nothing to someone who installed Needle a minute ago and
+ * sees YouTube looking exactly as it did; "installed it, nothing happened" is
+ * what the uninstall answers suggest. Once opened, it never says it again.
+ */
+const LAUNCHER_INTRO_PAGES = 3;
+const LAUNCHER_INTRO_MS = 9000;
+
+function launcherLabel() {
+  return {
+    history: "Search your history", subs: "Search your subscriptions", wl: "Search your Watch Later", liked: "Search your Liked videos",
+    list: "Search this playlist", search: "Filter these results", channel: "Search this channel",
+  }[shareKind()] || "Search with Needle";
+}
+
+/*
+ * Whether this browser used Needle before the button learned to label itself:
+ * a use the rating ask counted (a list narrowed, a result opened from the
+ * search bar, a copy or a share), or a channel or history the panel read and
+ * cached. Without this, everyone updating from 2.3.0 would have been told what
+ * a button they have pressed a hundred times does.
+ */
+async function usedBefore() {
+  const st = await rateState();
+  if (st && (st.opens || st.done || st.days)) return true;
+  const keys = await idbKeys();
+  return keys.some((k) => typeof k === "string" && (k === "__history" || k.charAt(0) === "/"));
+}
+
+async function launcherIntro() {
+  let st;
+  try {
+    st = await new Promise((res) => chrome.storage.local.get({ launcherIntro: { shown: 0, opened: false } }, (got) => res((got && got.launcherIntro) || {})));
+  } catch (e) { return; /* the mark alone, as before */ }
+  if (st.opened || (st.shown || 0) >= LAUNCHER_INTRO_PAGES) return;
+  if (await usedBefore()) {
+    try { chrome.storage.local.set({ launcherIntro: { shown: st.shown || 0, opened: true } }); } catch (e) { /* asked again next page */ }
+    return;
+  }
+  if (!launcher || state.active) return;
+  try { chrome.storage.local.set({ launcherIntro: { shown: (st.shown || 0) + 1, opened: false } }); } catch (e) { /* ignore */ }
+  const label = document.createElement("span");
+  label.className = "ytcs-launcher-label";
+  label.textContent = launcherLabel();
+  launcher.appendChild(label);
+  launcher.classList.add("ytcs-launcher-intro");
+  setTimeout(() => { if (launcher && !state.active) setLauncher(false); }, LAUNCHER_INTRO_MS);
+}
+
+function launcherOpened() {
+  try {
+    chrome.storage.local.get({ launcherIntro: { shown: 0, opened: false } }, (got) => {
+      const st = (got && got.launcherIntro) || {};
+      if (!st.opened) chrome.storage.local.set({ launcherIntro: { shown: st.shown || 0, opened: true } });
+    });
+  } catch (e) { /* ignore */ }
+}
+
 // Closed, the button is just the mark. Open, it says Close, because an icon
 // alone does not tell anyone how to get YouTube's own page back.
 function setLauncher(open) {
   if (!launcher) return;
   launcher.textContent = "";
+  launcher.classList.remove("ytcs-launcher-intro");
   launcher.classList.toggle("ytcs-launcher-mark", !open);
   if (open) launcher.textContent = "Close";
   else launcher.appendChild(needleMark(32));
@@ -3011,6 +3097,7 @@ function buildLauncher() {
     else await enable();
   };
   document.body.appendChild(btn);
+  setTimeout(launcherIntro, 0);
   return btn;
 }
 
@@ -3087,6 +3174,11 @@ try {
     if (msg.type === "ytcs-toggle" && canRunHere()) {
       if (state.active) disable();
       else enable();
+      return;
+    }
+    // The popup on a video page, offering to search the channel it is from.
+    if (msg.type === "ytcs-video-channel") {
+      sendResponse(pageVideoChannel());
       return;
     }
     /*

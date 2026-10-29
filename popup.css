@@ -47,6 +47,8 @@ header img { border-radius: 6px; }
 }
 .primary:hover { opacity: 0.88; }
 .primary:disabled { opacity: 0.35; cursor: default; }
+.also { display: flex; gap: 8px; margin-top: 8px; }
+.also .ghost { flex: 1; padding: 9px 8px; border-radius: 16px; color: var(--txt); }
 .hint { margin: 8px 0 16px; color: var(--dim); font-size: 11.5px; text-align: center; }
 
 section { margin-bottom: 14px; }
