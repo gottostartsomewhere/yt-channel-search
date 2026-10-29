@@ -1,5 +1,5 @@
 /*
- * node tools/browser-check.js [--notify] [--public] [--signin]
+ * node tools/browser-check.js [--notify] [--public] [--signin] [--only=word] [--edits]
  *
  * The other half of the daily check. tools/canary.js reads YouTube's data the
  * way Needle does; this opens YouTube in a real Chrome and checks what only
@@ -12,9 +12,22 @@
  *   - "Mute channel everywhere" in the ⋮ menu: there, clickable, muting, and
  *     the menu closing after;
  *   - Shorts named through YouTube's oEmbed, so a muted channel's Shorts go too;
+ *   - Undo after a mute, muted words, a filter typed into YouTube's own bar,
+ *     Copy a link through the share page and back, the / key, the popup, and
+ *     every bit of Needle's text readable in light and dark;
  *   - signed in: Watch Later, Liked videos, history and subscriptions read the
- *     way the panel and the search bar read them, deep reading included, and
- *     Home's feed cards.
+ *     way the panel and the search bar read them, deep reading included, the
+ *     search bar's dropdown of your own videos, the panel on your history and
+ *     Watch Later, Mute from Home, and Home's feed cards.
+ *
+ * Also the rest of the panel (Free time, Copy links, Play, Insights with Compare
+ * and Watchlist), Follow and is:fresh, the muted list's import and export, and
+ * signed in: the Subscriptions panel, in:playlists, finished videos hidden.
+ *
+ * Nothing that changes the account runs unless asked: --edits removes a video
+ * from Watch Later and unlikes one, and puts each back (Undo, the archive),
+ * checking YouTube's own copy of the list both times, and looks for deleted
+ * videos without removing them. The daily check never passes it.
  *
  * Chrome will not load an unpacked extension under automation, so Needle's own
  * source files are put into the page instead, in the order the extension loads
@@ -68,7 +81,7 @@ const MUTE_CODE = `
   var omni = { showMuted: false }; var state = { active: false }; function applyView() {}
   function scheduleBadges() { clearTimeout(window.__needleT); window.__needleT = setTimeout(() => { const t = performance.now(); muteScan(); (window.__needlePasses = window.__needlePasses || []).push(performance.now() - t); }, 200); }
   function omniIcon() { const s = document.createElementNS("http://www.w3.org/2000/svg", "svg"); s.setAttribute("viewBox", "0 0 24 24"); return s; }
-  function toast(msg) { window.__needleToast = msg; } function renderMuteNote() {}
+  function toast(msg, action, onAction) { window.__needleToast = msg; window.__needleUndo = onAction || null; } function renderMuteNote() {}
   var chrome = { storage: { local: { set() {}, get() {} }, sync: { get() {} }, onChanged: { addListener() {} } } };
   // As omnibar.js's watchForCards: a pass whenever YouTube adds cards.
   new MutationObserver(() => scheduleBadges()).observe(document.querySelector("ytd-page-manager") || document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["href"] });
@@ -83,7 +96,7 @@ const AT_START = read("src/cards.js") + "\n" + read("src/feedmap.js");
  */
 const MANIFEST = JSON.parse(read("manifest.json"));
 const FULL = "(function () {\n" + `
-  const __store = { sync: {}, local: {} }, __listeners = [];
+  const __store = { sync: __SYNC__, local: {} }, __listeners = [];
   const __area = (name) => ({
     get(d, cb) { const out = {}; const keys = d === null ? Object.keys(__store[name]) : typeof d === "string" ? [d] : Array.isArray(d) ? d : Object.keys(d || {});
       for (const k of keys) out[k] = k in __store[name] ? __store[name][k] : (d && typeof d === "object" && !Array.isArray(d) ? d[k] : undefined);
@@ -94,25 +107,31 @@ const FULL = "(function () {\n" + `
   const chrome = { runtime: { id: "check", lastError: null, getManifest: () => ({ version: ${JSON.stringify(MANIFEST.version)} }),
       sendMessage() {}, onMessage: { addListener() {} } },
     storage: { sync: __area("sync"), local: __area("local"), onChanged: { addListener: (fn) => __listeners.push(fn) } } };
-` + MANIFEST.content_scripts.find((c) => c.run_at === "document_idle" && !c.world).js.map((f) => read(f)).join("\n") + "\n})();\n" + read("src/navigate.js") + "\n1;";
+` + MANIFEST.content_scripts.find((c) => c.run_at === "document_idle" && !c.world).js.map((f) => read(f)).join("\n") +
+  // for the checks only: the lists the search bar reads, so one can type a word that is in them
+  "\nwindow.__needleCheck = { library: typeof library !== 'undefined' ? library : null };\n})();\n" + read("src/navigate.js") + "\n1;";
+// The whole extension with the popup's settings as given (unset ones take their defaults).
+const fullWith = (sync) => FULL.replace("__SYNC__", JSON.stringify(sync || {}));
 
 // core.js in a scope of its own, so none of its names meet YouTube's.
 const CORE = `window.__needleCore = (function () { ${read("src/core.js")}
   ; cfg.maxVideos = 400; return { cfg, fetchPlaylist, fetchHistory, fetchSubscriptions }; })(); 1;`;
 
 // ---- a page ------------------------------------------------------------------------------
-// `withNeedle`: false (YouTube alone), true (Mute's code) or "full" (the whole extension).
+// `withNeedle`: false (YouTube alone), true (Mute's code), "full" (the whole extension), or { sync } (the whole
+// extension with those popup settings).
 async function open(browser, url, withNeedle) {
+  const full = withNeedle === "full" || (withNeedle && typeof withNeedle === "object");
   const p = await browser.newPage();
   await p.setViewport({ width: 1400, height: 900 });
   await p.setExtraHTTPHeaders({ "accept-language": "en-US,en;q=0.9" });
-  if (withNeedle === "full") await p.setBypassCSP(true);
-  if (withNeedle) await p.evaluateOnNewDocument((withNeedle === "full" ? read("src/arrive.js") + "\n" : "") + AT_START);
+  if (full) await p.setBypassCSP(true);
+  if (withNeedle) await p.evaluateOnNewDocument((full ? read("src/arrive.js") + "\n" : "") + AT_START);
   await p.goto(YT + url, { waitUntil: "networkidle2", timeout: 60000 });
   await sleep(2500);
   if (withNeedle) {
     await p.addStyleTag({ content: read("styles.css") });
-    await p.evaluate(withNeedle === "full" ? FULL : MUTE_CODE);
+    await p.evaluate(full ? fullWith(withNeedle.sync) : MUTE_CODE);
     await sleep(1200);
   }
   return p;
@@ -198,6 +217,91 @@ async function muteThroughMenu(p, kind, expect) {
   if (await menuOpen(p)) problems.push("the menu stayed open");
   return problems;
 }
+
+// Presses the panel's button and waits for at least `min` videos; false if it never opened.
+async function openPanel(p, min, ms = 30000) {
+  const l = await p.evaluate(() => { const x = document.querySelector(".ytcs-launcher"); if (!x) return null; const r = x.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
+  if (!l) return false;
+  await p.mouse.click(l.x, l.y);
+  for (let t = 0; t < ms; t += 1000) {
+    await sleep(1000);
+    if (await p.evaluate((min) => (document.querySelector(".ytcs-grid") || { children: [] }).children.length >= min, min)) return true;
+  }
+  return false;
+}
+const panelCount = (p) => p.evaluate(() => { const m = ((document.querySelector(".ytcs-wrap") || {}).innerText || "").match(/(\d[\d,]*) of (\d[\d,]*)/); return m ? { shown: +m[1].replace(/,/g, ""), of: +m[2].replace(/,/g, "") } : null; });
+// The lengths of the cards the panel is showing, in seconds.
+const shownSeconds = (p) => p.evaluate(() => [...document.querySelectorAll(".ytcs-grid .ytcs-dur")].map((d) => d.textContent.trim().split(":").reduce((a, x) => a * 60 + (+x || 0), 0)));
+// Opens one of the panel's filter menus ("+ Length", "+ Free time"...) and picks the option with that text.
+async function pickInMenu(p, slot, option) {
+  const opened = await p.evaluate((slot) => { const b = [...document.querySelectorAll(".ytcs-wrap button")].find((x) => x.textContent.includes(slot) && x.getBoundingClientRect().width > 0); if (!b) return false; b.click(); return true; }, slot);
+  if (!opened) return `no ${slot} menu`;
+  await sleep(500);
+  const o = await p.evaluate((option) => { const el = [...document.querySelectorAll(".ytcs-menu [role=option]")].find((x) => x.textContent.trim() === option && x.getBoundingClientRect().width > 0); if (!el) return null; const r = el.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; }, option);
+  if (!o) return `no "${option}" in the ${slot} menu`;
+  await p.mouse.click(o.x, o.y);
+  await sleep(1200);
+  return "";
+}
+// What the panel's Export menu copies with that option, caught on its way to the clipboard.
+async function exportCopy(p, option) {
+  await p.evaluate(() => { window.__copied = ""; navigator.clipboard.writeText = (t) => { window.__copied = t; return Promise.resolve(); }; });
+  await p.evaluate(() => { const x = [...document.querySelectorAll(".ytcs-wrap button")].find((e) => /^Export/.test(e.textContent.trim())); if (x) x.click(); });
+  await sleep(500);
+  await p.evaluate((option) => { const o = [...document.querySelectorAll(".ytcs-menu [role=option]")].find((e) => e.textContent.includes(option)); if (o) o.click(); }, option);
+  await sleep(1000);
+  return p.evaluate(() => window.__copied || "");
+}
+// The ids in one of your own lists ("WL", "LL"), first page, as YouTube has them right now.
+async function listIds(b, key) {
+  const p = await open(b, "/feed/library");
+  await p.evaluate(CORE);
+  const ids = await p.evaluate(async (k) => (await window.__needleCore.fetchPlaylist(k, false)).map((v) => v.id), key);
+  await p.close();
+  return ids;
+}
+
+/*
+ * The worst text contrast inside Needle's own UI on the page, by WCAG's formula: every visible element with text
+ * of its own, against the first background behind it that is actually painted. 4.5 is the AA line for body text;
+ * under 3 is unreadable.
+ */
+const CONTRAST = (roots) => {
+  const rgb = (c) => (c.match(/[\d.]+/g) || [0, 0, 0, 0]).map(Number);
+  const lum = (c) => { const [r, g, b] = rgb(c).slice(0, 3).map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+  const opaque = (c) => { const a = rgb(c); return a.length < 4 || a[3] > 0.5; };
+  const page = document.documentElement.hasAttribute("dark") ? "rgb(15, 15, 15)" : "rgb(255, 255, 255)";
+  const bgOf = (el) => { for (let e = el; e && e !== document.documentElement; e = e.parentElement) { const c = getComputedStyle(e).backgroundColor; if (c && c !== "transparent" && opaque(c)) return c; } return page; };
+  const out = [];
+  for (const root of document.querySelectorAll(roots)) {
+    for (const el of root.querySelectorAll("*")) {
+      if (![...el.childNodes].some((n) => n.nodeType === 3 && n.nodeValue.trim())) continue;
+      const r = el.getBoundingClientRect(), cs = getComputedStyle(el);
+      if (r.width < 2 || r.height < 2 || r.bottom < 0 || r.top > innerHeight || cs.visibility === "hidden" || +cs.opacity < 0.4) continue;
+      const a = lum(cs.color), b = lum(bgOf(el));
+      const ratio = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+      out.push({ ratio: Math.round(ratio * 10) / 10, what: (el.className && typeof el.className === "string" ? "." + el.className.split(" ")[0] : el.tagName.toLowerCase()) + " \"" + el.textContent.trim().slice(0, 24) + "\"" });
+    }
+  }
+  out.sort((x, y) => x.ratio - y.ratio);
+  return { n: out.length, worst: out.slice(0, 3) };
+};
+
+// The popup's view of Chrome: its two storage areas (with What's new set, as after an update) and a YouTube tab.
+const POPUP_STUB = `(() => {
+  const store = { sync: {}, local: { whatsNew: "2.3.0" } };
+  const area = (n) => ({
+    get(d, cb) { const out = {}; const keys = d === null ? Object.keys(store[n]) : typeof d === "string" ? [d] : Array.isArray(d) ? d : Object.keys(d || {});
+      for (const k of keys) out[k] = k in store[n] ? store[n][k] : (d && typeof d === "object" && !Array.isArray(d) ? d[k] : undefined);
+      setTimeout(() => cb && cb(out), 0); },
+    set(o, cb) { Object.assign(store[n], o); setTimeout(() => cb && cb(), 0); },
+    remove(k, cb) { delete store[n][k]; setTimeout(() => cb && cb(), 0); },
+  });
+  window.__popupStore = store;
+  window.chrome = { runtime: { lastError: null, getManifest: () => ({ version: "2.3.0" }), sendMessage() {}, onMessage: { addListener() {} } },
+    storage: { sync: area("sync"), local: area("local"), onChanged: { addListener() {} } },
+    tabs: { query: (q, cb) => cb([{ id: 1, url: "https://www.youtube.com/@veritasium/videos", active: true }]), sendMessage: (id, m, cb) => cb && cb(), create() {} } };
+})();`;
 
 // ---- the checks --------------------------------------------------------------------------
 // Each returns { problems: [...], detail }.
@@ -447,6 +551,395 @@ const PUBLIC = [
       return { problems };
     },
   },
+  {
+    name: "Undo: a mute taken back brings the cards back",
+    run: async (b) => {
+      const p = await open(b, "/results?search_query=space+documentary", true);
+      const problems = await muteThroughMenu(p, "video", "Mute channel");
+      const undo = await p.evaluate(() => typeof window.__needleUndo === "function");
+      if (!undo) problems.push("the toast offered no Undo");
+      else {
+        await p.evaluate(() => window.__needleUndo());
+        await sleep(900);
+        const r = await p.evaluate(() => ({ n: muted.list.length, hidden: document.querySelectorAll("[data-ytcs-muted]").length }));
+        if (r.n) problems.push("still muted after Undo");
+        if (r.hidden) problems.push(r.hidden + " cards still hidden after Undo");
+      }
+      await p.close();
+      return { problems };
+    },
+  },
+  {
+    name: "muted words: a title with the word goes, nothing else does",
+    run: async (b) => {
+      const p = await open(b, "/results?search_query=space+documentary", true);
+      for (let i = 0; i < 2; i++) { await p.evaluate(() => window.scrollBy(0, 3000)); await sleep(1500); }
+      const r = await p.evaluate(() => {
+        // a word some of the titles on the page share, and some don't
+        const titles = new Map();
+        for (const [id, o] of muteOwners) if (o.title) titles.set(id, o.title);
+        const count = new Map();
+        for (const t of titles.values()) for (const w of new Set(t.toLowerCase().match(/\p{L}{5,}/gu) || [])) count.set(w, (count.get(w) || 0) + 1);
+        const pick = [...count].filter(([, n]) => n >= 2 && n <= titles.size / 2).sort((a, b) => b[1] - a[1])[0];
+        if (!pick) return { word: null, titles: titles.size };
+        muted.words = [pick[0]];
+        muted.ver++;
+        muteScan();
+        const re = new RegExp("(?<![\\p{L}\\p{N}])" + pick[0] + "(?![\\p{L}\\p{N}])", "iu");
+        const seen = new Set();
+        let should = 0, gone = 0, wrong = 0;
+        for (const a of document.querySelectorAll(MUTE_VIDEO_LINK)) {
+          if (a.closest(MUTE_NEVER)) continue;
+          const id = muteLinkId(a), t = titles.get(id);
+          if (!id || !t || seen.has(id)) continue;
+          seen.add(id);
+          const card = muteCard(a, id);
+          if (!card) continue;
+          const hidden = card.hasAttribute("data-ytcs-muted");
+          if (re.test(t)) { should++; if (hidden) gone++; } else if (hidden) wrong++;
+        }
+        return { word: pick[0], should, gone, wrong };
+      });
+      await p.close();
+      const problems = [];
+      if (!r.word) problems.push(`no word to mute among ${r.titles} titles`);
+      else {
+        if (!r.should) problems.push(`no card on the page has "${r.word}"`);
+        else if (r.gone < r.should) problems.push(`${r.gone} of ${r.should} cards with "${r.word}" hidden`);
+        if (r.wrong) problems.push(r.wrong + " cards without the word hidden");
+      }
+      return { problems, detail: JSON.stringify(r) };
+    },
+  },
+  {
+    // The length goes to YouTube's own filter, so every result it sends is already short; the views are Needle's
+    // to apply, so those cut the list.
+    name: "search bar: a typed filter cuts YouTube's results",
+    run: async (b) => {
+      const p = await open(b, "/", "full");
+      await p.click(SEARCH_INPUT);
+      await p.keyboard.type("black holes <20m >1m views", { delay: 50 });
+      await sleep(700);
+      await p.keyboard.press("Enter");
+      let r = null;
+      for (let t = 0; t < 30000; t += 1000) {
+        await sleep(1000);
+        r = await p.evaluate(() => {
+          const m = ((document.querySelector(".ytcs-wrap") || {}).innerText || "").match(/(\d[\d,]*) of (\d[\d,]*)/);
+          if (location.pathname !== "/results" || !m) return null;
+          const secs = [...document.querySelectorAll(".ytcs-grid .ytcs-dur")].map((d) => d.textContent.trim().split(":").reduce((a, x) => a * 60 + (+x || 0), 0));
+          return { shown: +m[1].replace(/,/g, ""), of: +m[2].replace(/,/g, ""), cards: secs.length, over: secs.filter((s) => s >= 1200).length };
+        });
+        if (r && r.cards) break;
+      }
+      await p.close();
+      const problems = [];
+      if (!r) problems.push("the results page never showed Needle's filtered list");
+      else {
+        if (!r.cards) problems.push("the filtered list is empty");
+        if (r.over) problems.push(`${r.over} of ${r.cards} results are 20 minutes or longer`);
+        if (r.shown >= r.of) problems.push(`">1m views" cut nothing: ${r.shown} of ${r.of}`);
+      }
+      return { problems, detail: JSON.stringify(r) };
+    },
+  },
+  {
+    name: "share: Copy a link makes a link that opens the same view",
+    run: async (b) => {
+      const p = await open(b, "/@veritasium/videos", "full");
+      const problems = [];
+      if (!(await openPanel(p, 60))) { await p.close(); return { problems: ["the panel did not open"] }; }
+      await p.evaluate(() => { navigator.clipboard.writeText = (t) => { window.__copied = t; return Promise.resolve(); }; });
+      await p.click(".ytcs-wrap input");
+      await p.keyboard.type(">30m ", { delay: 60 });
+      await sleep(1500);
+      await p.evaluate(() => { const x = [...document.querySelectorAll(".ytcs-wrap button")].find((e) => /^Export/.test(e.textContent.trim())); if (x) x.click(); });
+      await sleep(600);
+      await p.evaluate(() => { const o = [...document.querySelectorAll(".ytcs-menu [role=option]")].find((e) => /link to this filter/i.test(e.textContent)); if (o) o.click(); });
+      await sleep(1200);
+      const link = await p.evaluate(() => window.__copied || "");
+      await p.close();
+      if (!link) return { problems: ["Copy a link copied nothing"] };
+      const h = new URLSearchParams(link.split("#")[1] || "");
+      if (!link.startsWith("https://gottostartsomewhere.github.io/needle/f/#")) problems.push("the link does not go to the share page: " + link.slice(0, 80));
+      if (h.get("k") !== "channel" || h.get("p") !== "/@veritasium/videos") problems.push(`the link names ${h.get("k")} ${h.get("p")}`);
+      if (!/>30m/.test(h.get("q") || "")) problems.push(`the filter is missing from the link: q=${h.get("q")}`);
+      // the share page itself, live, turns it into a YouTube link Needle opens with the filter
+      const s = await b.newPage();
+      await s.goto(link, { waitUntil: "networkidle2", timeout: 60000 });
+      const page = await s.evaluate(() => ({ heading: (document.getElementById("fh") || {}).textContent || "", open: (document.getElementById("fopen") || {}).href || "" }));
+      await s.close();
+      if (/broken/i.test(page.heading)) problems.push("the share page says the link is broken");
+      if (!page.open.startsWith("https://www.youtube.com/@veritasium/videos#needle=")) problems.push("the share page's Open goes to " + page.open.slice(0, 80));
+      // and Needle, opened from that link, puts the same filter on the same channel
+      let opened = null;
+      if (page.open.startsWith("https://www.youtube.com/")) {
+        const y = await open(b, page.open.slice("https://www.youtube.com".length), "full");
+        for (let t = 0; t < 30000 && !(opened && opened.shown < opened.of); t += 1000) { await sleep(1000); opened = await panelCount(y); }
+        await y.close();
+        if (!opened) problems.push("YouTube opened from the share link without Needle's panel");
+        else if (!(opened.shown < opened.of)) problems.push(`opened from the link, the filter was not applied: ${opened.shown} of ${opened.of}`);
+      }
+      return { problems, detail: JSON.stringify({ q: h.get("q"), opened }) };
+    },
+  },
+  {
+    // In the panel (a click on its stats line), / goes to its search box and j walks the cards. Outside it, the keys
+    // stay YouTube's.
+    name: "keyboard: / and j in the panel",
+    run: async (b) => {
+      const p = await open(b, "/playlist?list=PL8dPuuaLjXtPAJr1ysd5yGIyiSFuh0mIL", "full");
+      if (!(await openPanel(p, 40))) { await p.close(); return { problems: ["the panel did not open"] }; }
+      const inside = async () => { const s = await p.evaluate(() => { const r = document.querySelector(".ytcs-stats").getBoundingClientRect(); return { x: r.right - 20, y: r.top + r.height / 2 }; }); await p.mouse.click(s.x, s.y); };
+      const where = () => p.evaluate(() => { const a = document.activeElement, grid = [...(document.querySelector(".ytcs-grid") || { children: [] }).children];
+        return { box: !!(a && a.tagName === "INPUT" && a.closest(".ytcs-wrap")), card: grid.findIndex((c) => c === a || c.contains(a)) }; });
+      await inside();
+      await p.keyboard.press("/");
+      await sleep(300);
+      const slash = await where();
+      await p.keyboard.press("Escape");
+      await inside();
+      await p.keyboard.press("j");
+      await sleep(200);
+      const j1 = await where();
+      await p.keyboard.press("j");
+      await sleep(200);
+      const j2 = await where();
+      await p.close();
+      const problems = [];
+      if (!slash.box) problems.push("/ did not go to the panel's search box");
+      if (j1.card !== 0) problems.push(`j went to card ${j1.card}, not the first`);
+      else if (j2.card !== 1) problems.push(`j again went to card ${j2.card}, not the second`);
+      return { problems, detail: JSON.stringify({ slash, j1, j2 }) };
+    },
+  },
+  {
+    name: "light and dark: Needle's text is readable in both",
+    run: async (b) => {
+      const p = await open(b, "/playlist?list=PL8dPuuaLjXtPAJr1ysd5yGIyiSFuh0mIL", "full");
+      if (!(await openPanel(p, 40))) { await p.close(); return { problems: ["the panel did not open"] }; }
+      const theme = (dark) => p.evaluate((dark) => { for (const el of [document.documentElement, document.querySelector("ytd-app"), document.querySelector("ytd-masthead")]) if (el) el.toggleAttribute("dark", dark); }, dark);
+      const out = {};
+      for (const [name, dark] of [["light", false], ["dark", true]]) {
+        await theme(dark);
+        await sleep(600);
+        out[name] = await p.evaluate(CONTRAST, ".ytcs-wrap, .ytcs-launcher");
+      }
+      // the search bar's dropdown, in the theme the page is in
+      await p.click(SEARCH_INPUT);
+      await sleep(1200);
+      out.dropdown = await p.evaluate(CONTRAST, ".ytcs-omni");
+      await p.close();
+      const problems = [];
+      for (const [k, v] of Object.entries(out)) {
+        if (k !== "dropdown" && v.n < 20) problems.push(`${k}: only ${v.n} text elements found`);
+        const w = v.worst[0];
+        if (w && w.ratio < 3) problems.push(`${k}: ${w.what} is ${w.ratio}:1, unreadable`);
+      }
+      return { problems, detail: Object.entries(out).map(([k, v]) => `${k} worst ${v.worst[0] ? v.worst[0].ratio + ":1 " + v.worst[0].what : "n/a"}`).join("; ") };
+    },
+  },
+  {
+    name: "popup: opens clean, What's new, settings, a muted word saves",
+    run: async (b) => {
+      const p = await b.newPage();
+      const errors = [];
+      p.on("pageerror", (e) => errors.push(String(e.message).slice(0, 100)));
+      await p.evaluateOnNewDocument(POPUP_STUB);
+      await p.goto("file:///" + path.join(ROOT, "popup.html").replace(/\\/g, "/"), { waitUntil: "load" });
+      await sleep(800);
+      const r = await p.evaluate(() => {
+        const vis = (id) => { const el = document.getElementById(id); return !!el && !el.hidden && el.getBoundingClientRect().height > 0; };
+        return { whatsnew: vis("whatsnew"), open: vis("open"), settings: ["librarySearch", "deepHistory", "maxVideos"].every(vis), mutedEmpty: vis("mutedEmpty"), wordForm: vis("wordForm") };
+      });
+      await p.type("#wordInput", "crypto");
+      await p.evaluate(() => document.getElementById("wordForm").requestSubmit());
+      await sleep(600);
+      const saved = await p.evaluate(() => ({ stored: (window.__popupStore.local.mutedWords || []).includes("crypto"), listed: /crypto/.test(document.getElementById("mutedWords").textContent) }));
+      await p.close();
+      const problems = errors.map((e) => "error: " + e);
+      if (!r.whatsnew) problems.push("What's new is not shown after an update");
+      if (!r.open || !r.settings) problems.push("the popup's controls are missing");
+      if (!r.mutedEmpty) problems.push("the empty muted list has no explanation");
+      if (!saved.stored) problems.push("a muted word was not saved");
+      if (!saved.listed) problems.push("a muted word does not show in the list");
+      return { problems, detail: JSON.stringify({ ...r, ...saved }) };
+    },
+  },
+  {
+    name: "popup: a muted list exports, and imports back",
+    run: async (b) => {
+      const p = await b.newPage();
+      const errors = [];
+      p.on("pageerror", (e) => errors.push(String(e.message).slice(0, 100)));
+      await p.evaluateOnNewDocument(POPUP_STUB);
+      await p.evaluateOnNewDocument(() => { const real = URL.createObjectURL; URL.createObjectURL = (blob) => { window.__blob = blob; return real.call(URL, blob); }; HTMLAnchorElement.prototype.click = function () { window.__downloaded = this.download; }; });
+      await p.goto("file:///" + path.join(ROOT, "popup.html").replace(/\\/g, "/"), { waitUntil: "load" });
+      await sleep(600);
+      // a file the way another blocker's export looks: a handle, a channel id, a word
+      const file = path.join(os.tmpdir(), "needle-import-check.txt");
+      fs.writeFileSync(file, "# from another blocker\n@veritasium\nUCYO_jab_esuFRV4b17AJtAw\nword: drama\n");
+      await (await p.$("#muteFile")).uploadFile(file);
+      await p.evaluate(() => document.getElementById("muteFile").dispatchEvent(new Event("change")));
+      await sleep(900);
+      const imported = await p.evaluate(() => { const s = window.__popupStore.local; return { channels: (s.muted || []).map((m) => m.handle || m.channelId), words: s.mutedWords || [], listed: document.getElementById("muted").children.length }; });
+      await p.click("#muteExport");
+      await sleep(600);
+      const exported = await p.evaluate(async () => ({ name: window.__downloaded || "", text: window.__blob ? await window.__blob.text() : "" }));
+      await p.close();
+      fs.rmSync(file, { force: true });
+      const problems = errors.map((e) => "error: " + e);
+      if (!imported.channels.includes("veritasium") || !imported.channels.includes("UCYO_jab_esuFRV4b17AJtAw")) problems.push("import missed a channel: " + imported.channels.join(", "));
+      if (!imported.words.includes("drama")) problems.push("import missed the word");
+      if (imported.listed < 2) problems.push("imported channels are not listed");
+      if (exported.name !== "needle-muted.txt") problems.push("export saved no file");
+      else if (!/@veritasium/.test(exported.text) || !/word: drama/.test(exported.text)) problems.push("the exported file is missing what was imported");
+      return { problems, detail: JSON.stringify({ imported, exportedLines: exported.text.split("\n").filter(Boolean).length }) };
+    },
+  },
+  {
+    name: "panel: Free time leaves only what fits",
+    run: async (b) => {
+      const p = await open(b, "/playlist?list=PL8dPuuaLjXtPAJr1ysd5yGIyiSFuh0mIL", "full");
+      if (!(await openPanel(p, 40))) { await p.close(); return { problems: ["the panel did not open"] }; }
+      const before = await panelCount(p);
+      const err = await pickInMenu(p, "Free time", "10 min free");
+      const after = await panelCount(p), secs = await shownSeconds(p);
+      await p.close();
+      const problems = err ? [err] : [];
+      if (!err) {
+        if (!after || !(after.shown < before.shown)) problems.push(`10 min free left ${after && after.shown} of ${before && before.shown}`);
+        if (secs.some((s) => s > 600)) problems.push(`${secs.filter((s) => s > 600).length} videos longer than 10 minutes left`);
+        if (!secs.length) problems.push("nothing fits 10 minutes");
+      }
+      return { problems, detail: JSON.stringify({ before, after, longest: Math.max(0, ...secs) }) };
+    },
+  },
+  {
+    name: "panel: Copy links (for NotebookLM) copies what is shown",
+    run: async (b) => {
+      const p = await open(b, "/playlist?list=PL8dPuuaLjXtPAJr1ysd5yGIyiSFuh0mIL", "full");
+      if (!(await openPanel(p, 40))) { await p.close(); return { problems: ["the panel did not open"] }; }
+      await p.click(".ytcs-wrap input");
+      await p.keyboard.type("<11m ", { delay: 60 });
+      await sleep(1500);
+      const shown = await panelCount(p);
+      const text = await exportCopy(p, "Copy links");
+      await p.close();
+      const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+      const links = lines.filter((l) => /^https:\/\/www\.youtube\.com\/watch\?v=[\w-]{11}$/.test(l));
+      const problems = [];
+      if (!lines.length) problems.push("nothing copied");
+      else if (links.length !== lines.length) problems.push(`${lines.length - links.length} lines are not plain video links`);
+      if (shown && links.length !== shown.shown) problems.push(`${links.length} links copied for ${shown.shown} videos shown`);
+      return { problems, detail: JSON.stringify({ shown: shown && shown.shown, links: links.length }) };
+    },
+  },
+  {
+    name: "panel: Play opens what is shown as a playlist",
+    run: async (b) => {
+      const p = await open(b, "/playlist?list=PL8dPuuaLjXtPAJr1ysd5yGIyiSFuh0mIL", "full");
+      if (!(await openPanel(p, 40))) { await p.close(); return { problems: ["the panel did not open"] }; }
+      await p.click(".ytcs-wrap input");
+      await p.keyboard.type("<11m ", { delay: 60 });
+      await sleep(1500);
+      const ids = await p.evaluate(() => [...document.querySelectorAll(".ytcs-grid > [data-id]")].map((c) => c.dataset.id));
+      const nav = p.waitForNavigation({ timeout: 30000 }).catch(() => null);
+      await p.evaluate(() => { const x = [...document.querySelectorAll(".ytcs-wrap button")].find((e) => e.textContent.trim() === "Play"); if (x) x.click(); });
+      await nav;
+      await sleep(4000);
+      const at = new URL(p.url());
+      const r = { path: at.pathname, v: at.searchParams.get("v"), list: at.searchParams.get("list") || "" };
+      await p.close();
+      const problems = [];
+      if (r.path !== "/watch") problems.push("Play went to " + r.path);
+      else {
+        if (!r.list) problems.push("the video plays without a playlist after it");
+        if (r.v !== ids[0]) problems.push("it starts on a video that was not first in the list");
+      }
+      return { problems, detail: JSON.stringify({ ...r, first: ids[0], shown: ids.length }) };
+    },
+  },
+  {
+    name: "Insights: overview, Compare and Watchlist on a channel",
+    run: async (b) => {
+      const p = await open(b, "/@veritasium/videos", "full");
+      if (!(await openPanel(p, 60))) { await p.close(); return { problems: ["the panel did not open"] }; }
+      const problems = [], detail = {};
+      const click = (sel, text) => p.evaluate((sel, text) => { const x = [...document.querySelectorAll(sel)].find((e) => e.textContent.trim() === text && e.getBoundingClientRect().width > 0); if (x) x.click(); return !!x; }, sel, text);
+      if (!(await click(".ytcs-tab", "Insights"))) problems.push("no Insights tab");
+      await sleep(2000);
+      detail.overview = await p.evaluate(() => { const c = document.querySelector(".ytcs-charts"); return c ? { parts: c.children.length, numbers: (c.innerText.match(/\d/g) || []).length } : null; });
+      if (!detail.overview || !detail.overview.parts || detail.overview.numbers < 10) problems.push("the overview drew no charts");
+      // Compare: another channel's whole catalogue, lined up against this one
+      if (!(await click(".ytcs-sub", "Compare"))) problems.push("no Compare");
+      else {
+        await sleep(400);
+        await p.evaluate(() => { const i = [...document.querySelectorAll(".ytcs-insights .ytcs-textin")].find((e) => e.getBoundingClientRect().width > 0); i.focus(); });
+        await p.keyboard.type("@3blue1brown", { delay: 40 });
+        await click(".ytcs-primary", "Compare");
+        let cmp = "";
+        for (let t = 0; t < 90000 && cmp.length < 80; t += 2000) { await sleep(2000); cmp = await p.evaluate(() => (document.querySelector(".ytcs-cmpresult") || {}).innerText || ""); }
+        detail.compare = cmp.length;
+        if (cmp.length < 80) problems.push("Compare showed nothing for @3blue1brown");
+      }
+      // Watchlist: track a channel, refresh, get its standouts back
+      if (!(await click(".ytcs-sub", "Watchlist"))) problems.push("no Watchlist");
+      else {
+        await sleep(400);
+        await p.evaluate(() => { const i = [...document.querySelectorAll(".ytcs-insights .ytcs-textin")].find((e) => e.getBoundingClientRect().width > 0); i.value = ""; i.focus(); });
+        await p.keyboard.type("@3blue1brown", { delay: 40 });
+        await click(".ytcs-primary", "Track");
+        await sleep(1500);
+        const chips = await p.evaluate(() => (document.querySelector(".ytcs-chips") || {}).innerText || "");
+        if (!/3blue1brown/i.test(chips)) problems.push("Track did not add the channel");
+        await click(".ytcs-insights button", "Refresh all");
+        let res = "";
+        for (let t = 0; t < 120000 && res.length < 40; t += 2000) { await sleep(2000); res = await p.evaluate(() => (document.querySelector(".ytcs-nresults") || {}).innerText || ""); }
+        detail.watchlist = res.length;
+        if (res.length < 40) problems.push("Refresh all brought nothing back");
+      }
+      await p.close();
+      return { problems, detail: JSON.stringify(detail) };
+    },
+  },
+  {
+    name: "search: Follow a search, and is:fresh leaves out what you've seen",
+    run: async (b) => {
+      const p = await open(b, "/", "full");
+      const search = async (q) => { await p.click(SEARCH_INPUT, { clickCount: 3 }); await p.keyboard.press("Backspace"); await p.keyboard.type(q, { delay: 40 }); await sleep(500); await p.keyboard.press("Enter"); };
+      const problems = [], detail = {};
+      // a search with a filter can be followed, and unfollowed
+      await search("black holes <20m");
+      let count = null;
+      for (let t = 0; t < 30000 && !count; t += 1000) { await sleep(1000); count = await panelCount(p); }
+      const label = () => p.evaluate(() => { const x = document.querySelector(".ytcs-followbtn"); return x && x.style.display !== "none" ? x.textContent.trim() : null; });
+      const l0 = await label();
+      await p.evaluate(() => document.querySelector(".ytcs-followbtn").click());
+      await sleep(400);
+      const l1 = await label();
+      await p.evaluate(() => document.querySelector(".ytcs-followbtn").click());
+      await sleep(400);
+      const l2 = await label();
+      detail.follow = [l0, l1, l2];
+      if (!l0) problems.push("no Follow on a filtered search");
+      else if (l1 === l0) problems.push("Follow did not change to following");
+      else if (l2 !== l0) problems.push("pressing it again did not unfollow");
+      // what is on screen now counts as seen; the same search with is:fresh leaves it out
+      await search("black holes");
+      await sleep(4000);
+      for (let i = 0; i < 4; i++) { await p.evaluate(() => window.scrollBy(0, 700)); await sleep(1200); }
+      await sleep(3000);
+      await search("black holes is:fresh");
+      let fresh = null;
+      for (let t = 0; t < 30000 && !fresh; t += 1000) { await sleep(1000); fresh = await panelCount(p); }
+      detail.fresh = fresh;
+      if (!fresh) problems.push("is:fresh opened no filtered list");
+      else if (!(fresh.shown < fresh.of)) problems.push(`is:fresh left ${fresh.shown} of ${fresh.of}: nothing seen was left out`);
+      await p.close();
+      return { problems, detail: JSON.stringify(detail) };
+    },
+  },
 ];
 
 // Signed in: the lists only an account has, read with Needle's own readers.
@@ -500,11 +993,259 @@ const SIGNED_IN = [
       return { problems, detail: JSON.stringify(short) };
     },
   },
+  {
+    name: "signed in: the search bar brings up your own videos as you type",
+    run: async (b) => {
+      const p = await open(b, "/", "full");
+      // a word a few of your own saved, watched or liked videos share, from the lists Needle read
+      let word = null;
+      for (let t = 0; t < 30000 && !word; t += 1000) {
+        await sleep(1000);
+        word = await p.evaluate(() => {
+          const L = window.__needleCheck && window.__needleCheck.library;
+          if (!L || L.wl.length + L.hist.length < 20) return null;
+          const stop = new Set("the,and,for,with,this,that,from,your,what,how,why,you,are,was,official,video,full,part,new,best,into,about,make,made,will,when,have".split(","));
+          const count = new Map();
+          for (const v of L.wl.concat(L.hist, L.liked)) for (const w of new Set(v.title.toLowerCase().split(/[^a-z0-9]+/))) if (w.length >= 4 && !stop.has(w)) count.set(w, (count.get(w) || 0) + 1);
+          const best = [...count].filter(([, n]) => n >= 3 && n <= 12).sort((a, b) => b[1] - a[1])[0];
+          return best ? best[0] : null;
+        });
+      }
+      if (!word) { await p.close(); return { problems: ["Needle read too little of your lists to search them"] }; }
+      await p.click(SEARCH_INPUT);
+      await p.keyboard.type(word, { delay: 70 });
+      await sleep(2500);
+      const r = await p.evaluate(() => {
+        const box = document.querySelector(".ytcs-omni");
+        const text = box ? box.innerText : "";
+        return { open: !!box && box.getBoundingClientRect().height > 0, rows: box ? box.querySelectorAll("[role=option], .ytcs-omni-row").length : 0,
+          sections: ["In your Watch Later", "You watched", "Liked"].filter((s) => text.includes(s)) };
+      });
+      await p.close();
+      const problems = [];
+      if (!r.open) problems.push(`typed "${word}": no dropdown`);
+      else {
+        if (r.rows < 2) problems.push(`typed "${word}": ${r.rows} rows`);
+        if (!r.sections.length) problems.push(`typed "${word}": none of your lists in the dropdown`);
+      }
+      return { problems, detail: JSON.stringify({ word, ...r }) };
+    },
+  },
+  {
+    name: "signed in: the panel on your history and Watch Later",
+    run: async (b) => {
+      const problems = [], detail = {};
+      for (const [name, url, stat] of [["history", "/feed/history", "Average length"], ["Watch Later", "/playlist?list=WL", "Total length"]]) {
+        const p = await open(b, url, "full");
+        if (!(await openPanel(p, 20))) { problems.push(`${name}: the panel did not open`); await p.close(); continue; }
+        const before = await panelCount(p);
+        const stats = await p.evaluate(() => (document.querySelector(".ytcs-stats") || {}).innerText || "");
+        await p.click(".ytcs-wrap input");
+        await p.keyboard.type("<20m", { delay: 80 });
+        await sleep(1800);
+        const after = await panelCount(p);
+        await p.close();
+        detail[name] = { before, after };
+        if (!stats.includes(stat)) problems.push(`${name}: no ${stat} in the stats line`);
+        if (!after || !before) problems.push(`${name}: no count`);
+        else if (!(after.shown < before.shown)) problems.push(`${name}: "<20m" left ${after.shown} of ${before.shown}`);
+      }
+      return { problems, detail: JSON.stringify(detail) };
+    },
+  },
+  {
+    name: "signed in: Mute from a Home card",
+    run: async (b) => {
+      const p = await open(b, "/", true);
+      const problems = await muteThroughMenu(p, "video", "Mute channel");
+      await p.close();
+      return { problems };
+    },
+  },
+  {
+    name: "signed in: the panel on your subscriptions",
+    run: async (b) => {
+      const p = await open(b, "/feed/subscriptions", "full");
+      if (!(await openPanel(p, 20))) { await p.close(); return { problems: ["the panel did not open"] }; }
+      const before = await panelCount(p);
+      await p.click(".ytcs-wrap input");
+      await p.keyboard.type("<20m", { delay: 80 });
+      await sleep(1800);
+      const after = await panelCount(p), secs = await shownSeconds(p);
+      await p.close();
+      const problems = [];
+      if (!before || !after) problems.push("no count");
+      else if (!(after.shown < before.shown)) problems.push(`"<20m" left ${after.shown} of ${before.shown}`);
+      if (secs.some((s) => s >= 1200)) problems.push(`${secs.filter((s) => s >= 1200).length} videos of 20 minutes or more left`);
+      return { problems, detail: JSON.stringify({ before, after }) };
+    },
+  },
+  {
+    name: "signed in: in:playlists searches your saved playlists",
+    run: async (b) => {
+      const p = await open(b, "/", "full");
+      await p.click(SEARCH_INPUT);
+      await p.keyboard.type("in:playlists ", { delay: 60 });
+      // the first ask reads every playlist in your library, which takes a moment
+      let r = null;
+      for (let t = 0; t < 40000; t += 2000) {
+        await sleep(2000);
+        r = await p.evaluate(() => { const box = document.querySelector(".ytcs-omni"); const text = box ? box.innerText : ""; return { section: text.includes("In your playlists"), rows: box ? box.querySelectorAll("[role=option], .ytcs-omni-row").length : 0, text: text.replace(/\s+/g, " ").slice(0, 140) }; });
+        if (r.section && r.rows) break;
+      }
+      await p.close();
+      return { problems: r && r.section && r.rows ? [] : ["no videos from your playlists: " + (r ? r.text : "no dropdown")], detail: JSON.stringify({ rows: r && r.rows }) };
+    },
+  },
+  {
+    name: "signed in: finished videos hidden on Home and Subscriptions",
+    run: async (b) => {
+      const problems = [], detail = {};
+      for (const [name, url] of [["Home", "/"], ["Subscriptions", "/feed/subscriptions"]]) {
+        const p = await open(b, url, { sync: { feedWatched: "hide" } });
+        for (let i = 0; i < 3; i++) { await p.evaluate(() => window.scrollBy(0, 2500)); await sleep(1500); }
+        await sleep(1500);
+        detail[name] = await p.evaluate(() => {
+          const cards = [...document.querySelectorAll("ytd-rich-item-renderer")];
+          const marked = cards.filter((c) => c.getAttribute("data-ytcs-feed") === "hide");
+          return { cards: cards.length, hidden: marked.length, stillShowing: marked.filter((c) => c.getBoundingClientRect().height > 0).length };
+        });
+        await p.close();
+        if (detail[name].stillShowing) problems.push(`${name}: ${detail[name].stillShowing} finished videos still showing`);
+      }
+      if (!detail.Home.hidden && !detail.Subscriptions.hidden) problems.push("no finished video was hidden on either page");
+      return { problems, detail: JSON.stringify(detail) };
+    },
+  },
+];
+
+/*
+ * Signed in, and changing the account: run only with --edits, never by the daily check. Each one does the thing
+ * and then takes it back the way a person would (Undo, the archive, Like again), and checks both against what
+ * YouTube itself then says is in the list.
+ */
+async function pickFirstAndAct(p) {
+  await p.evaluate(() => document.querySelector(".ytcs-selectbtn").click());
+  await sleep(600);
+  const first = await p.evaluate(() => { const c = document.querySelector(".ytcs-grid > [data-id]"); if (!c) return null; const r = c.getBoundingClientRect(); return { id: c.dataset.id, x: r.x + r.width / 2, y: r.y + Math.min(60, r.height / 2) }; });
+  if (!first) return { error: "no card to pick" };
+  await p.mouse.click(first.x, first.y);
+  await sleep(400);
+  // the action, then the confirmation the bar asks for (the first time, "Allow and …")
+  await p.evaluate(() => document.querySelector(".ytcs-selbar .ytcs-danger").click());
+  await sleep(400);
+  await p.evaluate(() => document.querySelector(".ytcs-selbar .ytcs-danger").click());
+  let toast = "";
+  for (let t = 0; t < 20000 && !toast; t += 500) { await sleep(500); toast = await p.evaluate(() => (document.querySelector(".ytcs-toast") || {}).innerText || ""); }
+  return { id: first.id, toast };
+}
+const clickToastUndo = (p) => p.evaluate(() => { const x = document.querySelector(".ytcs-toast button"); if (x) x.click(); return !!x; });
+
+const EDITS = [
+  {
+    name: "edits: remove from Watch Later, then Undo",
+    run: async (b) => {
+      const p = await open(b, "/playlist?list=WL", "full");
+      if (!(await openPanel(p, 20))) { await p.close(); return { problems: ["the panel did not open"] }; }
+      const r = await pickFirstAndAct(p);
+      if (r.error) { await p.close(); return { problems: [r.error] }; }
+      const problems = [];
+      if (!/Removed 1 video/.test(r.toast)) problems.push("toast: " + (r.toast || "none"));
+      const gone = !(await listIds(b, "WL")).includes(r.id);
+      if (!gone) problems.push("YouTube still has it in Watch Later");
+      if (!(await clickToastUndo(p))) problems.push("no Undo on the toast");
+      await sleep(4000);
+      await p.close();
+      const back = (await listIds(b, "WL")).includes(r.id);
+      if (!back) problems.push("Undo did not put it back: " + r.id);
+      return { problems, detail: JSON.stringify({ id: r.id, gone, back }) };
+    },
+  },
+  {
+    name: "edits: remove from Watch Later, put back from Removed earlier",
+    run: async (b) => {
+      const p = await open(b, "/playlist?list=WL", "full");
+      if (!(await openPanel(p, 20))) { await p.close(); return { problems: ["the panel did not open"] }; }
+      const r = await pickFirstAndAct(p);
+      if (r.error) { await p.close(); return { problems: [r.error] }; }
+      const problems = [];
+      const gone = !(await listIds(b, "WL")).includes(r.id);
+      if (!gone) problems.push("YouTube still has it in Watch Later");
+      // after the toast: Select, "Removed earlier", pick it, put it back
+      await p.evaluate(() => document.querySelector(".ytcs-selectbtn").click());
+      await sleep(1500);
+      const opened = await p.evaluate(() => { const x = [...document.querySelectorAll(".ytcs-selbar button")].find((e) => /^Removed earlier/.test(e.textContent)); if (x) x.click(); return !!x; });
+      if (!opened) problems.push("no Removed earlier in the bar");
+      await sleep(1500);
+      const card = await p.evaluate((id) => { const c = document.querySelector(`.ytcs-grid > [data-id="${id}"]`); if (!c) return null; const q = c.getBoundingClientRect(); return { x: q.x + q.width / 2, y: q.y + Math.min(60, q.height / 2) }; }, r.id);
+      if (!card) problems.push("it is not in the archive");
+      else {
+        await p.mouse.click(card.x, card.y);
+        await sleep(400);
+        await p.evaluate(() => { const x = document.querySelector(".ytcs-selbar .ytcs-primarybtn"); if (x) x.click(); });
+        await sleep(400);
+        await p.evaluate(() => { const x = document.querySelector(".ytcs-selbar .ytcs-primarybtn"); if (x) x.click(); });
+        await sleep(5000);
+      }
+      await p.close();
+      const back = (await listIds(b, "WL")).includes(r.id);
+      if (!back) problems.push("putting it back from the archive did not: " + r.id);
+      return { problems, detail: JSON.stringify({ id: r.id, gone, back }) };
+    },
+  },
+  {
+    name: "edits: unlike from Liked videos, then Undo likes it again",
+    run: async (b) => {
+      const p = await open(b, "/playlist?list=LL", "full");
+      if (!(await openPanel(p, 20))) { await p.close(); return { problems: ["the panel did not open"] }; }
+      await sleep(1500);
+      const can = await p.evaluate(() => { const x = document.querySelector(".ytcs-selectbtn"); return !!x && x.style.display !== "none"; });
+      if (!can) { await p.close(); return { problems: ["no Select on Liked videos"] }; }
+      const r = await pickFirstAndAct(p);
+      if (r.error) { await p.close(); return { problems: [r.error] }; }
+      const problems = [];
+      if (!/Unliked 1 video/.test(r.toast)) problems.push("toast: " + (r.toast || "none"));
+      const gone = !(await listIds(b, "LL")).includes(r.id);
+      if (!gone) problems.push("YouTube still has it in Liked videos");
+      if (!(await clickToastUndo(p))) problems.push("no Undo on the toast");
+      await sleep(4000);
+      await p.close();
+      const back = (await listIds(b, "LL")).includes(r.id);
+      if (!back) problems.push("Undo did not like it again: " + r.id);
+      return { problems, detail: JSON.stringify({ id: r.id, gone, back }) };
+    },
+  },
+  {
+    name: "edits: find the deleted videos hiding in Watch Later",
+    run: async (b) => {
+      const p = await open(b, "/playlist?list=WL", "full");
+      // YouTube's own count of what it hides: "3 unavailable videos are hidden"
+      const hiddenByYouTube = await p.evaluate(() => { const m = document.body.innerText.match(/(\d+) unavailable videos? (?:are|is) hidden/i); return m ? +m[1] : 0; });
+      if (!(await openPanel(p, 20))) { await p.close(); return { problems: ["the panel did not open"] }; }
+      await p.evaluate(() => document.querySelector(".ytcs-selectbtn").click());
+      await sleep(600);
+      await p.evaluate(() => { const x = [...document.querySelectorAll(".ytcs-selbar button")].find((e) => e.textContent.trim() === "Find deleted videos"); if (x) x.click(); });
+      await sleep(600);
+      await p.evaluate(() => { const x = [...document.querySelectorAll(".ytcs-selbar button")].find((e) => e.textContent.trim() === "Allow and look"); if (x) x.click(); });
+      let bar = "";
+      for (let t = 0; t < 30000; t += 1000) { await sleep(1000); bar = await p.evaluate(() => document.querySelector(".ytcs-selbar").innerText.replace(/\s+/g, " ")); if (!/Looking/.test(bar) && bar) break; }
+      // removing them can't be undone, so it stops at the question
+      await p.evaluate(() => { const x = [...document.querySelectorAll(".ytcs-selbar button")].find((e) => e.textContent.trim() === "Cancel"); if (x) x.click(); });
+      await p.close();
+      const found = /No deleted or private videos/.test(bar) ? 0 : +((bar.match(/(\d+) deleted or private videos?/) || [])[1] || -1);
+      const problems = [];
+      if (found < 0) problems.push("it never said what it found: " + bar.slice(0, 120));
+      else if (found < hiddenByYouTube) problems.push(`YouTube hides ${hiddenByYouTube} unavailable videos here and Needle found ${found}`);
+      return { problems, detail: JSON.stringify({ hiddenByYouTube, found, bar: bar.slice(0, 120) }) };
+    },
+  },
 ];
 
 // ---- running them ------------------------------------------------------------------------
+// --only=word runs just the checks whose name has that word in it (several: --only="word|other")
+const ONLY = (process.argv.find((a) => a.startsWith("--only=")) || "").slice(7).toLowerCase().split("|").filter(Boolean);
 async function runAll(browser, checks, stamp, lines, failed) {
-  for (const c of checks) {
+  for (const c of checks.filter((c) => !ONLY.length || ONLY.some((w) => c.name.toLowerCase().includes(w)))) {
     let r;
     try { r = await c.run(browser); } catch (e) { r = { problems: ["threw: " + String(e && e.message || e).slice(0, 160)] }; }
     const ok = !r.problems.length;
@@ -546,8 +1287,10 @@ if (require.main === module) {
       } else {
         browser = await puppeteer.launch({ executablePath: CHROME, headless: true, userDataDir: PROFILE, args: ["--lang=en-US"] });
         try {
-          if (await signedIn(browser)) await runAll(browser, SIGNED_IN, stamp, lines, failed);
-          else {
+          if (await signedIn(browser)) {
+            await runAll(browser, SIGNED_IN, stamp, lines, failed);
+            if (process.argv.includes("--edits")) await runAll(browser, EDITS, stamp, lines, failed);
+          } else {
             lines.push(`${stamp}  FAIL  [browser] signed-in checks: the check's profile is signed out. Run: node tools/browser-check.js --signin`);
             failed.push("signed out");
           }
