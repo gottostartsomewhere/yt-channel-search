@@ -96,7 +96,7 @@ const AT_START = read("src/cards.js") + "\n" + read("src/feedmap.js");
  */
 const MANIFEST = JSON.parse(read("manifest.json"));
 const FULL = "(function () {\n" + `
-  const __store = { sync: __SYNC__, local: {} }, __listeners = [];
+  const __store = { sync: __SYNC__, local: __LOCAL__ }, __listeners = [];
   const __area = (name) => ({
     get(d, cb) { const out = {}; const keys = d === null ? Object.keys(__store[name]) : typeof d === "string" ? [d] : Array.isArray(d) ? d : Object.keys(d || {});
       for (const k of keys) out[k] = k in __store[name] ? __store[name][k] : (d && typeof d === "object" && !Array.isArray(d) ? d[k] : undefined);
@@ -109,17 +109,18 @@ const FULL = "(function () {\n" + `
     storage: { sync: __area("sync"), local: __area("local"), onChanged: { addListener: (fn) => __listeners.push(fn) } } };
 ` + MANIFEST.content_scripts.find((c) => c.run_at === "document_idle" && !c.world).js.map((f) => read(f)).join("\n") +
   // for the checks only: the lists the search bar reads, so one can type a word that is in them
-  "\nwindow.__needleCheck = { library: typeof library !== 'undefined' ? library : null };\n})();\n" + read("src/navigate.js") + "\n1;";
-// The whole extension with the popup's settings as given (unset ones take their defaults).
-const fullWith = (sync) => FULL.replace("__SYNC__", JSON.stringify(sync || {}));
+  "\nwindow.__needleCheck = { library: typeof library !== 'undefined' ? library : null, pageVideoChannel: typeof pageVideoChannel === 'function' ? pageVideoChannel : null, store: __store };\n})();\n" + read("src/navigate.js") + "\n1;";
+// The whole extension with the popup's settings as given (unset ones take their defaults), and what it has kept
+// in local storage from earlier visits.
+const fullWith = (sync, local) => FULL.replace("__SYNC__", JSON.stringify(sync || {})).replace("__LOCAL__", JSON.stringify(local || {}));
 
 // core.js in a scope of its own, so none of its names meet YouTube's.
 const CORE = `window.__needleCore = (function () { ${read("src/core.js")}
   ; cfg.maxVideos = 400; return { cfg, fetchPlaylist, fetchHistory, fetchSubscriptions }; })(); 1;`;
 
 // ---- a page ------------------------------------------------------------------------------
-// `withNeedle`: false (YouTube alone), true (Mute's code), "full" (the whole extension), or { sync } (the whole
-// extension with those popup settings).
+// `withNeedle`: false (YouTube alone), true (Mute's code), "full" (the whole extension), or { sync, local } (the
+// whole extension with those popup settings and that much kept from earlier visits).
 async function open(browser, url, withNeedle) {
   const full = withNeedle === "full" || (withNeedle && typeof withNeedle === "object");
   const p = await browser.newPage();
@@ -131,7 +132,7 @@ async function open(browser, url, withNeedle) {
   await sleep(2500);
   if (withNeedle) {
     await p.addStyleTag({ content: read("styles.css") });
-    await p.evaluate(full ? fullWith(withNeedle.sync) : MUTE_CODE);
+    await p.evaluate(full ? fullWith(withNeedle.sync, withNeedle.local) : MUTE_CODE);
     await sleep(1200);
   }
   return p;
@@ -287,8 +288,9 @@ const CONTRAST = (roots) => {
   return { n: out.length, worst: out.slice(0, 3) };
 };
 
-// The popup's view of Chrome: its two storage areas (with What's new set, as after an update) and a YouTube tab.
-const POPUP_STUB = `(() => {
+// The popup's view of Chrome: its two storage areas (with What's new set, as after an update) and the active tab,
+// a channel unless given; `reply` is what the page answers when asked. Where it sends the tab lands in __popupNav.
+const popupStub = (url = "https://www.youtube.com/@veritasium/videos", reply = null) => `(() => {
   const store = { sync: {}, local: { whatsNew: "2.3.0" } };
   const area = (n) => ({
     get(d, cb) { const out = {}; const keys = d === null ? Object.keys(store[n]) : typeof d === "string" ? [d] : Array.isArray(d) ? d : Object.keys(d || {});
@@ -298,9 +300,11 @@ const POPUP_STUB = `(() => {
     remove(k, cb) { delete store[n][k]; setTimeout(() => cb && cb(), 0); },
   });
   window.__popupStore = store;
+  window.__popupNav = {};
   window.chrome = { runtime: { lastError: null, getManifest: () => ({ version: "2.3.0" }), sendMessage() {}, onMessage: { addListener() {} } },
     storage: { sync: area("sync"), local: area("local"), onChanged: { addListener() {} } },
-    tabs: { query: (q, cb) => cb([{ id: 1, url: "https://www.youtube.com/@veritasium/videos", active: true }]), sendMessage: (id, m, cb) => cb && cb(), create() {} } };
+    tabs: { query: (q, cb) => cb([{ id: 1, url: ${JSON.stringify(url)}, active: true }]), sendMessage: (id, m, cb) => setTimeout(() => cb && cb(${JSON.stringify(reply)}), 0),
+      update: (id, o) => { window.__popupNav.update = o.url; }, create: (o) => { window.__popupNav.create = o.url; } } };
 })();`;
 
 // ---- the checks --------------------------------------------------------------------------
@@ -745,7 +749,7 @@ const PUBLIC = [
       const p = await b.newPage();
       const errors = [];
       p.on("pageerror", (e) => errors.push(String(e.message).slice(0, 100)));
-      await p.evaluateOnNewDocument(POPUP_STUB);
+      await p.evaluateOnNewDocument(popupStub());
       await p.goto("file:///" + path.join(ROOT, "popup.html").replace(/\\/g, "/"), { waitUntil: "load" });
       await sleep(800);
       const r = await p.evaluate(() => {
@@ -767,12 +771,147 @@ const PUBLIC = [
     },
   },
   {
+    // Home, a video, and off YouTube: the popup's button goes somewhere the panel works instead of greying out.
+    name: "popup: on Home, on a video and off YouTube, the button goes somewhere",
+    run: async (b) => {
+      const problems = [], detail = {};
+      for (const [name, url, reply, label, goes] of [
+        ["Home", "https://www.youtube.com/", null, "Search your Watch Later", ["update", "https://www.youtube.com/playlist?list=WL#needle="]],
+        ["video", "https://www.youtube.com/watch?v=NiCgcUTL9_Q", { path: "/@veritasium", name: "Veritasium" }, "Search Veritasium's videos", ["update", "https://www.youtube.com/@veritasium/videos#needle="]],
+        ["off YouTube", "https://example.com/", null, "Open YouTube", ["create", "https://www.youtube.com/"]],
+      ]) {
+        const p = await b.newPage();
+        const errors = [];
+        p.on("pageerror", (e) => errors.push(String(e.message).slice(0, 100)));
+        await p.evaluateOnNewDocument(popupStub(url, reply));
+        await p.goto("file:///" + path.join(ROOT, "popup.html").replace(/\\/g, "/"), { waitUntil: "load" });
+        await sleep(500);
+        const r = await p.evaluate(() => ({ text: document.getElementById("open").textContent, disabled: document.getElementById("open").disabled, also: document.getElementById("also").children.length }));
+        await p.click("#open");
+        await sleep(300);
+        const nav = await p.evaluate(() => window.__popupNav);
+        await p.close();
+        detail[name] = { ...r, nav };
+        for (const e of errors) problems.push(`${name}: error ${e}`);
+        if (r.text !== label) problems.push(`${name}: the button says "${r.text}"`);
+        if (r.disabled) problems.push(`${name}: the button is greyed out`);
+        if (nav[goes[0]] !== goes[1]) problems.push(`${name}: it goes to ${nav[goes[0]] || "nowhere"}`);
+        if (name !== "off YouTube" && r.also !== 2) problems.push(`${name}: ${r.also} other lists offered`);
+      }
+      return { problems, detail: JSON.stringify(detail) };
+    },
+  },
+  {
+    // What those buttons rely on, live: "#needle=" opens the panel as the page lands, and a video names its channel.
+    name: "arriving with #needle= opens the panel; a video names its channel",
+    run: async (b) => {
+      const problems = [];
+      const p = await open(b, "/@veritasium/videos#needle=", "full");
+      let c = null;
+      for (let t = 0; t < 30000 && !(c && c.of >= 60); t += 1000) { await sleep(1000); c = await panelCount(p); }
+      await p.close();
+      if (!c) problems.push("the panel did not open on arrival");
+      else if (c.shown !== c.of) problems.push(`it opened filtered: ${c.shown} of ${c.of}`);
+      const w = await open(b, "/watch?v=NiCgcUTL9_Q", "full");
+      const ch = await w.evaluate(() => window.__needleCheck.pageVideoChannel && window.__needleCheck.pageVideoChannel());
+      await w.close();
+      if (!ch || !/^\/(@[^/]+|channel\/UC[\w-]{22})$/.test(ch.path) || !ch.name) problems.push("the video page did not name its channel: " + JSON.stringify(ch));
+      return { problems, detail: JSON.stringify({ opened: c, channel: ch }) };
+    },
+  },
+  {
+    // YouTube's hover preview is one page-wide player: on search results it used to start a promoted video across the
+    // panel's header. Open, the panel keeps it away; closed, YouTube has it back.
+    name: "search results: YouTube's hover preview stays off the panel",
+    run: async (b) => {
+      const p = await open(b, "/results?search_query=black+holes", "full");
+      if (!(await openPanel(p, 20))) { await p.close(); return { problems: ["the panel did not open"] }; }
+      await p.click(".ytcs-wrap input");
+      await p.keyboard.type("<20m ", { delay: 40 });
+      await sleep(3000);
+      const r = await p.evaluate(() => {
+        const head = document.querySelector(".ytcs-head").getBoundingClientRect();
+        const onTop = [0.1, 0.3, 0.5].every((fx) => { const e = document.elementFromPoint(head.left + head.width * fx, head.top + head.height / 2); return !!(e && e.closest(".ytcs-head")); });
+        const v = document.querySelector("#video-preview");
+        return { onTop, previewShown: !!v && getComputedStyle(v).display !== "none" && !!v.querySelector("video") };
+      });
+      await p.evaluate(() => document.querySelector(".ytcs-restore").click());
+      await sleep(500);
+      const after = await p.evaluate(() => document.documentElement.hasAttribute("data-ytcs-panel"));
+      await p.close();
+      const problems = [];
+      if (!r.onTop) problems.push("something of YouTube's covers the panel's header");
+      if (r.previewShown) problems.push("YouTube's hover preview is showing with the panel open");
+      if (after) problems.push("closed, the page still keeps YouTube's preview off");
+      return { problems, detail: JSON.stringify({ ...r, keptOffAfterClose: after }) };
+    },
+  },
+  {
+    // Until the panel has been opened once, the button says what it does on the page, then folds back to the mark.
+    name: "needle button: says what it does until the panel is first opened",
+    run: async (b) => {
+      const problems = [], detail = {};
+      const look = (p) => p.evaluate(() => { const l = document.querySelector(".ytcs-launcher"); return l ? { intro: l.classList.contains("ytcs-launcher-intro"), text: l.textContent.trim(), width: Math.round(l.getBoundingClientRect().width) } : null; });
+      // A browser that has never used Needle: the checks before this one opened the panel on channels, which leaves
+      // them cached, and a cached channel is how the button knows someone has used it.
+      const wipe = await open(b, "/");
+      await wipe.evaluate(() => new Promise((r) => { const q = indexedDB.deleteDatabase("ytcs"); q.onsuccess = q.onerror = q.onblocked = () => r(); }));
+      await wipe.close();
+      for (const [url, label] of [["/playlist?list=PL8dPuuaLjXtPAJr1ysd5yGIyiSFuh0mIL", "Search this playlist"], ["/@veritasium/videos", "Search this channel"]]) {
+        const p = await open(b, url, "full");
+        await sleep(600);
+        const first = await look(p);
+        detail[label] = first;
+        if (!first) { problems.push(`${url}: no button`); await p.close(); continue; }
+        if (!first.intro || first.text !== label) problems.push(`${url}: the button says "${first.text}"`);
+        if (label === "Search this channel") {
+          await sleep(9500);
+          const later = await look(p);
+          detail.later = later;
+          if (later.intro || later.text) problems.push("it did not fold back to the mark");
+          // opening the panel is remembered, so it never labels itself again
+          await p.click(".ytcs-launcher");
+          await sleep(1500);
+          const kept = await p.evaluate(() => window.__needleCheck.store.local.launcherIntro || {});
+          detail.kept = kept;
+          if (!kept.opened) problems.push("opening the panel was not remembered");
+          // and the channel it read is saved, which is what tells the button below someone has used Needle
+          const cached = () => p.evaluate(() => new Promise((r) => { const q = indexedDB.open("ytcs"); q.onsuccess = () => { try { const g = q.result.transaction("catalogs").objectStore("catalogs").getAllKeys(); g.onsuccess = () => r(g.result); g.onerror = () => r([]); } catch (e) { r([]); } }; q.onerror = () => r([]); }));
+          for (let t = 0; t < 40000; t += 1000) { if ((await cached()).some((k) => String(k).startsWith("/"))) break; await sleep(1000); }
+          detail.cached = (await cached()).filter((k) => String(k).startsWith("/"));
+        }
+        await p.close();
+      }
+      // once opened, after three pages, or for anyone who used Needle before 2.3.1 (the rating ask counted a use):
+      // just the mark, and the last is remembered so it is not worked out again
+      for (const [why, local] of [["opened before", { launcherIntro: { shown: 1, opened: true } }], ["shown three times", { launcherIntro: { shown: 3, opened: false } }],
+        ["used before this version", { rateAsk: { opens: 4, days: 2, done: false } }]]) {
+        const p = await open(b, "/playlist?list=PL8dPuuaLjXtPAJr1ysd5yGIyiSFuh0mIL", { local });
+        await sleep(800);
+        const s = await look(p);
+        const kept = await p.evaluate(() => window.__needleCheck.store.local.launcherIntro || {});
+        await p.close();
+        if (!s || s.intro || s.text) problems.push(`${why}: it still labels itself`);
+        if (why === "used before this version" && !kept.opened) problems.push("a past use was not taken as having opened it");
+      }
+      // and someone whose only trace is a channel the panel read: the channel just opened above is now cached
+      {
+        const p = await open(b, "/playlist?list=PL8dPuuaLjXtPAJr1ysd5yGIyiSFuh0mIL", "full");
+        await sleep(800);
+        const s = await look(p);
+        await p.close();
+        if (!s || s.intro || s.text) problems.push("with a channel already read: it still labels itself");
+      }
+      return { problems, detail: JSON.stringify(detail) };
+    },
+  },
+  {
     name: "popup: a muted list exports, and imports back",
     run: async (b) => {
       const p = await b.newPage();
       const errors = [];
       p.on("pageerror", (e) => errors.push(String(e.message).slice(0, 100)));
-      await p.evaluateOnNewDocument(POPUP_STUB);
+      await p.evaluateOnNewDocument(popupStub());
       await p.evaluateOnNewDocument(() => { const real = URL.createObjectURL; URL.createObjectURL = (blob) => { window.__blob = blob; return real.call(URL, blob); }; HTMLAnchorElement.prototype.click = function () { window.__downloaded = this.download; }; });
       await p.goto("file:///" + path.join(ROOT, "popup.html").replace(/\\/g, "/"), { waitUntil: "load" });
       await sleep(600);
@@ -1060,6 +1199,32 @@ const SIGNED_IN = [
       const problems = await muteThroughMenu(p, "video", "Mute channel");
       await p.close();
       return { problems };
+    },
+  },
+  {
+    // Every main-thread freeze over 50ms while a word is typed into your whole history, deep reading on. Over 150ms is
+    // a stall you can feel; drawing 600 cards on every key used to cost 273ms before off-screen cards were skipped.
+    name: "signed in: typing in your whole history stays smooth",
+    run: async (b) => {
+      const p = await open(b, "/feed/history", { sync: { deepHistory: true } });
+      if (!(await openPanel(p, 20))) { await p.close(); return { problems: ["the panel did not open"] }; }
+      let last = -1, since = Date.now();
+      for (const t0 = Date.now(); Date.now() - t0 < 120000; await sleep(500)) {
+        const c = await panelCount(p);
+        const n = c ? c.of : 0;
+        if (n !== last) { last = n; since = Date.now(); } else if (n > 0 && Date.now() - since > 3000) break;
+      }
+      await p.click(".ytcs-wrap input");
+      await p.evaluate(() => { window.__long = []; new PerformanceObserver((l) => { for (const e of l.getEntries()) window.__long.push(Math.round(e.duration)); }).observe({ type: "longtask" }); });
+      await p.keyboard.type("minecraft", { delay: 120 });
+      await sleep(1500);
+      const r = { videos: last, longTasks: await p.evaluate(() => window.__long), result: await panelCount(p) };
+      await p.close();
+      const worst = Math.max(0, ...r.longTasks);
+      const problems = [];
+      if (r.videos < 1000) problems.push(`only ${r.videos} videos read: too few to measure`);
+      if (worst > 150) problems.push(`typing froze the page for ${worst}ms`);
+      return { problems, detail: JSON.stringify({ ...r, worst }) };
     },
   },
   {
