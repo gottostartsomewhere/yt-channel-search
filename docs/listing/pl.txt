@@ -1,11 +1,20 @@
+Nowość: wycisz kanał prosto z menu ⋮ samego YouTube, a zniknie z wyszukiwania, strony głównej, subskrypcji i Shorts. Opcja YouTube, by nie polecać kanału, nigdy nie dotyczy wyszukiwania. Ta tak.
+
 Wyszukiwarka YouTube nie wie, co już obejrzano, nie filtruje według długości ani wyświetleń, a wyszukiwanie na kanale sprawdza tylko tytuły. Needle to naprawia, bezpośrednio w pasku wyszukiwania YouTube.
+
+WYCISZ KANAŁ, WSZĘDZIE
+- „Mute channel everywhere” w menu ⋮ każdego filmu
+- Znika z wyszukiwania, strony głównej, subskrypcji i z filmów obok tego, który oglądasz
+- Znikają też jego Shorts, na stronie głównej i w wyszukiwaniu
+- Wyciszanie słów: znika każdy film, który ma jedno z nich w tytule
+- Cofnij od razu, wyłącz wyciszenie kiedy chcesz i przenieś listę z innego blokera
 
 W PASKU WYSZUKIWANIA
 - Filmy z Do obejrzenia, polubione i historia pojawiają się już podczas pisania
 - Wpisuj filtry: <20m, >100k, unwatched, date:week, @kanał
 - in:playlists przeszukuje wszystkie zapisane playlisty
 - is:fresh ukrywa to, co było już Ci pokazane
-- Obserwuj wyszukiwanie, wycisz kanał i zobacz na każdej miniaturze, co już obejrzano
+- Obserwuj wyszukiwanie i zobacz na każdej miniaturze, co już obejrzałeś
 
 PRZESZUKIWANIE KANAŁU
 Kliknij przycisk z igłą na karcie Filmy dowolnego kanału. Needle czyta wszystkie filmy kanału, a nie tylko te już załadowane.
@@ -19,6 +28,7 @@ HISTORIA I DO OBEJRZENIA
 - Znajdź ten jeden obejrzany film bez przewijania bez końca
 
 DOWOLNA PLAYLISTA I TWOJE SUBSKRYPCJE
+- Ile trwa dowolna playlista i ile z niej jeszcze zostało
 - Przeszukuj i filtruj dowolną playlistę, swoją lub cudzą, w całości
 - Twoje subskrypcje, tylko nieobejrzane i krótsze niż 20 minut
 - Przyciemnij lub ukryj obejrzane filmy na stronie głównej i w Subskrypcjach

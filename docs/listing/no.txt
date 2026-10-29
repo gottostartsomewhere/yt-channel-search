@@ -1,11 +1,20 @@
+Nytt: demp en kanal rett fra YouTubes egen ⋮-meny, så forsvinner den fra søk, startsiden, abonnementer og Shorts. YouTubes valg om å ikke anbefale en kanal rører aldri søket. Dette gjør det.
+
 YouTube-søket vet ikke hva du allerede har sett, kan ikke filtrere på lengde eller visninger, og søk i en kanal ser bare på titler. Needle fikser det, rett i søkefeltet til YouTube.
+
+DEMP EN KANAL, OVERALT
+- «Mute channel everywhere» i ⋮-menyen på hver video
+- Borte fra søk, startsiden, abonnementer og videoene ved siden av den du ser på
+- Shorts-ene forsvinner også, på startsiden og i søk
+- Demp ord: alle videoer med ett av dem i tittelen forsvinner
+- Angre med en gang, opphev dempingen når du vil, og hent listen din fra en annen blokkerer
 
 I SØKEFELTET
 - Se senere, videoer du har likt og historikken din dukker opp mens du skriver
 - Skriv filtre: <20m, >100k, unwatched, date:week, @kanal
 - in:playlists søker i alle spillelister du har lagret
 - is:fresh skjuler det du allerede har fått vist
-- Følg et søk, demp en kanal og se på hvert miniatyrbilde hva du allerede har sett
+- Følg et søk, og se hva du har sett på hvert miniatyrbilde
 
 SØK I EN KANAL
 Trykk på nåleknappen i fanen Videoer i en hvilken som helst kanal. Needle leser alle kanalens videoer, ikke bare de som allerede er lastet inn.
@@ -19,6 +28,7 @@ HISTORIKKEN DIN OG SE SENERE
 - Finn den videoen du vet at du har sett, uten å scrolle i det uendelige
 
 HVILKEN SOM HELST SPILLELISTE OG ABONNEMENTENE DINE
+- Hvor lang en spilleliste er, og hvor mye du har igjen
 - Søk og filtrer i hvilken som helst spilleliste, din egen eller andres, hele
 - Abonnementene dine, bare det du ikke har sett og under 20 minutter
 - Demp eller skjul videoer du allerede har sett, på startsiden og under Abonnementer

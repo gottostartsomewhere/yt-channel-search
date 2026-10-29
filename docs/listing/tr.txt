@@ -1,11 +1,20 @@
+Yeni: Bir kanalı YouTube'un kendi ⋮ menüsünden sessize alın; arama, ana sayfa, abonelikler ve Shorts'tan kaybolsun. YouTube'un kanalı önermeme seçeneği aramayı hiç etkilemez. Bu etkiler.
+
 YouTube araması neleri zaten izlediğinizi bilmez, süreye veya görüntülenmeye göre filtreleyemez ve kanal içi arama yalnızca başlıklara bakar. Needle bunu doğrudan YouTube'un arama çubuğunda çözer.
+
+BİR KANALI SESSİZE ALIN, HER YERDE
+- Her videonun ⋮ menüsünde "Mute channel everywhere"
+- Aramadan, ana sayfadan, aboneliklerden ve izlediğiniz videonun yanındakilerden kaybolur
+- Shorts videoları da gider, ana sayfada ve aramada
+- Kelimeleri sessize alın: başlığında bunlardan biri geçen her video kaybolur
+- Hemen geri alın, istediğiniz zaman sessizden çıkarın ve listenizi başka bir engelleyiciden getirin
 
 ARAMA ÇUBUĞUNDA
 - Daha sonra izle, beğendiğiniz videolar ve geçmişiniz siz yazarken görünür
 - Filtre yazın: <20m, >100k, unwatched, date:week, @kanal
 - in:playlists kaydettiğiniz tüm oynatma listelerinde arar
 - is:fresh size daha önce gösterilenleri gizler
-- Bir aramayı takip edin, bir kanalı sessize alın ve her küçük resimde neyi izlediğinizi görün
+- Bir aramayı takip edin ve her küçük resimde neyi izlediğinizi görün
 
 BİR KANALDA ARAYIN
 Herhangi bir kanalın Videolar sekmesindeki iğne düğmesine basın. Needle yalnızca yüklenenleri değil, kanalın tüm videolarını okur.
@@ -19,6 +28,7 @@ GEÇMİŞİNİZ VE DAHA SONRA İZLE
 - İzlediğinizden emin olduğunuz o videoyu, durmadan kaydırmadan bulun
 
 HER OYNATMA LİSTESİ VE ABONELİKLERİNİZ
+- Herhangi bir oynatma listesinin uzunluğu ve ne kadarının kaldığı
 - Sizin ya da başkasının, her oynatma listesini baştan sona arayın ve filtreleyin
 - Abonelikleriniz, yalnızca izlenmemiş ve 20 dakikadan kısa olanlar
 - Ana Sayfa'da ve Abonelikler'de zaten izlediğiniz videoları soluklaştırın veya gizleyin

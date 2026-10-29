@@ -1,11 +1,20 @@
+Újdonság: némíts el egy csatornát a YouTube saját ⋮ menüjéből, és eltűnik a keresésből, a kezdőlapról, a feliratkozásokból és a Shorts-ból. A YouTube lehetősége, hogy ne ajánljon egy csatornát, a keresést soha nem érinti. Ez igen.
+
 A YouTube keresője nem tudja, mit néztél már meg, nem tud szűrni hosszra vagy megtekintésekre, a csatornán belüli keresés pedig csak a címeket nézi. A Needle ezt közvetlenül a YouTube keresősávjában javítja.
+
+NÉMÍTS EL EGY CSATORNÁT, MINDENHOL
+- „Mute channel everywhere” minden videó ⋮ menüjében
+- Eltűnik a keresésből, a kezdőlapról, a feliratkozásokból és a nézett videó melletti videók közül
+- A Shorts-jai is eltűnnek, a kezdőlapról és a keresésből
+- Szavak némítása: minden videó eltűnik, amelynek címében szerepel valamelyikük
+- Azonnal visszavonhatod, bármikor feloldhatod, és átviheted a listádat egy másik blokkolóból
 
 A KERESŐSÁVBAN
 - A Megnézendő, a kedvelt videók és az előzmények már gépelés közben megjelennek
 - Írj szűrőket: <20m, >100k, unwatched, date:week, @csatorna
 - Az in:playlists az összes mentett lejátszási listádban keres
 - Az is:fresh elrejti, amit már mutattak neked
-- Kövess egy keresést, némíts el egy csatornát, és minden bélyegképen lásd, mit néztél már meg
+- Kövess egy keresést, és minden bélyegképen lásd, mit néztél már meg
 
 KERESÉS EGY CSATORNÁBAN
 Nyomd meg a tű gombot bármely csatorna Videók lapján. A Needle a csatorna összes videóját beolvassa, nem csak a már betöltötteket.
@@ -19,6 +28,7 @@ ELŐZMÉNYEK ÉS MEGNÉZENDŐ
 - Találd meg azt a videót, amit biztosan láttál, végtelen görgetés nélkül
 
 BÁRMELY LEJÁTSZÁSI LISTA ÉS A FELIRATKOZÁSAID
+- Bármely lejátszási lista hossza, és hogy mennyi van még hátra belőle
 - Keress és szűrj bármely lejátszási listában, a sajátodban vagy másokéban, teljes egészében
 - A feliratkozásaid, csak a meg nem nézett és 20 percnél rövidebb videók
 - Halványítsd el vagy rejtsd el a már megnézett videókat a Kezdőlapon és a Feliratkozásokban

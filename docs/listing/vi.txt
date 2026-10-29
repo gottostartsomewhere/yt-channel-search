@@ -1,11 +1,20 @@
+Mới: ẩn một kênh ngay từ menu ⋮ của chính YouTube, kênh đó sẽ biến mất khỏi tìm kiếm, Trang chủ, Kênh đăng ký và Shorts. Tùy chọn không đề xuất kênh của YouTube không bao giờ tác động đến tìm kiếm. Cái này thì có.
+
 Tìm kiếm của YouTube không biết bạn đã xem gì, không lọc được theo thời lượng hay lượt xem, và tìm kiếm trong kênh chỉ khớp tiêu đề. Needle khắc phục điều đó ngay trong thanh tìm kiếm của YouTube.
+
+ẨN MỘT KÊNH, Ở MỌI NƠI
+- "Mute channel everywhere" trong menu ⋮ của mọi video
+- Biến mất khỏi tìm kiếm, Trang chủ, Kênh đăng ký và các video bên cạnh video bạn đang xem
+- Shorts của kênh cũng biến mất, ở Trang chủ và trong tìm kiếm
+- Ẩn theo từ: mọi video có một trong các từ đó trong tiêu đề sẽ biến mất
+- Hoàn tác ngay, bỏ ẩn bất cứ lúc nào, và chuyển danh sách từ trình chặn khác sang
 
 TRONG THANH TÌM KIẾM
 - Video Xem sau, video đã thích và lịch sử xem hiện ra ngay khi bạn gõ
 - Gõ bộ lọc: <20m, >100k, unwatched, date:week, @kênh
 - in:playlists tìm trong mọi danh sách phát bạn đã lưu
 - is:fresh ẩn những gì đã từng hiển thị cho bạn
-- Theo dõi một tìm kiếm, ẩn một kênh và thấy video đã xem trên mọi hình thu nhỏ
+- Theo dõi một tìm kiếm, và thấy trên mỗi hình thu nhỏ những gì bạn đã xem
 
 TÌM TRONG MỘT KÊNH
 Nhấn nút cây kim ở thẻ Video của bất kỳ kênh nào. Needle đọc mọi video của kênh, không chỉ những video đã tải.
@@ -19,6 +28,7 @@ LỊCH SỬ XEM VÀ XEM SAU
 - Tìm video bạn chắc chắn đã xem mà không cần cuộn mãi
 
 MỌI DANH SÁCH PHÁT VÀ KÊNH ĐĂNG KÝ
+- Danh sách phát bất kỳ dài bao lâu, và bạn còn lại bao nhiêu
 - Tìm và lọc bất kỳ danh sách phát nào, của bạn hay của người khác, toàn bộ
 - Kênh đăng ký của bạn, chỉ video chưa xem và dưới 20 phút
 - Làm mờ hoặc ẩn video đã xem trên Trang chủ và Kênh đăng ký

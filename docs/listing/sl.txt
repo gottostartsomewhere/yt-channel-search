@@ -1,11 +1,20 @@
+Novo: utišajte kanal kar iz YouTubovega menija ⋮ in izgine iz iskanja, domače strani, naročnin in Shorts. YouTubova možnost, da kanala ne priporoča, nikoli ne vpliva na iskanje. Ta vpliva.
+
 Iskanje v YouTubu ne ve, kaj ste si že ogledali, ne filtrira po dolžini ali ogledih, iskanje znotraj kanala pa pregleda le naslove. Needle to popravi neposredno v iskalni vrstici YouTuba.
+
+UTIŠAJTE KANAL, POVSOD
+- »Mute channel everywhere« v meniju ⋮ vsakega videoposnetka
+- Izgine iz iskanja, z domače strani, iz naročnin in iz videoposnetkov ob tistem, ki ga gledate
+- Izginejo tudi njegovi Shorts, na domači strani in v iskanju
+- Utišajte besede: izgine vsak videoposnetek, ki ima v naslovu katero od njih
+- Takoj razveljavite, kadar koli prekličite utišanje in prenesite seznam iz drugega blokatorja
 
 V ISKALNI VRSTICI
 - Ogled pozneje, videoposnetki, ki so vam všeč, in zgodovina se prikažejo že med tipkanjem
 - Vpišite filtre: <20m, >100k, unwatched, date:week, @kanal
 - in:playlists išče po vseh seznamih predvajanja, ki ste jih shranili
 - is:fresh skrije, kar vam je bilo že prikazano
-- Spremljajte iskanje, utišajte kanal in na vsaki sličici vidite, kaj ste si že ogledali
+- Spremljajte iskanje in na vsaki sličici vidite, kaj ste si že ogledali
 
 ISKANJE PO KANALU
 Kliknite gumb z iglo na zavihku Videoposnetki katerega koli kanala. Needle prebere vse videoposnetke kanala, ne le že naloženih.
@@ -19,6 +28,7 @@ ZGODOVINA IN OGLED POZNEJE
 - Poiščite tisti videoposnetek, ki ste si ga zagotovo ogledali, brez neskončnega drsenja
 
 KATERI KOLI SEZNAM PREDVAJANJA IN VAŠE NAROČNINE
+- Kako dolg je kateri koli seznam predvajanja in koliko vam ga še ostane
 - Iščite in filtrirajte kateri koli seznam predvajanja, svoj ali tuj, v celoti
 - Vaše naročnine, samo neogledano in krajše od 20 minut
 - Zatemnite ali skrijte že ogledane videoposnetke na domači strani in v Naročninah

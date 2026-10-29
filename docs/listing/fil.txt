@@ -1,11 +1,20 @@
+Bago: i-mute ang isang channel mula mismo sa ⋮ menu ng YouTube, at mawawala ito sa search, Home, Subscriptions at Shorts. Ang opsyon ng YouTube na huwag irekomenda ang channel ay hindi kailanman umaabot sa search. Ito, oo.
+
 Hindi alam ng search ng YouTube kung ano na ang napanood mo, hindi ito makapag-filter ayon sa haba o views, at ang paghahanap sa loob ng channel ay tumitingin lang sa mga pamagat. Inaayos iyan ng Needle, mismo sa search bar ng YouTube.
+
+I-MUTE ANG CHANNEL, KAHIT SAAN
+- "Mute channel everywhere" sa ⋮ menu ng bawat video
+- Wala na sa search, Home, Subscriptions at sa mga video katabi ng pinapanood mo
+- Mawawala rin ang Shorts nito, sa Home at sa search
+- I-mute ang mga salita: mawawala ang anumang video na may isa sa mga ito sa pamagat
+- I-undo agad, i-unmute anumang oras, at ilipat ang listahan mo mula sa ibang blocker
 
 SA SEARCH BAR
 - Lumalabas ang Panoorin Mamaya, mga ni-like mo at ang iyong history habang nagta-type ka
 - Mag-type ng filter: <20m, >100k, unwatched, date:week, @channel
 - Hinahanap ng in:playlists ang bawat playlist na na-save mo
 - Itinatago ng is:fresh ang mga naipakita na sa iyo
-- Sundan ang isang search, i-mute ang isang channel at makita sa bawat thumbnail kung ano na ang napanood mo
+- I-follow ang isang search, at makita sa bawat thumbnail kung ano na ang napanood mo
 
 MAGHANAP SA ISANG CHANNEL
 Pindutin ang needle button sa Videos tab ng kahit anong channel. Binabasa ng Needle ang bawat video ng channel, hindi lang ang mga na-load na.
@@ -19,6 +28,7 @@ ANG IYONG HISTORY AT PANOORIN MAMAYA
 - Hanapin ang video na sigurado kang napanood mo na, nang hindi nag-i-scroll nang walang katapusan
 
 KAHIT ANONG PLAYLIST AT ANG IYONG MGA SUBSCRIPTION
+- Gaano kahaba ang anumang playlist, at gaano pa ang natitira sa iyo
 - Maghanap at mag-filter sa kahit anong playlist, sa iyo man o sa iba, buo
 - Ang iyong mga subscription, ang hindi mo pa napapanood at wala pang 20 minuto lang
 - Palabuin o itago ang mga napanood mo na sa Home at sa Mga Subscription

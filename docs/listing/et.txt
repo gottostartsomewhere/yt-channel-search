@@ -1,11 +1,20 @@
+Uus: vaigista kanal otse YouTube'i enda ⋮ menüüst ja see kaob otsingust, avalehelt, tellimustest ja Shortsist. YouTube'i valik kanalit mitte soovitada ei puuduta kunagi otsingut. See siin puudutab.
+
 YouTube'i otsing ei tea, mida sa oled juba vaadanud, ei oska filtreerida pikkuse ega vaatamiste järgi ja kanalisisene otsing vaatab ainult pealkirju. Needle parandab selle otse YouTube'i otsinguribal.
+
+VAIGISTA KANAL, KÕIKJAL
+- „Mute channel everywhere“ iga video ⋮ menüüs
+- Kaob otsingust, avalehelt, tellimustest ja videote kõrvalt, mida parasjagu vaatad
+- Ka selle Shortsid kaovad, avalehel ja otsingus
+- Vaigista sõnu: iga video, mille pealkirjas on mõni neist, kaob
+- Võta kohe tagasi, lõpeta vaigistus millal tahes ja too nimekiri üle mõnest teisest blokeerijast
 
 OTSINGURIBAL
 - Vaata hiljem, meeldinud videod ja ajalugu ilmuvad juba trükkimise ajal
 - Sisesta filtreid: <20m, >100k, unwatched, date:week, @kanal
 - in:playlists otsib kõigist sinu salvestatud esitusloenditest
 - is:fresh peidab selle, mida sulle on juba näidatud
-- Jälgi otsingut, vaigista kanal ja näe igal pisipildil, mida oled juba vaadanud
+- Jälgi otsingut ja näe igal pisipildil, mida oled juba vaadanud
 
 OTSI KANALIST
 Vajuta mis tahes kanali vahekaardil Videod nõelanuppu. Needle loeb kõik kanali videod, mitte ainult juba laaditud.
@@ -19,6 +28,7 @@ AJALUGU JA VAATA HILJEM
 - Leia see video, mida tead kindlalt vaadanud olevat, ilma lõputu kerimiseta
 
 MIS TAHES ESITUSLOEND JA SINU TELLIMUSED
+- Kui pikk on mis tahes esitusloend ja kui palju sul sellest veel jäänud on
 - Otsi ja filtreeri mis tahes esitusloendit, enda oma või kellegi teise oma, tervikuna
 - Sinu tellimused, ainult vaatamata ja alla 20 minuti
 - Tuhmista või peida juba vaadatud videod avalehel ja tellimustes

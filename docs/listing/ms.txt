@@ -1,11 +1,20 @@
+Baharu: senyapkan saluran terus dari menu ⋮ YouTube sendiri, dan ia hilang daripada carian, Laman Utama, Langganan dan Shorts. Pilihan YouTube untuk tidak mengesyorkan saluran tidak pernah menyentuh carian. Yang ini menyentuh.
+
 Carian YouTube tidak tahu apa yang anda sudah tonton, tidak boleh menapis mengikut tempoh atau tontonan, dan carian dalam saluran hanya memadankan tajuk. Needle membetulkannya, terus di dalam bar carian YouTube.
+
+SENYAPKAN SALURAN, DI MANA-MANA
+- "Mute channel everywhere" dalam menu ⋮ setiap video
+- Hilang daripada carian, Laman Utama, Langganan dan video di sebelah video yang anda tonton
+- Shorts saluran itu juga hilang, di Laman Utama dan dalam carian
+- Senyapkan perkataan: mana-mana video yang tajuknya mengandungi salah satunya hilang
+- Buat asal serta-merta, nyahsenyap bila-bila masa, dan bawa senarai anda dari penyekat lain
 
 DALAM BAR CARIAN
 - Tonton Kemudian, video yang anda suka dan sejarah anda muncul semasa anda menaip
 - Taip penapis: <20m, >100k, unwatched, date:week, @saluran
 - in:playlists mencari dalam setiap senarai main yang anda simpan
 - is:fresh menyembunyikan apa yang sudah ditunjukkan kepada anda
-- Ikuti carian, senyapkan saluran dan lihat apa yang anda sudah tonton pada setiap lakaran kecil
+- Ikuti carian, dan lihat apa yang telah anda tonton pada setiap lakaran kecil
 
 CARI DALAM SALURAN
 Tekan butang jarum pada tab Video mana-mana saluran. Needle membaca setiap video saluran itu, bukan hanya yang sudah dimuatkan.
@@ -19,6 +28,7 @@ SEJARAH DAN TONTON KEMUDIAN
 - Cari video yang anda pasti pernah tonton, tanpa menatal tanpa henti
 
 MANA-MANA SENARAI MAIN DAN LANGGANAN ANDA
+- Berapa panjang mana-mana senarai main, dan berapa yang tinggal
 - Cari dan tapis mana-mana senarai main, milik anda atau orang lain, sepenuhnya
 - Langganan anda, hanya yang belum ditonton dan bawah 20 minit
 - Malapkan atau sembunyikan video yang sudah anda tonton di Laman Utama dan Langganan

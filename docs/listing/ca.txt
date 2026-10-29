@@ -1,11 +1,20 @@
+Novetat: silencia un canal des del menú ⋮ del mateix YouTube i desapareix de la cerca, l'inici, les subscripcions i els Shorts. L'opció de YouTube de no recomanar un canal no toca mai la cerca. Aquesta sí.
+
 La cerca de YouTube no sap què ja has vist, no filtra per durada ni per visualitzacions, i la cerca dins d'un canal només mira els títols. Needle ho arregla, directament a la barra de cerca de YouTube.
+
+SILENCIA UN CANAL, A TOT ARREU
+- «Mute channel everywhere» al menú ⋮ de cada vídeo
+- Desapareix de la cerca, l'inici, les subscripcions i els vídeos al costat del que estàs mirant
+- També se'n van els seus Shorts, a l'inici i a la cerca
+- Silencia paraules: qualsevol vídeo que en tingui una al títol desapareix
+- Desfés-ho a l'instant, deixa de silenciar quan vulguis i porta la teva llista d'un altre bloquejador
 
 A LA BARRA DE CERCA
 - Els teus vídeos de Mira més tard, els que t'agraden i l'historial apareixen mentre escrius
 - Escriu filtres: <20m, >100k, unwatched, date:week, @canal
 - in:playlists cerca a totes les llistes de reproducció que has desat
 - is:fresh amaga el que ja se t'ha mostrat
-- Segueix una cerca, silencia un canal i mira a cada miniatura què ja has vist
+- Segueix una cerca i mira què has vist a cada miniatura
 
 CERCAR EN UN CANAL
 Prem el botó de l'agulla a la pestanya Vídeos de qualsevol canal. Needle llegeix tots els vídeos del canal, no només els que ja s'han carregat.
@@ -19,6 +28,7 @@ EL TEU HISTORIAL I MIRA MÉS TARD
 - Troba aquell vídeo que saps que vas veure, sense haver de desplaçar-te sense fi
 
 QUALSEVOL LLISTA I LES TEVES SUBSCRIPCIONS
+- Quant dura qualsevol llista de reproducció i quant te'n queda
 - Cerca i filtra qualsevol llista de reproducció, teva o d'una altra persona, sencera
 - Les teves subscripcions, només el que no has vist i de menys de 20 minuts
 - Atenua o amaga els vídeos que ja has vist a Inici i a Subscripcions

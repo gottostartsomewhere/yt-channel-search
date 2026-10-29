@@ -1,11 +1,20 @@
+Mpya: nyamazisha chaneli moja kwa moja kutoka menyu ya ⋮ ya YouTube yenyewe, nayo itatoweka kwenye utafutaji, Mwanzo, Usajili na Shorts. Chaguo la YouTube la kutopendekeza chaneli haligusi utafutaji kamwe. Hili linagusa.
+
 Utafutaji wa YouTube haujui ulichokwisha kutazama, hauwezi kuchuja kwa urefu au idadi ya watazamaji, na utafutaji ndani ya chaneli huangalia vichwa tu. Needle hurekebisha hilo, moja kwa moja kwenye upau wa kutafuta wa YouTube.
+
+NYAMAZISHA CHANELI, KILA MAHALI
+- "Mute channel everywhere" kwenye menyu ya ⋮ ya kila video
+- Inatoweka kwenye utafutaji, Mwanzo, Usajili na video zilizo kando ya unayotazama
+- Shorts zake pia zinaondoka, kwenye Mwanzo na kwenye utafutaji
+- Nyamazisha maneno: video yoyote yenye mojawapo kwenye kichwa chake inatoweka
+- Tendua papo hapo, ondoa unyamazishaji wakati wowote, na leta orodha yako kutoka kizuizi kingine
 
 KWENYE UPAU WA KUTAFUTA
 - Tazama Baadaye, video ulizopenda na historia yako huonekana unapoandika
 - Andika vichujio: <20m, >100k, unwatched, date:week, @chaneli
 - in:playlists hutafuta katika kila orodha ya kucheza uliyohifadhi
 - is:fresh huficha ulichokwisha kuonyeshwa
-- Fuatilia utafutaji, nyamazisha chaneli na uone kwenye kila picha ndogo ulichokwisha kutazama
+- Fuatilia utafutaji, na uone kwenye kila picha ndogo ulichokwisha kutazama
 
 TAFUTA NDANI YA CHANELI
 Bonyeza kitufe cha sindano kwenye kichupo cha Video cha chaneli yoyote. Needle husoma kila video ya chaneli, si zile zilizopakiwa tu.
@@ -19,6 +28,7 @@ HISTORIA YAKO NA TAZAMA BAADAYE
 - Pata ile video unayojua kwa hakika uliitazama, bila kusogeza bila mwisho
 
 ORODHA YOYOTE YA KUCHEZA NA USAJILI WAKO
+- Urefu wa orodha yoyote ya kucheza, na kiasi kilichobaki kwako
 - Tafuta na uchuje orodha yoyote ya kucheza, yako au ya mtu mwingine, yote
 - Usajili wako, zile ambazo hujatazama na zilizo chini ya dakika 20 tu
 - Fifisha au ficha video ulizokwisha kutazama kwenye Mwanzo na Usajili

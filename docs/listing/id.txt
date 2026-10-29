@@ -1,11 +1,20 @@
+Baru: bisukan channel langsung dari menu ⋮ milik YouTube, dan channel itu hilang dari pencarian, Beranda, Langganan, dan Shorts. Opsi YouTube untuk tidak merekomendasikan channel tidak pernah menyentuh pencarian. Yang ini menyentuh.
+
 Pencarian YouTube tidak tahu apa yang sudah kamu tonton, tidak bisa memfilter menurut durasi atau jumlah tayangan, dan pencarian di dalam channel hanya mencocokkan judul. Needle memperbaikinya, langsung di bilah pencarian YouTube.
+
+BISUKAN CHANNEL, DI MANA SAJA
+- "Mute channel everywhere" di menu ⋮ setiap video
+- Hilang dari pencarian, Beranda, Langganan, dan video di samping yang sedang kamu tonton
+- Shorts-nya juga hilang, di Beranda dan di pencarian
+- Bisukan kata: video apa pun yang judulnya memuat salah satunya akan hilang
+- Urungkan seketika, batalkan bisu kapan saja, dan bawa daftarmu dari pemblokir lain
 
 DI BILAH PENCARIAN
 - Video Tonton Nanti, video yang kamu sukai, dan riwayatmu muncul saat kamu mengetik
 - Ketik filter: <20m, >100k, unwatched, date:week, @channel
 - in:playlists mencari di semua playlist yang kamu simpan
 - is:fresh menyembunyikan apa yang sudah pernah ditampilkan kepadamu
-- Ikuti sebuah pencarian, bisukan channel, dan lihat video yang sudah kamu tonton di setiap thumbnail
+- Ikuti pencarian, dan lihat apa yang sudah kamu tonton di setiap thumbnail
 
 CARI DI DALAM CHANNEL
 Tekan tombol jarum di tab Video channel mana pun. Needle membaca semua video channel itu, bukan hanya yang sudah dimuat.
@@ -19,6 +28,7 @@ RIWAYAT DAN TONTON NANTI
 - Temukan video yang kamu yakin pernah ditonton, tanpa menggulir tanpa akhir
 
 PLAYLIST APA PUN DAN SUBSCRIPTION KAMU
+- Berapa lama playlist apa pun, dan berapa yang tersisa untukmu
 - Cari dan filter playlist apa pun, milikmu atau milik orang lain, seluruhnya
 - Subscription kamu, hanya yang belum ditonton dan di bawah 20 menit
 - Redupkan atau sembunyikan video yang sudah kamu tonton di Beranda dan Subscription

@@ -1,11 +1,20 @@
+Novedad: silencia un canal desde el propio menú ⋮ de YouTube y desaparece de la búsqueda, la página principal, las suscripciones y los Shorts. La opción de YouTube de no recomendar un canal nunca afecta la búsqueda. Esta sí.
+
 La búsqueda de YouTube no sabe lo que ya viste, no filtra por duración ni por vistas, y la búsqueda dentro de un canal solo revisa los títulos. Needle lo soluciona, directamente en la barra de búsqueda de YouTube.
+
+SILENCIA UN CANAL, EN TODAS PARTES
+- "Mute channel everywhere" en el menú ⋮ de cada video
+- Desaparece de la búsqueda, la página principal, las suscripciones y los videos junto al que estás viendo
+- Sus Shorts también se van, en la página principal y en la búsqueda
+- Silencia palabras: cualquier video con una de ellas en el título desaparece
+- Deshaz al instante, deja de silenciar cuando quieras y trae tu lista desde otro bloqueador
 
 EN LA BARRA DE BÚSQUEDA
 - Tus videos de Ver más tarde, los que te gustaron y tu historial aparecen mientras escribes
 - Escribe filtros: <20m, >100k, unwatched, date:week, @canal
 - in:playlists busca en todas las playlists que guardaste
 - is:fresh oculta lo que ya se te mostró
-- Sigue una búsqueda, silencia un canal y ve lo que ya viste en cada miniatura
+- Sigue una búsqueda y mira lo que ya viste en cada miniatura
 
 BUSCAR EN UN CANAL
 Haz clic en el botón de la aguja en la pestaña Videos de cualquier canal. Lee todos los videos del canal, no solo los que ya cargaron.
@@ -19,6 +28,7 @@ TU HISTORIAL Y VER MÁS TARDE
 - Encuentra ese video que sabes que viste, sin tener que desplazarte
 
 CUALQUIER PLAYLIST Y TUS SUSCRIPCIONES
+- Cuánto dura cualquier lista de reproducción y cuánto te queda
 - Busca y filtra cualquier playlist, tuya o de otra persona, completa
 - Tus suscripciones, solo lo que no viste y de menos de 20 minutos
 - Atenúa u oculta los videos que ya viste en Principal y en Suscripciones

@@ -1,11 +1,20 @@
+Neu: Schalte einen Kanal direkt im ⋮-Menü von YouTube stumm, und er verschwindet aus der Suche, der Startseite, den Abos und Shorts. YouTubes Option, einen Kanal nicht mehr zu empfehlen, wirkt nie auf die Suche. Das hier schon.
+
 Die YouTube-Suche weiß nicht, was du schon gesehen hast, filtert nicht nach Länge oder Aufrufen, und die Suche in einem Kanal durchsucht nur Titel. Needle behebt das, direkt in der Suchleiste von YouTube.
+
+EINEN KANAL STUMMSCHALTEN, ÜBERALL
+- „Mute channel everywhere“ im ⋮-Menü jedes Videos
+- Weg aus der Suche, der Startseite, den Abos und den Videos neben dem, das du gerade schaust
+- Seine Shorts verschwinden auch, auf der Startseite und in der Suche
+- Wörter stummschalten: Jedes Video mit einem davon im Titel verschwindet
+- Sofort rückgängig machen, jederzeit wieder einblenden und eine Liste aus einem anderen Blocker übernehmen
 
 IN DER SUCHLEISTE
 - Deine Videos aus Später ansehen, deine Likes und dein Verlauf erscheinen schon beim Tippen
 - Tippe Filter ein: <20m, >100k, unwatched, date:week, @kanal
 - in:playlists durchsucht jede Playlist, die du gespeichert hast
 - is:fresh blendet aus, was dir schon einmal angezeigt wurde
-- Folge einer Suche, schalte einen Kanal stumm und sieh auf jedem Thumbnail, was du schon gesehen hast
+- Folge einer Suche und sieh auf jedem Thumbnail, was du schon gesehen hast
 
 EINEN KANAL DURCHSUCHEN
 Klick auf den Nadel-Button im Tab Videos eines beliebigen Kanals. Needle liest jedes Video des Kanals, nicht nur die bereits geladenen.
@@ -19,6 +28,7 @@ DEIN VERLAUF UND SPÄTER ANSEHEN
 - Finde das Video, das du ganz sicher schon gesehen hast, ohne endlos zu scrollen
 
 JEDE PLAYLIST UND DEINE ABOS
+- Wie lang jede Playlist ist und wie viel du noch vor dir hast
 - Durchsuche und filtere jede Playlist, deine oder fremde, komplett
 - Deine Abos, nur Ungesehenes unter 20 Minuten
 - Dunkle bereits gesehene Videos auf der Startseite und unter Abos ab oder blende sie aus

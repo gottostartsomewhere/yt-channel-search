@@ -1,11 +1,20 @@
+Novo: utišajte kanal iz samog YouTubeova izbornika ⋮ i nestaje iz pretraživanja, početne stranice, pretplata i Shorts videozapisa. YouTubeova opcija da ne preporučuje kanal nikad ne utječe na pretraživanje. Ova utječe.
+
 YouTube pretraživanje ne zna što ste već gledali, ne filtrira po trajanju ni pregledima, a pretraživanje unutar kanala gleda samo naslove. Needle to rješava izravno u traci za pretraživanje YouTubea.
+
+UTIŠAJTE KANAL, POSVUDA
+- „Mute channel everywhere” u izborniku ⋮ svakog videozapisa
+- Nestaje iz pretraživanja, s početne stranice, iz pretplata i iz videozapisa pored onog koji gledate
+- Nestaju i njegovi Shorts, na početnoj stranici i u pretraživanju
+- Utišajte riječi: svaki videozapis s jednom od njih u naslovu nestaje
+- Odmah poništite, ukinite utišavanje kad god želite i prenesite popis iz drugog blokatora
 
 U TRACI ZA PRETRAŽIVANJE
 - Gledaj kasnije, videozapisi koji vam se sviđaju i povijest pojavljuju se dok tipkate
 - Upišite filtre: <20m, >100k, unwatched, date:week, @kanal
 - in:playlists pretražuje sve popise za reprodukciju koje ste spremili
 - is:fresh skriva ono što vam je već prikazano
-- Pratite pretraživanje, utišajte kanal i vidite na svakoj minijaturi što ste već gledali
+- Pratite pretraživanje i na svakoj minijaturi vidite što ste već gledali
 
 PRETRAŽIVANJE KANALA
 Kliknite gumb s iglom na kartici Videozapisi bilo kojeg kanala. Needle čita sve videozapise kanala, ne samo već učitane.
@@ -19,6 +28,7 @@ POVIJEST I GLEDAJ KASNIJE
 - Pronađite onaj videozapis koji ste sigurno gledali, bez beskonačnog pomicanja
 
 BILO KOJI POPIS ZA REPRODUKCIJU I VAŠE PRETPLATE
+- Koliko traje bilo koji popis za reprodukciju i koliko vam je od njega ostalo
 - Pretražujte i filtrirajte bilo koji popis za reprodukciju, svoj ili tuđi, cijeli
 - Vaše pretplate, samo neodgledano i kraće od 20 minuta
 - Zatamnite ili sakrijte već odgledane videozapise na Početnoj i u Pretplatama

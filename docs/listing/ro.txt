@@ -1,11 +1,20 @@
+Nou: ascunde un canal direct din meniul ⋮ al YouTube, iar acesta dispare din căutare, pagina principală, abonamente și Shorts. Opțiunea YouTube de a nu recomanda un canal nu atinge niciodată căutarea. Aceasta da.
+
 Căutarea YouTube nu știe ce ai văzut deja, nu filtrează după durată sau vizionări, iar căutarea într-un canal se uită doar la titluri. Needle rezolvă asta direct în bara de căutare YouTube.
+
+ASCUNDE UN CANAL, PESTE TOT
+- „Mute channel everywhere” în meniul ⋮ al fiecărui videoclip
+- Dispare din căutare, pagina principală, abonamente și videoclipurile de lângă cel pe care îl urmărești
+- Dispar și Shorts-urile lui, pe pagina principală și în căutare
+- Ascunde cuvinte: orice videoclip cu unul dintre ele în titlu dispare
+- Anulează imediat, readu-l oricând și adu-ți lista dintr-un alt blocant
 
 ÎN BARA DE CĂUTARE
 - Vizionează mai târziu, videoclipurile apreciate și istoricul apar chiar în timp ce tastezi
 - Tastează filtre: <20m, >100k, unwatched, date:week, @canal
 - in:playlists caută în toate playlisturile pe care le-ai salvat
 - is:fresh ascunde ce ți s-a arătat deja
-- Urmărește o căutare, dezactivează sunetul unui canal și vezi pe fiecare miniatură ce ai văzut deja
+- Urmărește o căutare și vezi pe fiecare miniatură ce ai văzut deja
 
 CAUTĂ ÎNTR-UN CANAL
 Apasă butonul cu ac din fila Videoclipuri a oricărui canal. Needle citește toate videoclipurile canalului, nu doar pe cele deja încărcate.
@@ -19,6 +28,7 @@ ISTORICUL ȘI VIZIONEAZĂ MAI TÂRZIU
 - Găsește acel videoclip pe care știi sigur că l-ai văzut, fără derulare la nesfârșit
 
 ORICE PLAYLIST ȘI ABONAMENTELE TALE
+- Cât durează orice playlist și cât ți-a mai rămas din el
 - Caută și filtrează orice playlist, al tău sau al altcuiva, în întregime
 - Abonamentele tale, doar ce n-ai văzut și sub 20 de minute
 - Estompează sau ascunde videoclipurile deja văzute pe Pagina principală și în Abonamente

@@ -1,11 +1,20 @@
+Nytt: tysta en kanal direkt från YouTubes egen ⋮-meny, så försvinner den från sökningen, startsidan, prenumerationer och Shorts. YouTubes val att inte rekommendera en kanal påverkar aldrig sökningen. Det här gör det.
+
 YouTubes sökning vet inte vad du redan har sett, kan inte filtrera på längd eller visningar, och sökning i en kanal tittar bara på titlar. Needle fixar det, direkt i YouTubes sökfält.
+
+TYSTA EN KANAL, ÖVERALLT
+- ”Mute channel everywhere” i ⋮-menyn på varje video
+- Borta från sökningen, startsidan, prenumerationer och videorna bredvid den du tittar på
+- Dess Shorts försvinner också, på startsidan och i sökningen
+- Tysta ord: alla videor med ett av dem i titeln försvinner
+- Ångra direkt, slå av tystningen när du vill och ta med din lista från en annan blockerare
 
 I SÖKFÄLTET
 - Titta senare, videor du gillat och din historik dyker upp medan du skriver
 - Skriv filter: <20m, >100k, unwatched, date:week, @kanal
 - in:playlists söker i alla spellistor du har sparat
 - is:fresh döljer det du redan har visats
-- Följ en sökning, tysta en kanal och se på varje miniatyr vad du redan har sett
+- Följ en sökning och se på varje miniatyr vad du redan har sett
 
 SÖK I EN KANAL
 Tryck på nålknappen på fliken Videor i vilken kanal som helst. Needle läser alla kanalens videor, inte bara de som redan laddats.
@@ -19,6 +28,7 @@ DIN HISTORIK OCH TITTA SENARE
 - Hitta den där videon du vet att du har sett, utan att scrolla i evighet
 
 VILKEN SPELLISTA SOM HELST OCH DINA PRENUMERATIONER
+- Hur lång en spellista är och hur mycket du har kvar
 - Sök och filtrera i vilken spellista som helst, din egen eller någon annans, hela
 - Dina prenumerationer, bara det du inte sett och under 20 minuter
 - Tona ned eller dölj videor du redan har sett på startsidan och under Prenumerationer

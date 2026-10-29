@@ -1,11 +1,20 @@
+Novinka: ztlumte kanál přímo z nabídky ⋮ na YouTube a zmizí z vyhledávání, domovské stránky, odběrů i Shorts. Volba YouTube nedoporučovat kanál vyhledávání nikdy neovlivní. Tohle ano.
+
 Vyhledávání na YouTube neví, co jste už viděli, neumí filtrovat podle délky ani zhlédnutí a hledání v kanálu prochází jen názvy. Needle to opravuje přímo ve vyhledávacím řádku YouTube.
+
+ZTLUMTE KANÁL, VŠUDE
+- „Mute channel everywhere“ v nabídce ⋮ u každého videa
+- Zmizí z vyhledávání, domovské stránky, odběrů i z videí vedle toho, které sledujete
+- Zmizí i jeho Shorts, na domovské stránce i ve vyhledávání
+- Ztlumení slov: každé video, které má takové slovo v názvu, zmizí
+- Okamžitě vraťte zpět, kdykoli zrušte ztlumení a přeneste seznam z jiného blokovače
 
 VE VYHLEDÁVACÍM ŘÁDKU
 - Videa z Na později, videa, která se vám líbí, a historie se zobrazují už při psaní
 - Pište filtry: <20m, >100k, unwatched, date:week, @kanál
 - in:playlists prohledá všechny playlisty, které jste si uložili
 - is:fresh skryje to, co vám už bylo ukázáno
-- Sledujte vyhledávání, ztlumte kanál a na každé miniatuře uvidíte, co už jste viděli
+- Sledujte vyhledávání a na každé miniatuře uvidíte, co jste už viděli
 
 HLEDÁNÍ V KANÁLU
 Klikněte na tlačítko s jehlou na kartě Videa libovolného kanálu. Needle načte všechna videa kanálu, nejen ta už načtená.
@@ -19,6 +28,7 @@ HISTORIE A NA POZDĚJI
 - Najděte to video, které jste určitě viděli, bez nekonečného posouvání
 
 LIBOVOLNÝ PLAYLIST A VAŠE ODBĚRY
+- Jak dlouhý je jakýkoli playlist a kolik vám z něj zbývá
 - Prohledávejte a filtrujte libovolný playlist, svůj i cizí, celý
 - Vaše odběry, jen nezhlédnutá videa kratší než 20 minut
 - Ztlumte nebo skryjte už zhlédnutá videa na domovské stránce a v Odběrech

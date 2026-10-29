@@ -1,11 +1,20 @@
+Uutta: mykistä kanava suoraan YouTuben omasta ⋮-valikosta, niin se katoaa hausta, etusivulta, tilauksista ja Shortsista. YouTuben valinta jättää kanava suosittelematta ei koske koskaan hakua. Tämä koskee.
+
 YouTuben haku ei tiedä, mitä olet jo katsonut, ei osaa suodattaa pituuden tai katselukertojen mukaan, ja kanavan sisäinen haku katsoo vain otsikoita. Needle korjaa tämän suoraan YouTuben hakukentässä.
+
+MYKISTÄ KANAVA, KAIKKIALLA
+- ”Mute channel everywhere” jokaisen videon ⋮-valikossa
+- Poissa hausta, etusivulta, tilauksista ja katsomasi videon vierestä
+- Myös sen Shortsit katoavat, etusivulta ja hausta
+- Mykistä sanoja: jokainen video, jonka otsikossa on jokin niistä, katoaa
+- Kumoa heti, poista mykistys milloin vain ja tuo lista toisesta estotyökalusta
 
 HAKUKENTÄSSÄ
 - Katso myöhemmin, tykkäämäsi videot ja historiasi näkyvät jo kirjoittaessa
 - Kirjoita suodattimia: <20m, >100k, unwatched, date:week, @kanava
 - in:playlists hakee kaikista tallentamistasi soittolistoista
 - is:fresh piilottaa sen, mitä sinulle on jo näytetty
-- Seuraa hakua, mykistä kanava ja näe jokaisesta pikkukuvasta, mitä olet jo katsonut
+- Seuraa hakua ja näe jokaisesta pikkukuvasta, mitä olet jo katsonut
 
 HAE KANAVALTA
 Paina neulapainiketta minkä tahansa kanavan Videot-välilehdellä. Needle lukee kanavan kaikki videot, ei vain jo ladattuja.
@@ -19,6 +28,7 @@ HISTORIA JA KATSO MYÖHEMMIN
 - Löydä se video, jonka tiedät katsoneesi, ilman loputonta vierittämistä
 
 MIKÄ TAHANSA SOITTOLISTA JA TILAUKSESI
+- Kuinka pitkä mikä tahansa soittolista on ja paljonko siitä on jäljellä
 - Hae ja suodata mitä tahansa soittolistaa, omaasi tai jonkun toisen, kokonaan
 - Tilauksesi, vain katsomattomat ja alle 20 minuutin videot
 - Himmennä tai piilota jo katsotut videot etusivulla ja Tilauksissa

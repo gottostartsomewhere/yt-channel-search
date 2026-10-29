@@ -1,11 +1,20 @@
+Nouveau : mettez une chaîne en sourdine depuis le menu ⋮ de YouTube lui-même, et elle disparaît de la recherche, de l'accueil, des abonnements et des Shorts. L'option de YouTube pour ne plus recommander une chaîne ne touche jamais la recherche. Celle-ci, si.
+
 La recherche YouTube ne sait pas ce que vous avez déjà vu, ne filtre ni par durée ni par nombre de vues, et la recherche dans une chaîne ne regarde que les titres. Needle corrige tout ça, directement dans la barre de recherche de YouTube.
+
+METTRE UNE CHAÎNE EN SOURDINE, PARTOUT
+- « Mute channel everywhere » dans le menu ⋮ de chaque vidéo
+- Disparaît de la recherche, de l'accueil, des abonnements et des vidéos à côté de celle que vous regardez
+- Ses Shorts disparaissent aussi, sur l'accueil et dans la recherche
+- Mots en sourdine : toute vidéo qui en contient un dans son titre disparaît
+- Annulez tout de suite, rétablissez quand vous voulez, et importez votre liste depuis un autre bloqueur
 
 DANS LA BARRE DE RECHERCHE
 - Vos vidéos À regarder plus tard, vos J'aime et votre historique s'affichent pendant que vous tapez
 - Tapez des filtres : <20m, >100k, unwatched, date:week, @chaîne
 - in:playlists cherche dans toutes les playlists que vous avez enregistrées
 - is:fresh masque ce qu'on vous a déjà montré
-- Suivez une recherche, masquez une chaîne et voyez sur chaque miniature ce que vous avez déjà regardé
+- Suivez une recherche et voyez ce que vous avez déjà vu sur chaque miniature
 
 CHERCHER DANS UNE CHAÎNE
 Cliquez sur le bouton aiguille dans l'onglet Vidéos de n'importe quelle chaîne. Needle lit toutes les vidéos de la chaîne, pas seulement celles déjà chargées.
@@ -19,6 +28,7 @@ VOTRE HISTORIQUE ET À REGARDER PLUS TARD
 - Retrouvez cette vidéo que vous savez avoir vue, sans faire défiler pendant des heures
 
 N'IMPORTE QUELLE PLAYLIST ET VOS ABONNEMENTS
+- La durée de n'importe quelle playlist, et ce qu'il vous en reste
 - Cherchez et filtrez n'importe quelle playlist, la vôtre ou celle d'un autre, en entier
 - Vos abonnements, uniquement les vidéos non vues de moins de 20 minutes
 - Estompez ou masquez les vidéos déjà vues sur l'Accueil et dans Abonnements

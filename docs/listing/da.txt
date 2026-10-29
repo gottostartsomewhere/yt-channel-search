@@ -1,11 +1,20 @@
+Nyt: gør en kanal tavs fra YouTubes egen ⋮-menu, og den forsvinder fra søgning, forsiden, abonnementer og Shorts. YouTubes valg om ikke at anbefale en kanal rører aldrig søgningen. Det gør det her.
+
 YouTubes søgning ved ikke, hvad du allerede har set, kan ikke filtrere efter længde eller visninger, og søgning i en kanal kigger kun på titler. Needle løser det, direkte i YouTubes søgefelt.
+
+GØR EN KANAL TAVS, OVERALT
+- "Mute channel everywhere" i ⋮-menuen på hver video
+- Væk fra søgning, forsiden, abonnementer og videoerne ved siden af den, du ser
+- Dens Shorts forsvinder også, på forsiden og i søgningen
+- Gør ord tavse: enhver video med et af dem i titlen forsvinder
+- Fortryd med det samme, slå tavsheden fra når som helst, og hent en liste fra en anden blocker
 
 I SØGEFELTET
 - Se senere, videoer du har synes godt om, og din historik dukker op, mens du skriver
 - Skriv filtre: <20m, >100k, unwatched, date:week, @kanal
 - in:playlists søger i alle playlister, du har gemt
 - is:fresh skjuler det, du allerede har fået vist
-- Følg en søgning, slå en kanal fra og se på hver miniature, hvad du allerede har set
+- Følg en søgning, og se hvad du har set, på hvert miniaturebillede
 
 SØG I EN KANAL
 Tryk på nåleknappen på fanen Videoer i en hvilken som helst kanal. Needle læser alle kanalens videoer, ikke kun dem, der allerede er indlæst.
@@ -19,6 +28,7 @@ DIN HISTORIK OG SE SENERE
 - Find den video, du ved, du har set, uden at scrolle i det uendelige
 
 ENHVER PLAYLISTE OG DINE ABONNEMENTER
+- Hvor lang en playliste er, og hvor meget du mangler
 - Søg og filtrer i enhver playliste, din egen eller andres, hele vejen igennem
 - Dine abonnementer, kun det, du ikke har set, og under 20 minutter
 - Dæmp eller skjul videoer, du allerede har set, på forsiden og under Abonnementer

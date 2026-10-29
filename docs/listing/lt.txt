@@ -1,11 +1,20 @@
+Nauja: nutildykite kanalą tiesiai iš paties YouTube ⋮ meniu ir jis dingsta iš paieškos, pagrindinio puslapio, prenumeratų ir Shorts. YouTube parinktis nerekomenduoti kanalo niekada nepaveikia paieškos. Ši paveikia.
+
 YouTube paieška nežino, ką jau žiūrėjote, negali filtruoti pagal trukmę ar peržiūras, o paieška kanale tikrina tik pavadinimus. Needle tai ištaiso tiesiai YouTube paieškos juostoje.
+
+NUTILDYKITE KANALĄ, VISUR
+- „Mute channel everywhere“ kiekvieno vaizdo įrašo ⋮ meniu
+- Dingsta iš paieškos, pagrindinio puslapio, prenumeratų ir vaizdo įrašų šalia to, kurį žiūrite
+- Dingsta ir jo Shorts, pagrindiniame puslapyje ir paieškoje
+- Nutildykite žodžius: dingsta kiekvienas vaizdo įrašas, kurio pavadinime yra vienas iš jų
+- Atšaukite iškart, atšaukite nutildymą bet kada ir perkelkite sąrašą iš kito blokavimo įrankio
 
 PAIEŠKOS JUOSTOJE
 - Žiūrėti vėliau, patikę vaizdo įrašai ir istorija pasirodo jau rašant
 - Rašykite filtrus: <20m, >100k, unwatched, date:week, @kanalas
 - in:playlists ieško visuose jūsų išsaugotuose grojaraščiuose
 - is:fresh paslepia tai, kas jums jau buvo parodyta
-- Sekite paiešką, nutildykite kanalą ir kiekvienoje miniatiūroje matykite, ką jau žiūrėjote
+- Sekite paiešką ir kiekvienoje miniatiūroje matykite, ką jau žiūrėjote
 
 PAIEŠKA KANALE
 Paspauskite adatos mygtuką bet kurio kanalo skirtuke Vaizdo įrašai. Needle perskaito visus kanalo vaizdo įrašus, ne tik jau įkeltus.
@@ -19,6 +28,7 @@ ISTORIJA IR ŽIŪRĖTI VĖLIAU
 - Raskite tą vaizdo įrašą, kurį tikrai žiūrėjote, be begalinio slinkimo
 
 BET KURIS GROJARAŠTIS IR JŪSŲ PRENUMERATOS
+- Kiek trunka bet kuris grojaraštis ir kiek jo jums dar liko
 - Ieškokite ir filtruokite bet kurį grojaraštį, savo ar svetimą, visą
 - Jūsų prenumeratos, tik nežiūrėti ir trumpesni nei 20 minučių vaizdo įrašai
 - Pritemdykite arba paslėpkite jau žiūrėtus vaizdo įrašus pagrindiniame puslapyje ir Prenumeratose
