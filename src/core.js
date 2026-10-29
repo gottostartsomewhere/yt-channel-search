@@ -1087,9 +1087,23 @@ function mapPlaylistVideo(pvr) {
     publishedText,
     days: parseRelativeDays(publishedText),
     progress: overlayProgress(pvr),
-    // Deleted and private videos stay in the list as unplayable stubs.
-    playable: pvr.isPlayable !== false,
+    playable: playlistVideoPlayable(pvr),
   };
+}
+
+/*
+ * Deleted and private videos stay in a list as stubs. YouTube once marked them
+ * isPlayable: false; by October 2026 it drops the field from them instead, and
+ * every live entry says isPlayable: true. Reading only "false" let all three of
+ * a real Watch Later's dead videos ([Deleted video], [Private video] x2) through
+ * as playable, so "Find deleted videos" said there were none. A stub also has
+ * no length and no channel, which an upcoming premiere (unplayable for now,
+ * not dead) always has, and none of it depends on the title's language.
+ */
+function playlistVideoPlayable(pvr) {
+  if (pvr.isPlayable === true) return true;
+  if (pvr.isPlayable === false) return false;
+  return !!(pvr.lengthText || pvr.lengthSeconds || pvr.shortBylineText);
 }
 
 // With a list id, each video also keeps the removal its own menu offers for that
