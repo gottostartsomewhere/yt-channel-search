@@ -1,6 +1,6 @@
 # Privacy policy
 
-Last updated: 28 October 2026
+Last updated: 30 October 2026
 
 Needle for YouTube (formerly Channel Search+ for YouTube) does not collect,
 transmit, or sell any data. There is no server, no account, and no analytics. Everything the extension reads stays
@@ -298,6 +298,7 @@ All of it is local to your browser. Nothing leaves your machine.
 | Public video lists of the channels you watch most | IndexedDB, with the catalogues above | So `in:channels` can search them |
 | Searches you follow | `chrome.storage.sync` | So they follow you between your own browsers |
 | Channels and words you muted | `chrome.storage.local` | Kept on this device; sync is too small for a long list |
+| Whether the panel has ever been opened, and on how many pages the needle button has said what it does | `chrome.storage.local` | So the button explains itself to someone new, a few times at most, and never to anyone who has used it |
 | Your settings | `chrome.storage.sync` | So they persist |
 
 Watch progress is the most personal of these, so to be exact about it: YouTube
@@ -359,11 +360,12 @@ the browser, so it is gated by you.
 
 ## Source
 
-The extension is free, with no paid tier, and its full source is published under
-the PolyForm Noncommercial licence. Every claim above can be checked against the
-code at <https://github.com/gottostartsomewhere/yt-channel-search>.
+The extension is free, with no paid tier, and licensed under the PolyForm
+Noncommercial licence. Its code ships as plain, readable JavaScript inside the
+extension itself, nothing compiled or hidden, so every claim above can be
+checked against what your browser actually runs.
 
 ## Contact
 
-Open an issue at
-<https://github.com/gottostartsomewhere/yt-channel-search/issues>.
+Use the developer contact on Needle's Chrome Web Store listing:
+<https://chromewebstore.google.com/detail/needle-for-youtube-channe/magofcbhfhpfabphcldhodhgehhclokc>.

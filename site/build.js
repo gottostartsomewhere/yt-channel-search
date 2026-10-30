@@ -16,8 +16,9 @@ const UPDATED = "2026-09-30";
 const HOME_UPDATED = "2026-10-29";
 const longDate = (iso) => new Date(iso + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 const STORE = "https://chromewebstore.google.com/detail/needle-for-youtube-channe/magofcbhfhpfabphcldhodhgehhclokc";
-const REPO = "https://github.com/gottostartsomewhere/yt-channel-search";
-const PRIVACY = REPO + "/blob/main/PRIVACY.md";
+// The privacy policy is a page of this site, built from PRIVACY.md (see privacyPage): the code's repository is
+// private, and the store links here.
+const PRIVACY = BASE + "privacy/";
 const WALKTHROUGH = ""; // the full walkthrough on YouTube; the button hides while this is empty
 const GOOGLE_VERIFY = "wJhPw44jUD5iJfyrFXwTOOI03u5a8x-EcJHtOchnTqI"; // Search Console's HTML-tag code, just the content="..." value
 const OUT = path.join(__dirname, "public");
@@ -560,7 +561,6 @@ ${body}
     <nav>
       <a href="${root}#guides">Guides</a>
       <a href="${PRIVACY}">Privacy</a>
-      <a href="${REPO}">Source</a>
       <a href="${store(slug)}">Chrome Web Store</a>
     </nav>
   </div>
@@ -1031,6 +1031,69 @@ function byePage() {
   });
 }
 
+/*
+ * PRIVACY.md as a page. Just enough Markdown for that one file: headings (with the same anchors GitHub gave them,
+ * so links into a section keep working), paragraphs, lists, tables, links, bold and code.
+ */
+function markdown(md) {
+  const inline = (s) => esc(s)
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2">$1</a>')
+    .replace(/&lt;(https?:\/\/[^\s&]+)&gt;/g, '<a href="$1">$1</a>');
+  const anchor = (h) => h.toLowerCase().replace(/[^\p{L}\p{N}\s-]/gu, "").trim().replace(/\s+/g, "-");
+  const out = [];
+  for (const block of md.replace(/\r\n/g, "\n").trim().split(/\n\s*\n/)) {
+    const lines = block.split("\n");
+    if (/^# /.test(lines[0])) continue; // the page has its own h1
+    if (/^## /.test(lines[0])) { const h = lines[0].slice(3).trim(); out.push(`<h2 id="${anchor(h)}">${inline(h)}</h2>`); continue; }
+    if (lines.every((l) => /^\|/.test(l))) {
+      const cells = (l) => l.replace(/^\||\|$/g, "").split("|").map((c) => inline(c.trim()));
+      const [head, , ...rows] = lines;
+      out.push(`<div class="table"><table><thead><tr>${cells(head).map((c) => `<th>${c}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${cells(r).map((c) => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`);
+      continue;
+    }
+    if (/^- /.test(lines[0])) {
+      const items = [];
+      for (const l of lines) { if (/^- /.test(l)) items.push(l.slice(2)); else items[items.length - 1] += " " + l.trim(); }
+      out.push(`<ul>${items.map((i) => `<li>${inline(i)}</li>`).join("")}</ul>`);
+      continue;
+    }
+    out.push(`<p>${inline(lines.map((l) => l.trim()).join(" "))}</p>`);
+  }
+  return out.join("\n");
+}
+
+function privacyPage() {
+  const md = fs.readFileSync(path.join(__dirname, "..", "PRIVACY.md"), "utf8");
+  const updated = (md.match(/Last updated: ([^\n]+)/) || [])[1] || "";
+  const body = `
+<main>
+  <section class="band band-article">
+    <div class="article privacy">
+      ${eyebrow("", "Privacy")}
+      <h1>Privacy policy<span class="red">.</span></h1>
+      ${markdown(md.replace(/^Last updated:[^\n]*\n/m, "")).replace(/^<p>/, `<p class="mono small">Updated ${esc(updated)}</p>\n<p>`)}
+    </div>
+  </section>
+</main>
+<style>
+  .privacy .table { overflow-x: auto; margin: 18px 0; }
+  .privacy table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  .privacy th, .privacy td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--line-2); }
+  .privacy th { color: var(--text); font-weight: 600; }
+  .privacy code { font-size: .92em; }
+</style>`;
+  return shell({
+    slug: "privacy",
+    title: "Privacy policy | Needle for YouTube",
+    description: "What Needle for YouTube reads, what it keeps in your browser, and what it never does. No account, no analytics, nothing collected.",
+    body,
+    jsonld: { "@context": "https://schema.org", "@type": "WebPage", name: "Privacy policy", url: PRIVACY },
+    depth: 1,
+  });
+}
+
 function notFound() {
   return shell({
     slug: "",
@@ -1059,6 +1122,7 @@ write("404.html", notFound());
 write("welcome/index.html", welcomePage());
 write("bye/index.html", byePage());
 write("f/index.html", sharePage());
+write("privacy/index.html", privacyPage());
 write("robots.txt", `User-agent: *\nAllow: /\n\nSitemap: ${BASE}sitemap.xml\n`);
 write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
